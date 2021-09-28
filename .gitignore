@@ -5,3 +5,4 @@ bhmbasket.Rproj
 man/
 *.html
 *.pdf
+.Rproj.user
