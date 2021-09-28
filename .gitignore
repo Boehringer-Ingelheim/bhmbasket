@@ -1,0 +1,7 @@
+inst/doc
+.Rhistory
+.Rproj.user/
+bhmbasket.Rproj
+man/
+*.html
+*.pdf
