@@ -444,10 +444,10 @@ getPostQuantiles <- function (
 #' see Details, Default: `10000`.
 #' If `n_mcmc_iterations` is present in `.GlobalEnv` and `missing(n_mcmc_iterations)`,
 #' the globally available value will be used.
-#' @param n_cores Argument is deprecated as of version 0.9.3.
+#' @param n_cores Argument is deprecated and does nothing as of version 0.9.3.
 #' A positive integer for the number of cores for the parallelization,
 #' Default: `1`
-#' @param seed Argument is deprecated as of version 0.9.3.
+#' @param seed Argument is deprecated and does nothing as of version 0.9.3.
 #' A numeric for the random seed, Default: `1`
 #' @param verbose A logical indicating whether messages should be printed, Default: `TRUE`
 #' @return An object of class `analysis_list`.
@@ -617,8 +617,8 @@ performAnalyses <- function (
 
   ## check for parallel backend
   if(!parallel.backend.registered()) {
-    message("\nCaution: No parallel backend detected for 'foreach' framework.",
-            " For execution in parallel, register a parallel backend,",
+    message("\nCaution: No parallel backend detected for the 'foreach' framework.",
+            " For execution in parallel, please register a parallel backend,",
             " e.g. with:\n",
             "   n_cores <- parallel::detectCores() - 1L\n",
             "   cl      <- parallel::makeCluster(n_cores)\n",
