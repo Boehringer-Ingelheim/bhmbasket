@@ -616,7 +616,7 @@ performAnalyses <- function (
   if (!is.logical(verbose))                               stop (error_verbose)
 
   ## check for parallel backend
-  if(parallel.backend.registered()) {
+  if(!parallel.backend.registered()) {
     message("\nCaution: No parallel backend detected for 'foreach' framework.",
             " For execution in parallel, register a parallel backend,",
             " e.g. with:\n",

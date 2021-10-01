@@ -93,6 +93,6 @@ parallel.backend.registered <- function () {
 
   }, warning = function (w) w)
 
-  return (inherits(x, "warning"))
+  return (!inherits(x, "warning"))
 
 }
