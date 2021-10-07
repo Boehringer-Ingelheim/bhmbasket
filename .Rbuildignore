@@ -3,6 +3,4 @@
 ^cran-comments\.md$
 devtools_script.R
 example.R
-.git
-devtools_script.R
-example.R
+

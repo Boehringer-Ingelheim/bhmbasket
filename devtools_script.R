@@ -27,7 +27,7 @@ devtools::build() # creates tar.gz file
 
 # rhub::platforms()
 results <- devtools::check_rhub(
-  platforms = c("ubuntu-gcc-devel", "macos-highsierra-release-cran",
+  platforms = c("ubuntu-gcc-devel", "macos-m1-bigsur-release",
                 "ubuntu-gcc-release", "windows-x86_64-devel"))
 results$cran_summary()
 ## copy-paste results summary to cran-comments.md

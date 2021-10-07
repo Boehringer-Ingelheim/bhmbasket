@@ -224,7 +224,6 @@ getPostQuantiles <- function (
 
   ## Run parallel loops
   ## prepare foreach loop over k
-  "%dopar%" <- foreach::"%dopar%"
 
   # if (isTRUE(all.equal(n_analyses, 1))) {
   #   n_cores <- 1L
@@ -397,19 +396,27 @@ getPostQuantiles <- function (
 
   })
 
-  invisible(utils::capture.output({
-
-    suppressMessages({
-
-      posterior_quantiles_list <- foreach::foreach(k = seq_len(n_analyses),
-                                                   .verbose  = FALSE,
-                                                   .packages = c("R2jags"),
-                                                   .export   = exported_stuff
-      ) %dopar% {eval(foreach_expression)}
-
-    })
-
-  }))
+  # invisible(utils::capture.output({
+  # 
+  #   suppressMessages({
+  # 
+  #     posterior_quantiles_list <- foreach::foreach(k = seq_len(n_analyses),
+  #                                                  .verbose  = FALSE,
+  #                                                  .packages = c("R2jags"),
+  #                                                  .export   = exported_stuff
+  #     ) %dopar% {eval(foreach_expression)}
+  # 
+  #   }, classes = c("message"))
+  # 
+  # }))
+  
+  "%dopar%" <- foreach::"%dopar%"
+  
+  posterior_quantiles_list <- foreach::foreach(
+    k = seq_len(n_analyses),
+    .verbose  = FALSE,
+    .packages = c("R2jags"),
+    .export   = exported_stuff) %dopar% {eval(foreach_expression)}
 
   return (posterior_quantiles_list)
 
@@ -616,19 +623,24 @@ performAnalyses <- function (
   if (!is.logical(verbose))                               stop (error_verbose)
 
   ## check for parallel backend
-  if(!parallel.backend.registered()) {
+  "%dopar%" <- foreach::"%dopar%"
+  if(!foreach::getDoParRegistered()) {
     message("\nCaution: No parallel backend detected for the 'foreach' framework.",
-            " For execution in parallel, please register a parallel backend,",
+            " For execution in parallel, please register a doPar parallel backend,",
             " e.g. with:\n",
             "   n_cores <- parallel::detectCores() - 1L\n",
             "   cl      <- parallel::makeCluster(n_cores)\n",
             "   doParallel::registerDoParallel(cl)\n")
+    
+    tt <- suppressWarnings(foreach::foreach(k = 1:2) %dopar% {k^k^k})
+    rm(tt)
+    
   }
 
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
   ## message to user
-  if (verbose) message(format(Sys.time(), "%d-%b-%y"), " Performing Analyses")
+  if (verbose) message(format(Sys.time(), "%d-%h-%Y"), " Performing Analyses")
 
   ## some housekeeping
   method_names <- sort(method_names)
@@ -789,8 +801,6 @@ performAnalyses <- function (
                           "applicable_previous_trials", "method_names", "method_quantiles_list",
                           "prior_parameters_list", "quantiles", "n_mcmc_iterations",
                           "getRowIndexOfVectorInMatrix")
-
-  "%dopar%"          <- foreach::"%dopar%"
 
   # if (identical(length(scenario_numbers), 1L)) {
   #   n_cores <- 1L
