@@ -1220,10 +1220,27 @@ getAllCohortNames <- function (
 
 ) {
 
-  post_names <- colnames(analyses_list[[1]]$quantiles_list[[1]][[1]])
-  indices    <- grep("p_", post_names)
-
-  return (post_names[indices])
+  # post_names <- colnames(analyses_list[[1]]$quantiles_list[[1]][[1]])
+  # indices    <- grep("p_", post_names)
+  # 
+  # return (post_names[indices])
+  
+  Reduce(intersect,
+         
+         sapply(analyses_list, function (x) {
+           
+           lapply(x$quantiles_list, function (y) {
+             
+             post_names <- Reduce(intersect, lapply(y, colnames))
+             indices    <- grep("p_", post_names)
+             
+             post_names[indices]
+             
+           })
+           
+         })
+         
+  )
 
 }
 

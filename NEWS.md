@@ -1,6 +1,12 @@
 # bhmbasket 0.9.3
 
-* Fixed a bug in continueRecruitment() that could result in an error message and prevent the function from running although the respective condition was met.
+## Fixed Bugs
+
+* Fixed a bug in continueRecruitment() that could result in an error message and prevent the function from running although all conditions were met.
+
+* Fixed a bug leading to an error messages in getEstimates(). It would occur if in a previous call of performAnalyses() differences between cohorts were calculated, but not in the current call of performAnalyses().
+
+## New & Altered Features
 
 * Registration of parallel backend is now the responsibility of the user to allow for flexibility. A message has been added 
 
