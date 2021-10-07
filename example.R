@@ -7,18 +7,18 @@ scenarios <- bhmbasket::simulateScenarios(
   response_rates_list = list(c(0.3, 0.4, 6),
                              c(0.1, 0.2, 6)),
   n_trials            = 1e4)
+# 
+# scenarios <- bhmbasket::simulateScenarios(
+#   n_subjects_list     = c(15, 15, 20),
+#   response_rates_list = list(c(0.3, 0.4, 6),
+#                              c(0.1, 0.2, 6)),
+#   n_trials            = 1e4)
 
-scenarios <- bhmbasket::simulateScenarios(
-  n_subjects_list     = c(15, 15, 20),
-  response_rates_list = list(c(0.3, 0.4, 6),
-                             c(0.1, 0.2, 6)),
-  n_trials            = 1e4)
-
-analyses <- bhmbasket::performAnalyses(
-  scenario_list    = scenarios,
-  method_names     = c("exnex_adj", "pooled", "stratified"),
-  calc_differences = matrix(c(1, 2, 3, 3), ncol = 2),
-  target_rates     = c(0.25, 0.45, 0.3))
+# analyses <- bhmbasket::performAnalyses(
+#   scenario_list    = scenarios,
+#   method_names     = c("exnex_adj", "pooled", "stratified"),
+#   calc_differences = matrix(c(1, 2, 3, 3), ncol = 2),
+#   target_rates     = c(0.25, 0.45, 0.3))
 
 analyses <- bhmbasket::performAnalyses(
   scenario_list    = scenarios,

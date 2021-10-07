@@ -75,24 +75,3 @@ is.single.positive.wholenumber <- function (x, tol = .Machine$double.eps^0.5) {
   return (is.single.wholenumber(x, tol = tol) && all(is.positive.wholenumber(x, tol = tol)))
 
 }
-
-### parallel backend ####
-
-parallel.backend.registered <- function () {
-
-  ## note: ::: operator not allowed in package
-  # exists("fun", where = foreach:::.foreachGlobals, inherits = FALSE)
-
-  ## note: foreach package issues this warning only once, but seems to work repeatedly in tryCatch
-  x <- tryCatch({
-
-    "%dopar%" <- foreach::"%dopar%"
-    foreach::foreach(k = 1:2) %dopar% {
-      return (k^k^k)
-    }
-
-  }, warning = function (w) w)
-
-  return (!inherits(x, "warning"))
-
-}
