@@ -3,8 +3,4 @@
 ^cran-comments\.md$
 devtools_script.R
 example.R
-<<<<<<< HEAD
 
-=======
-.git
->>>>>>> f08f721b87c305e272b9636d1be50bb68a886a2b
