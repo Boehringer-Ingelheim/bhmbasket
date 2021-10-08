@@ -3,3 +3,7 @@
 ^cran-comments\.md$
 devtools_script.R
 example.R
+<<<<<<< HEAD
+=======
+
+>>>>>>> 85fd7a6295ee6e1f74127f7a696dbd04170d266f
