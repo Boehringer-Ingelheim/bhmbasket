@@ -79,7 +79,8 @@ is.single.positive.wholenumber <- function (x, tol = .Machine$double.eps^0.5) {
 
 ### evidence levels
 
-check.evidence.levels <- function (evidence_levels, cohort_names, analyses_list) {
+check.evidence.levels <- function (evidence_levels,
+                                   cohort_names, analyses_list, error_evidence_levels) {
   
   if (!identical(length(evidence_levels), length(cohort_names))) stop(simpleError(
     "The 'evidence_levels' and the 'cohort_names' must have the same length"))

@@ -710,13 +710,15 @@ getGoDecisions <- function (
 
   if (any(!cohort_names %in% colnames(analyses_list[[1]]$quantiles_list[[1]][[1]]))) stop (
     simpleError("The specified cohorts do not match the cohorts analyzed in 'analyses_list'"))
-
+  
   if (is.list(evidence_levels)) {
     for (i in seq_along(evidence_levels)) {
-      check.evidence.levels(evidence_levels[[i]], cohort_names, analyses_list)
+      check.evidence.levels(evidence_levels[[i]],
+                            cohort_names, analyses_list, error_evidence_levels)
     }
   } else {
-    check.evidence.levels(evidence_levels, cohort_names, analyses_list)
+    check.evidence.levels(evidence_levels,
+                          cohort_names, analyses_list, error_evidence_levels)
   }
 
   check_boundary_rules <- tryCatch({
