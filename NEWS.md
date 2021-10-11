@@ -8,7 +8,7 @@
 
 ### New & Altered Features
 
-* Registration of parallel backend is now the responsibility of the user to allow for flexibility. A respective message is displayed in performAnalysis() if no parallel backend is registered.
+* Registration of parallel backend is now the responsibility of the user to allow for flexibility. A respective message is displayed in performAnalyses() if no parallel backend is registered.
 
 * Functions simulateScenarios() and performAnalyses() look up for their arguments 'n_trials' and 'n_mcmc_iterations', respectively, in the global environment if not provided by user.
 
