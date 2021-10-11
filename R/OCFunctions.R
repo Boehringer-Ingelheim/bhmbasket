@@ -713,10 +713,10 @@ getGoDecisions <- function (
 
   if (is.list(evidence_levels)) {
     for (i in seq_along(evidence_levels)) {
-      check.evidence.levels(evidence_levels[[i]])
+      check.evidence.levels(evidence_levels[[i]], cohort_names)
     }
   } else {
-    check.evidence.levels(evidence_levels)
+    check.evidence.levels(evidence_levels, cohort_names)
   }
 
   check_boundary_rules <- tryCatch({
