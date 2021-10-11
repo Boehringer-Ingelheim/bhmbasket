@@ -1,6 +1,6 @@
 ## Test environments
 - x86_64-w64-mingw32 (64-bit), R 4.0.5
-- x86_64-w64-mingw32 (64-bit), R Under development (unstable) (2021-09-09 r80873)
+- x86_64-w64-mingw32 (64-bit), R Under development (unstable) (2021-10-07 r81018)
 - R-hub ubuntu-gcc-devel (r-devel)
 - R-hub macos-m1-bigsur-release (r-release)
 - R-hub ubuntu-gcc-release (r-release)
