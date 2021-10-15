@@ -29,7 +29,7 @@ Depends:
     R (>= 3.5.0)
 Imports: 
     foreach,
-    R2jags
+    R2jags (>= 0.7-1)
 Suggests: 
     doParallel,
     parallel,
