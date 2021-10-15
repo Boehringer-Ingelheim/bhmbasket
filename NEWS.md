@@ -1,3 +1,9 @@
+# bhmbasket 0.9.4
+
+### Fixed Bugs
+
+* Specified R2jags package version requirement in DESCRIPTION to prevent 'unused argument' argument bug in performAnalyses()
+
 # bhmbasket 0.9.3
 
 ### Fixed Bugs
