@@ -4,6 +4,12 @@
 
 * Specified R2jags package version requirement in DESCRIPTION to prevent 'unused argument' bug in performAnalyses()
 
+### New & Altered Features
+
+* JAGS model files stored in package instead of writing to temporary files
+
+* Updated documentation
+
 # bhmbasket 0.9.3
 
 ### Fixed Bugs

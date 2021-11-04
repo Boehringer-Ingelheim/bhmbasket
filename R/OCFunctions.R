@@ -210,8 +210,7 @@ getPosteriorGammaQuantiles <- function (
 #' analyses_list <- performAnalyses(
 #'   scenario_list       = scenarios_list,
 #'   target_rates        = rep(0.5, 2),
-#'   n_mcmc_iterations   = 100,
-#'   n_cores             = 1L)
+#'   n_mcmc_iterations   = 100)
 #'
 #' go_decisions_list <- getGoDecisions(
 #'   analyses_list       = analyses_list,
@@ -359,8 +358,7 @@ getGoProbabilities <- function (
 #' analysis_list <- performAnalyses(
 #'   scenario_list      = scenarios_list,
 #'   target_rates       = rep(0.5, 3),
-#'   n_mcmc_iterations  = 100,
-#'   n_cores            = 1L)
+#'   n_mcmc_iterations  = 100)
 #'
 #' go_decisions_list <- getGoDecisions(
 #'   analyses_list   = analysis_list,
@@ -643,8 +641,7 @@ getGoBoundaries <- function (
 #' analyses_list <- performAnalyses(
 #'   scenario_list      = scenarios_list,
 #'   target_rates       = rep(0.5, 3),
-#'   n_mcmc_iterations  = 100,
-#'   n_cores            = 1L)
+#'   n_mcmc_iterations  = 100)
 #'
 #' ## Decision rule for more than one cohort
 #' decisions_list <- getGoDecisions(
@@ -884,8 +881,7 @@ is.decision_list <- function (x) {
 #'     scenario_list       = scenarios_list,
 #'     target_rates        = c(0.1, 0.1, 0.1),
 #'     calc_differences    = matrix(c(3, 2, 2, 1), ncol = 2),
-#'     n_mcmc_iterations   = 100,
-#'     n_cores             = 1L)
+#'     n_mcmc_iterations   = 100)
 #'
 #'   getEstimates(analyses_list)
 #'   getEstimates(analyses_list   = analyses_list,
@@ -900,8 +896,7 @@ is.decision_list <- function (x) {
 #'   outcome_analysis <- performAnalyses(
 #'     scenario_list       = outcome,
 #'     target_rates        = c(0.1, 0.1, 0.1),
-#'     n_mcmc_iterations   = 100,
-#'     n_cores             = 1L)
+#'     n_mcmc_iterations   = 100)
 #'
 #'   getEstimates(outcome_analysis)
 #'   getEstimates(analyses_list  = outcome_analysis,

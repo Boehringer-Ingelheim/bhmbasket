@@ -18,7 +18,8 @@ prepareAnalysis <- function (
                    p_t           = target_rates,
                    J             = length(target_rates))
 
-    j_model_file <- writeTempModel(method_name = "berry")
+    # j_model_file <- writeTempModel(method_name = "berry")
+    j_model_file <- getModelFile(method_name = "berry")
 
     j_parameters <- c("p", "mu", "tau")
 
@@ -43,13 +44,12 @@ prepareAnalysis <- function (
 
     if (method_name == "exnex") {
 
-      j_model_file    <- writeTempModel(method_name = "exnex")
+      j_model_file    <- getModelFile(method_name = "exnex")
 
     } else {
 
       j_data$p_target <- target_rates
-
-      j_model_file    <- writeTempModel(method_name = "exnex_adj")
+      j_model_file    <- getModelFile(method_name = "exnex_adj")
 
     }
 
