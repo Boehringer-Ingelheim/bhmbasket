@@ -523,11 +523,11 @@ performAnalyses <- function (
   error_verbose <-
     simpleError("Please provide a logical for the argument 'verbose'")
 
-  warning_n_cores <- "The arguemnt 'n_cores' is deprecated as of version 0.9.3."
+  warning_n_cores <- "The argument 'n_cores' is deprecated as of version 0.9.3."
   warning_seed    <- "The argument 'seed' is deprecated as of version 0.9.3."
-
-  if (!missing(n_cores)) simpleWarning(warning_n_cores)
-  if (!missing(seed))    simpleWarning(warning_seed)
+  
+  if (!missing(n_cores)) warning(warning_n_cores)
+  if (!missing(seed))    warning(warning_seed)
 
   if (missing(scenario_list)) stop (error_scenario_list)
 

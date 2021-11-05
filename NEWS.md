@@ -4,6 +4,8 @@
 
 * Specified R2jags package version requirement in DESCRIPTION to prevent 'unused argument' bug in performAnalyses()
 
+* Fixed warning message not showing when specifying deprecated arguments 'seed' and 'n_cores' in performAnalyses() 
+
 ### New & Altered Features
 
 * Usage of doRNG package for reproducible results in parallel execution

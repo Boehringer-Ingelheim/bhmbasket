@@ -118,8 +118,7 @@ convertVector2Matrix <- function (vector) {
 #' analyses_list <- performAnalyses(
 #'   scenario_list       = scenarios_list,
 #'   target_rates        = rep(0.5, 3),
-#'   n_mcmc_iterations   = 100,
-#'   n_cores             = 1L)
+#'   n_mcmc_iterations   = 100)
 #'
 #' scaleRoundList(
 #'   list         = getEstimates(analyses_list),
