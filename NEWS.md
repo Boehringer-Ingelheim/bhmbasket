@@ -8,6 +8,8 @@
 
 ### New & Altered Features
 
+* Added a vignette that provides a short example on how to use bhmbasket in a high performance computing environment
+
 * Usage of doRNG package for reproducible results in parallel execution
 
 * JAGS model files stored in package instead of writing to temporary files

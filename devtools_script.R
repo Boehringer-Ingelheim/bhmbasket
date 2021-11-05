@@ -15,7 +15,10 @@ citation("bhmbasket")
 
 library(bhmbasket)
 
+# usethis::use_vignette("bhmbasket_on_HPC")
+
 devtools::run_examples()
+# devtools::build_vignettes()
 devtools::check()
 devtools::build() # creates tar.gz file
 # available::available("bhmbasket")

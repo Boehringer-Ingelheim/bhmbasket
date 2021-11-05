@@ -1,0 +1,71 @@
+---
+title: "Running bhmbasket on HPC"
+author: "Stephan Wojciekowski"
+date: '`r format(Sys.time(), "%B %d, %Y")`'
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{bhmbasket on HPC}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  eval     = FALSE,  # en- / disables R code evaluation globally
+  cache    = FALSE,  # en- / disables R code caching globally
+  collapse = TRUE,
+  comment  = "#>"
+)
+```
+
+This vignette provides a short example on how to use the R package `bhmbasket` in a high performance computing environment using the R packages `doFuture` and `future.batchtools`.
+
+```{r setup}
+library(bhmbasket)
+library(doFuture)
+library(future.batchtools)
+
+rng_seed <- 5440
+set.seed(rng_seed)
+```
+
+## Specifying the HPC environment
+`bhmbasket` is designed in such a way that the parallel backend is to be registered by the user in case parallelization is required.
+Below is some sample code for specifying a SLURM job using the future framework with `doFuture` and `future.batchtools`.
+Kindly see the documentation of these packages for further options.
+```{r}
+job_time  <- 24  # time for job in hours
+n_worker  <- 5   # number of worker nodes
+n_cpus    <- 16  # number of cpus per worker node
+gb_memory <- 2   # memory in gigabytes (per worker)
+
+registerDoFuture()
+slurm <- future::tweak(future.batchtools::batchtools_slurm,
+           template  = system.file('templates/slurm-simple.tmpl',
+                                   package = 'batchtools'),
+           workers   = n_worker,             # number of compute nodes
+           resources = list(
+             walltime  = 60 * 60 * job_time, # time in seconds
+             ncpus     = n_cpus,             # number of cpus per worker
+             memory    = 1000 * gb_memory))  # memory in gigabytes
+plan(slurm)
+```
+
+## Running the bhmbasket code
+The package is set up such that the code runs regardless of the type of parallel backend.
+Therefore, no further adjustments to the code are necessary.
+Below is code of one of the examples from `?getEstimates`.
+```{r}
+scenarios_list <- simulateScenarios(
+    n_subjects_list     = list(c(10, 20, 30)),
+    response_rates_list = list(c(0.1, 0.2, 3)),
+    n_trials            = 10)
+
+  analyses_list <- performAnalyses(
+    scenario_list       = scenarios_list,
+    target_rates        = c(0.1, 0.1, 0.1),
+    calc_differences    = matrix(c(3, 2, 2, 1), ncol = 2),
+    n_mcmc_iterations   = 100)
+
+  getEstimates(analyses_list)
+```
