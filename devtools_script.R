@@ -1,7 +1,7 @@
 
-# path_to_package <- paste0(
-#   "C:/Users/wojcieko/OneDrive - Boehringer Ingelheim/Desktop/",
-#   "bhmbasket development - bitbucket/bhmbasket")
+# library(sinew)
+# makeOxygen(LoadScenario)
+
 # setwd(path_to_package)
 
 # https://r-pkgs.org/release.html

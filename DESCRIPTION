@@ -29,6 +29,7 @@ Depends:
     R (>= 3.5.0)
 Imports: 
     foreach,
+    doRNG,
     R2jags (>= 0.7-1)
 Suggests: 
     doParallel,

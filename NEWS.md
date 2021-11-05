@@ -6,7 +6,13 @@
 
 ### New & Altered Features
 
+* Usage of doRNG package for reproducible results in parallel execution
+
 * JAGS model files stored in package instead of writing to temporary files
+
+* Updated Imports in DESCRIPTION
+
+* Minor changes in code
 
 * Updated documentation
 

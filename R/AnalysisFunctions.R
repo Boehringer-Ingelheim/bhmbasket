@@ -1,5 +1,4 @@
-# library(sinew)
-# makeOxygen(LoadScenario)
+
 
 prepareAnalysis <- function (
 
@@ -198,8 +197,6 @@ getPostQuantiles <- function (
 
   ## MCMC Parameters
   n_mcmc_iterations = 1e4,
-  # seed              = as.numeric(Sys.time()),
-  # n_cores           = parallel::detectCores() - 1L,
 
   ## Where to save one of the posterior response rates approximations provided by JAGS
   save_path         = NULL,
@@ -223,23 +220,15 @@ getPostQuantiles <- function (
   }
 
   ## Run parallel loops
-  ## prepare foreach loop over k
+  ## prepare foreach loop over 
 
-  # if (isTRUE(all.equal(n_analyses, 1))) {
-  #   n_cores <- 1L
-  # }
-
-  exported_stuff <- c(#"seed",
-                      "scenario_data", "j_data", "post_mean", "quantiles",
+  exported_stuff <- c("scenario_data", "j_data", "post_mean", "quantiles",
                       "calc_differences", "j_parameters", "j_model_file", "n_mcmc_iterations",
                       "getPosteriors", "save_path", "save_trial", "method_name",
                       "posteriors2Quantiles",
                       "qbetaDiff")
 
   foreach_expression <- quote({
-
-    # ## Set seed that changes for each iteration
-    # set.seed(seed + k)
 
     ##  Retrieve the likelihood data for the kth unique simulation
     j_data$r <- as.numeric(scenario_data$n_responders[k, ])
@@ -395,28 +384,14 @@ getPostQuantiles <- function (
     return (posterior_quantiles)
 
   })
-
-  # invisible(utils::capture.output({
-  # 
-  #   suppressMessages({
-  # 
-  #     posterior_quantiles_list <- foreach::foreach(k = seq_len(n_analyses),
-  #                                                  .verbose  = FALSE,
-  #                                                  .packages = c("R2jags"),
-  #                                                  .export   = exported_stuff
-  #     ) %dopar% {eval(foreach_expression)}
-  # 
-  #   }, classes = c("message"))
-  # 
-  # }))
   
+  "%dorng%" <- doRNG::"%dorng%"
   "%dopar%" <- foreach::"%dopar%"
-  
   posterior_quantiles_list <- foreach::foreach(
     k = seq_len(n_analyses),
     .verbose  = FALSE,
     .packages = c("R2jags"),
-    .export   = exported_stuff) %dopar% {eval(foreach_expression)}
+    .export   = exported_stuff) %dorng% {eval(foreach_expression)}
 
   return (posterior_quantiles_list)
 
@@ -545,10 +520,6 @@ performAnalyses <- function (
                       "of cohorts"))
   error_n_mcmc_iterations <-
     simpleError("Please provide a positive integer for the argument 'n_mcmc_iterations'")
-  # error_n_cores <-
-  #   simpleError("Please provide a positive integer for the argument 'n_cores'")
-  # error_seed <-
-  #   simpleError("Please provide a numeric for the argument 'seed'")
   error_verbose <-
     simpleError("Please provide a logical for the argument 'verbose'")
 
@@ -618,16 +589,14 @@ performAnalyses <- function (
   }
 
   if (!is.single.positive.wholenumber(n_mcmc_iterations)) stop (error_n_mcmc_iterations)
-  # if (!is.single.positive.wholenumber(n_cores))           stop (error_n_cores)
-  # if (!is.single.numeric(seed))                           stop (error_seed)
   if (!is.logical(verbose))                               stop (error_verbose)
 
   ## check for parallel backend
   "%dopar%" <- foreach::"%dopar%"
   if(!foreach::getDoParRegistered()) {
-    message("\nCaution: No parallel backend detected for the 'foreach' framework.",
-            " For execution in parallel, register a doPar parallel backend,",
-            " e.g. with:\n",
+    
+    message("\nCaution! No parallel backend detected for the 'foreach' framework.",
+            " For execution in parallel, register a parallel backend, e.g. with:\n",
             "   n_cores <- parallel::detectCores() - 1L\n",
             "   cl      <- parallel::makeCluster(n_cores)\n",
             "   doParallel::registerDoParallel(cl)\n")
@@ -770,8 +739,6 @@ performAnalyses <- function (
       j_model_file      = prepare_analysis$j_model_file,
       j_data            = prepare_analysis$j_data,
       n_mcmc_iterations = n_mcmc_iterations,
-      # seed              = seed,
-      # n_cores           = n_cores,
       save_path         = NULL,
       save_trial        = NULL)
 
@@ -801,10 +768,6 @@ performAnalyses <- function (
                           "applicable_previous_trials", "method_names", "method_quantiles_list",
                           "prior_parameters_list", "quantiles", "n_mcmc_iterations",
                           "getRowIndexOfVectorInMatrix")
-
-  # if (identical(length(scenario_numbers), 1L)) {
-  #   n_cores <- 1L
-  # }
 
   foreach_expression <- quote({
 
@@ -881,10 +844,12 @@ performAnalyses <- function (
   })
 
   ## run foreach
+  "%dorng%" <- doRNG::"%dorng%"
+  "%dopar%" <- foreach::"%dopar%"
   analyses_list <- foreach::foreach(k = seq_along(scenario_numbers),
                                     .verbose  = FALSE,
                                     .export   = exported_stuff
-  ) %dopar% {eval(foreach_expression)}
+  ) %dorng% {eval(foreach_expression)}
 
   ## message to user
   if (verbose) {
@@ -1062,7 +1027,6 @@ loadAnalyses <- function (
     "Please provide a string containing a path for the argument 'load_path'")
 
   if (missing(scenario_numbers)) stop (error_scenario_numbers)
-  # if (missing(analysis_numbers)) stop (error_analysis_numbers)
 
   if (!is.character(load_path) || length(load_path) > 1) stop (error_load_path)
 
@@ -1090,5 +1054,33 @@ loadAnalyses <- function (
 
 }
 
-
+getModelFile <- function (method_name) {
+  
+  if (method_name == "berry") {
+    
+    model_file <- "berry.txt"
+    
+  } else if (method_name == "berry_mix") {
+    
+    model_file <- "berry_mix.txt"
+    
+  } else if (method_name == "exnex") {
+    
+    model_file <- "exnex.txt"
+    
+  } else if (method_name == "exnex_adj") {
+    
+    model_file <- "exnex_adj.txt"
+    
+  } else {
+    
+    stop ("method_name must be one of berry, berry_mix, exnex, exnex_adj")
+    
+  }
+  
+  model_file <- system.file(package = "bhmbasket", "jags_models", model_file, mustWork = TRUE)
+  
+  return (model_file)
+  
+}
 
