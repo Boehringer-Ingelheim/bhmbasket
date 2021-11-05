@@ -15,7 +15,10 @@ citation("bhmbasket")
 
 library(bhmbasket)
 
+# usethis::use_vignette("bhmbasket_on_HPC")
+
 devtools::run_examples()
+# devtools::build_vignettes()
 devtools::check()
 devtools::build() # creates tar.gz file
 # available::available("bhmbasket")
@@ -43,8 +46,8 @@ devtools::install_deps()
 devtools::run_examples()
 devtools::spell_check()
 devtools::check()
-# devtools::check_rhub()
 devtools::check_win_devel()
+# devtools::check_rhub()
 devtools::document()
 ## Update your NEWS file
 ## Update DESCRIPTION (e.g. version number)

@@ -595,7 +595,7 @@ performAnalyses <- function (
   "%dopar%" <- foreach::"%dopar%"
   if(!foreach::getDoParRegistered()) {
     
-    message("\nCaution! No parallel backend detected for the 'foreach' framework.",
+    message("\nCaution: No parallel backend detected for the 'foreach' framework.",
             " For execution in parallel, register a parallel backend, e.g. with:\n",
             "   n_cores <- parallel::detectCores() - 1L\n",
             "   cl      <- parallel::makeCluster(n_cores)\n",
