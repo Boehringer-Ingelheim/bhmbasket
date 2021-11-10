@@ -9,7 +9,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r knitr_options, include = FALSE}
 knitr::opts_chunk$set(
   eval     = FALSE,  # en- / disables R code evaluation globally
   cache    = FALSE,  # en- / disables R code caching globally
@@ -17,8 +17,6 @@ knitr::opts_chunk$set(
   comment  = "#>"
 )
 ```
-
-nblubber
 
 This vignette provides a short example on how to use the R package `bhmbasket` in a high performance computing environment using the R packages `doFuture` and `future.batchtools`.
 
