@@ -18,6 +18,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+nblubber
+
 This vignette provides a short example on how to use the R package `bhmbasket` in a high performance computing environment using the R packages `doFuture` and `future.batchtools`.
 
 ```{r setup}
