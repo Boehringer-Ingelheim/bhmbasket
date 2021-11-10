@@ -28,8 +28,8 @@ URL: https://CRAN.R-project.org/package=bhmbasket
 Depends: 
     R (>= 3.5.0)
 Imports: 
-    foreach,
     doRNG,
+    foreach,
     R2jags (>= 0.7-1)
 Suggests: 
     doParallel,

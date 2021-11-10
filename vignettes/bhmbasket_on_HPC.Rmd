@@ -33,21 +33,24 @@ set.seed(rng_seed)
 `bhmbasket` is designed in such a way that the parallel backend is to be registered by the user in case parallelization is required.
 Below is some sample code for specifying a SLURM job using the future framework with `doFuture` and `future.batchtools`.
 Kindly see the documentation of these packages for further options.
+The script is to be run on the master node.
 ```{r}
-job_time  <- 24  # time for job in hours
-n_worker  <- 5   # number of worker nodes
-n_cpus    <- 16  # number of cpus per worker node
-gb_memory <- 2   # memory in gigabytes (per worker)
-
 registerDoFuture()
-slurm <- future::tweak(future.batchtools::batchtools_slurm,
+
+job_time  <- 24  # time for job in hours
+n_workers <- 10  # number of worker nodes
+n_cpus    <- 16  # number of cpus per worker node
+gb_memory <- 1   # memory [GB] per worker node
+
+slurm <- tweak(batchtools_slurm,
            template  = system.file('templates/slurm-simple.tmpl',
                                    package = 'batchtools'),
-           workers   = n_worker,             # number of compute nodes
+           workers   = n_workers,
            resources = list(
-             walltime  = 60 * 60 * job_time, # time in seconds
-             ncpus     = n_cpus,             # number of cpus per worker
-             memory    = 1000 * gb_memory))  # memory in gigabytes
+             walltime  = 60 * 60 * job_time,
+             ncpus     = n_cpus,
+             memory    = 1000 * gb_memory))
+
 plan(slurm)
 ```
 
@@ -55,6 +58,7 @@ plan(slurm)
 The package is set up such that the code runs regardless of the type of parallel backend.
 Therefore, no further adjustments to the code are necessary.
 Below is code of one of the examples from `?getEstimates`.
+Note that running this small example on a parallel backend will most likely not result in a performance improvement.
 ```{r}
 scenarios_list <- simulateScenarios(
     n_subjects_list     = list(c(10, 20, 30)),
