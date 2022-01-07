@@ -3,3 +3,5 @@
 ^cran-comments\.md$
 devtools_script.R
 example.R
+^doc$
+^Meta$

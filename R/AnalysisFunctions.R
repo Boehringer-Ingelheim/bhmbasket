@@ -59,8 +59,8 @@ prepareAnalysis <- function (
     ## For methods "stratified" and "pooled" no MCMC simulations are necessary,
     ## as the posterior response rates of the cohorts follow known beta distributions.
 
-    j_model_file <- "dummy path to model"
-    j_parameters <- "dummy parameters"
+    j_model_file <- "dummy path to JAGS model"
+    j_parameters <- "dummy JAGS parameters"
     j_data       <- prior_parameters
 
   } else {
@@ -622,65 +622,34 @@ performAnalyses <- function (
   ## get scenario numbers
   scenario_numbers <- sapply(scenario_list, function (x) x$scenario_number)
 
-  ## get unique trials for all scenarios
-  all_scenarios_n_responders <- do.call(rbind,
-                                        lapply(scenario_list, function (x) x$n_responders))
-  all_scenarios_n_subjects   <- do.call(rbind,
-                                        lapply(scenario_list, function (x) x$n_subjects))
-  all_scenarios_overall_gos  <-
-    do.call(rbind, lapply(scenario_list, function (x) x$previous_analyses$go_decisions))[, 1]
+  ## get unique trials over all scenarios
+  all_scenarios_n_responders <- do.call(rbind, lapply(scenario_list, function (x) x$n_responders))
+  all_scenarios_n_subjects   <- do.call(rbind, lapply(scenario_list, function (x) x$n_subjects))
+  all_scenarios_overall_gos  <- do.call(rbind, lapply(scenario_list, function (x) 
+    x$previous_analyses$go_decisions))[, 1]
 
   n_cohorts     <- ncol(all_scenarios_n_responders)
-  trials_unique <- makeUniqueRows(cbind(all_scenarios_n_responders, all_scenarios_n_subjects,
+  
+  trials_unique <- makeUniqueRows(cbind(all_scenarios_n_responders,
+                                        all_scenarios_n_subjects,
                                         go_flag = all_scenarios_overall_gos))
 
-  ## analyze only unique trials that have not been previously analyzed,
-  ## i.e. trials that were updated with continueRecruitment(),
-  ## i.e. trials that have an overall go decision from a previous decision rule
-  ## i.e. trials that have quantiles stored for each cohort that is to be analysed
-  applicable_previous_trials <-
-    ## check that in each scenario the same analysis methods were analyzed previously
-    all(sapply(seq_along(scenario_list), function (i) {
-      isTRUE(all.equal(names(scenario_list[[i]]$previous_analyses$post_quantiles),
-                       names(scenario_list[[1]]$previous_analyses$post_quantiles)))
-    })) &
-    ## check that the current analysis method names match the method names of the previous analyses
-    isTRUE(all.equal(names(scenario_list[[1]]$previous_analyses$post_quantiles), method_names)) &
-    ## check that the stored quantiles are the same across all scenarios
-    all(sapply(seq_along(scenario_list), function (i) {
-      isTRUE(all.equal(rownames(scenario_list[[i]]$previous_analyses$post_quantiles[[1]][[1]]),
-                       rownames(scenario_list[[1]]$previous_analyses$post_quantiles[[1]][[1]])))
-    })) &
-    ## check that the new quantiles are within the stored quantiles
-    all(paste0(as.character(quantiles * 100), "%") %in%
-          rownames(scenario_list[[1]]$previous_analyses$post_quantiles[[1]][[1]])) &
-    ## check that there are stored quantiles for each cohort that is to be analysed
-    all(paste0("p_", seq_len(n_cohorts)) %in%
-          colnames(scenario_list[[1]]$previous_analyses$post_quantiles[[1]][[1]]))
+  ## analyze only unique trials that have not been previously analyzed
+  applicable_previous_trials <- applicablePreviousTrials(
+    scenario_list    = scenario_list,
+    method_names     = method_names,
+    quantiles        = quantiles,
+    n_cohorts        = n_cohorts,
+    calc_differences = calc_differences)
 
-  ## check that all differences have been previously calculated
-  if (!is.null(calc_differences)) {
-
-    applicable_previous_trials <- applicable_previous_trials &
-      all(apply(calc_differences, 1, function (x) {
-        paste0("p_diff_", paste0(as.character(x), collapse = ""))
-      }) %in% colnames(scenario_list[[1]]$previous_analyses$post_quantiles[[1]][[1]]))
-
-  }
-
+  ## only get previous go indices if all conditions for previous trials are met
   if (applicable_previous_trials) {
-
     go_trial_indices <- trials_unique[, ncol(trials_unique)] > 0
-
   } else {
-
     go_trial_indices <- rep(TRUE, nrow(trials_unique))
-
   }
 
-  trials_unique <- trials_unique[, -ncol(trials_unique)]
-
-  ## save resulting unique number of responders and number of subjects
+  ## get resulting unique number of responders and number of subjects
   n_responders  <- trials_unique[go_trial_indices, seq_len(n_cohorts)]
   n_subjects    <- trials_unique[go_trial_indices, seq_len(n_cohorts) + n_cohorts]
 
@@ -713,12 +682,10 @@ performAnalyses <- function (
 
     ## message to user
     if (verbose) {
-
       start_time  <- Sys.time()
       out_message <- paste0(format(start_time, "   %H:%M", digits = 1),
                             " - with ", firstUpper(method_names[n]), " ...")
       message(out_message, rep(".", 33 - nchar(out_message)))
-
     }
 
     ## prepare analysis
@@ -744,127 +711,179 @@ performAnalyses <- function (
 
     ## message to user
     if (verbose) {
-
       message("             finished after ", round(Sys.time() - start_time, 1), " ",
               units(Sys.time() - start_time), ".")
       rm(start_time)
-
     }
 
   }
-
-  ## Process scenarios
 
   ## message to user
   if (verbose) {
-
     start_time  <- Sys.time()
     message("         Processing Scenarios ...")
+  }
+  
+  ## Process scenarios
+  scenario_method_quantiles_list <- mapUniqueTrials(
+    scenario_list              = scenario_list,
+    method_quantiles_list      = method_quantiles_list,
+    trials_unique_go           = trials_unique[go_trial_indices, -ncol(trials_unique)],
+    applicable_previous_trials = applicable_previous_trials)
 
+  ## message to user
+  if (verbose) {
+    message("             finished after ", round(Sys.time() - start_time, 1), " ",
+            units(Sys.time() - start_time), ".")
+    rm(start_time)
   }
 
-  ## prepare foreach
-  exported_stuff     <- c("scenario_list", "trials_unique", "go_trial_indices",
-                          "applicable_previous_trials", "method_names", "method_quantiles_list",
-                          "prior_parameters_list", "quantiles", "n_mcmc_iterations",
-                          "getRowIndexOfVectorInMatrix")
-
-  foreach_expression <- quote({
-
-    ## Find the indices of the trials of a specific scenario
-    scenario_data_matrix <- cbind(scenario_list[[k]]$n_responders,
-                                  scenario_list[[k]]$n_subjects)
-
-    trial_indices <- unlist(sapply(seq_len(nrow(scenario_data_matrix)), function (i) {
-      getRowIndexOfVectorInMatrix(
-        vector_to_be_found    = scenario_data_matrix[i, ],
-        matrix_to_be_searched = trials_unique)
-    }))
-
-    map_vector                   <- numeric(length(go_trial_indices))
-    map_vector[go_trial_indices] <- seq_along(which(go_trial_indices))
-    ## note: if applicable_previous_trials == FALSE, then map_indices == trial_indices
-    map_indices                  <- map_vector[trial_indices]
-
-    ## check whether there where previous analysis
-    if (applicable_previous_trials) {
-
-      scenario_method_quantiles <- scenario_list[[k]]$previous_analyses$post_quantiles
-
-    } else {
-
-      scenario_method_quantiles <- vector(mode = "list", length = length(method_names))
-      names(scenario_method_quantiles) <- method_names
-
-    }
-
-    ## Save scenario specific posterior quantiles for each method
-    for (n in seq_along(method_names)) {
-
-      if (applicable_previous_trials) {
-
-        ## This loop assigns only the updated/new trial realizations
-        ## lapply() implementation slower than for-loop, probably due to re-assignments
-        for (i in seq_along(map_indices)) {
-
-          ## replace only updated trials
-          if (!isTRUE(all.equal(0, map_indices[[i]]))) {
-
-            scenario_method_quantiles[[method_names[n]]][[i]] <-
-              method_quantiles_list[[method_names[n]]][[map_indices[[i]]]]
-
-          }
-
-        }
-
-      } else {
-
-        ## lapply() implementation that is not adapted to the inclusion of previously
-        ## analyzed trial realizations, but much faster than one that was
-        scenario_method_quantiles[[method_names[n]]] <- lapply(trial_indices, function (i) {
-          method_quantiles_list[[method_names[n]]][[i]]
-        })
-
-      }
-
-    }
-
-    ## combine results
-    scenario_analysis_list <- list(
-      quantiles_list      = scenario_method_quantiles,
-      scenario_data       = scenario_list[[k]],
+  ## combine results from all scenarios & return
+  analyses_list        <- vector(mode = "list", length = length(scenario_numbers))
+  names(analyses_list) <- paste0("scenario_", scenario_numbers)
+  
+  for (s in seq_along(scenario_numbers)) {
+    
+    analyses_list[[s]] <- list(
+      quantiles_list      = scenario_method_quantiles_list[[s]],
+      scenario_data       = scenario_list[[s]],
       analysis_parameters = list(
         quantiles             = quantiles,
         method_names          = method_names,
         prior_parameters_list = prior_parameters_list,
         n_mcmc_iterations     = n_mcmc_iterations))
-
-    return (scenario_analysis_list)
-
-  })
-
-  ## run foreach
-  "%dorng%" <- doRNG::"%dorng%"
-  "%dopar%" <- foreach::"%dopar%"
-  analyses_list <- foreach::foreach(k = seq_along(scenario_numbers),
-                                    .verbose  = FALSE,
-                                    .export   = exported_stuff
-  ) %dorng% {eval(foreach_expression)}
-
-  ## message to user
-  if (verbose) {
-
-    message("             finished after ", round(Sys.time() - start_time, 1), " ",
-            units(Sys.time() - start_time), ".")
-    rm(start_time)
-
+    
   }
-
-  names(analyses_list) <- paste0("scenario_", scenario_numbers)
+  
   class(analyses_list) <- "analysis_list"
 
   return (analyses_list)
 
+}
+
+applicablePreviousTrials <- function(
+  
+  scenario_list,
+  method_names,
+  quantiles,
+  n_cohorts,
+  calc_differences
+  
+) {
+  
+  ## analyze only unique trials that have not been previously analyzed,
+  ## i.e. trials that were updated with continueRecruitment(),
+  ## i.e. trials that have an overall go decision from a previous decision rule
+  ## i.e. trials that have quantiles stored for each cohort that is to be analysed
+  applicable_previous_trials <-
+    ## check that in each scenario the same analysis methods were analyzed previously
+    all(sapply(seq_along(scenario_list), function (i) {
+      isTRUE(all.equal(names(scenario_list[[i]]$previous_analyses$post_quantiles),
+                       names(scenario_list[[1]]$previous_analyses$post_quantiles)))
+    })) &
+    ## check that the current analysis method names match the method names of the previous analyses
+    isTRUE(all.equal(names(scenario_list[[1]]$previous_analyses$post_quantiles), method_names)) &
+    ## check that the stored quantiles are the same across all scenarios
+    all(sapply(seq_along(scenario_list), function (i) {
+      isTRUE(all.equal(rownames(scenario_list[[i]]$previous_analyses$post_quantiles[[1]][[1]]),
+                       rownames(scenario_list[[1]]$previous_analyses$post_quantiles[[1]][[1]])))
+    })) &
+    ## check that the new quantiles are within the stored quantiles
+    all(paste0(as.character(quantiles * 100), "%") %in%
+          rownames(scenario_list[[1]]$previous_analyses$post_quantiles[[1]][[1]])) &
+    ## check that there are stored quantiles for each cohort that is to be analysed
+    all(paste0("p_", seq_len(n_cohorts)) %in%
+          colnames(scenario_list[[1]]$previous_analyses$post_quantiles[[1]][[1]]))
+  
+  ## check that all differences have been previously calculated
+  if (!is.null(calc_differences)) {
+    
+    applicable_previous_trials <- applicable_previous_trials &
+      all(apply(calc_differences, 1, function (x) {
+        paste0("p_diff_", paste0(as.character(x), collapse = ""))
+      }) %in% colnames(scenario_list[[1]]$previous_analyses$post_quantiles[[1]][[1]]))
+    
+  }
+  
+  return (applicable_previous_trials)
+  
+}
+
+mapUniqueTrials <- function (
+  
+  scenario_list,
+  method_quantiles_list,
+  trials_unique_go,
+  applicable_previous_trials
+  
+) {
+  
+  method_names     <- names(method_quantiles_list)
+  scenario_numbers <- sapply(scenario_list, function (x) x$scenario_number)
+  
+  ## prepare foreach
+  exported_stuff <- c("getRowIndexOfVectorInMatrix", "convertVector2Matrix")
+  
+  ## run foreach
+  "%dopar%" <- foreach::"%dopar%"
+  scenario_method_quantiles_list <- foreach::foreach(k = seq_along(scenario_numbers),
+                                                     .verbose  = FALSE,
+                                                     .export   = exported_stuff
+  ) %dopar% {
+    
+    ## Find the indices of the trials of a specific scenario for go trials
+    scenario_data_matrix <- cbind(scenario_list[[k]]$n_responders,
+                                  scenario_list[[k]]$n_subjects)
+    
+    ## check whether there where previous analysis
+    if (applicable_previous_trials) {
+      
+      scenario_go_flags <- scenario_list[[k]]$previous_analyses$go_decisions[, 1] > 0
+      
+      scenario_method_quantiles <- scenario_list[[k]]$previous_analyses$post_quantiles
+      
+    } else {
+      
+      scenario_go_flags <- rep(TRUE, length = nrow(scenario_data_matrix))
+      
+      scenario_method_quantiles <- vector(mode = "list", length = length(method_names))
+      names(scenario_method_quantiles) <- method_names
+      
+    }
+    
+    ## In case there are trial realizations that need updating
+    ## Should only not be the case if all trial realizations of a scenario have a NoGo decision and
+    ## there are applicable previous trials.
+    if (any(scenario_go_flags)) {
+      
+      scenario_data_matrix_go <- convertVector2Matrix(scenario_data_matrix[scenario_go_flags, ])
+      
+      indices_go_trials <- unlist(apply(scenario_data_matrix_go, 1, function (scenario_trial_go) {
+        getRowIndexOfVectorInMatrix(
+          vector_to_be_found    = scenario_trial_go,
+          matrix_to_be_searched = trials_unique_go)
+      }))
+      
+      ## Save scenario specific posterior quantiles for each method
+      for (n in seq_along(method_names)) {
+        
+        scenario_method_quantiles[[method_names[n]]][scenario_go_flags] <-
+          lapply(indices_go_trials, function (i) {
+            method_quantiles_list[[method_names[n]]][[i]]
+          })
+        
+      }
+      
+    } 
+    
+    return (scenario_method_quantiles)
+    
+  }
+  
+  names(scenario_method_quantiles_list) <- paste0("scenario_", scenario_numbers)
+  
+  return (scenario_method_quantiles_list)
+  
 }
 
 is.analysis_list <- function (x) {

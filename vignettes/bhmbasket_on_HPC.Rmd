@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-This vignette provides a short example on how to use the R package `bhmbasket` in a high performance computing environment using the R packages `doFuture` and `future.batchtools`.
+This vignette provides a short example on how to use the R package `bhmbasket` in a high performance computing (HPC) environment using the R packages `doFuture` and `future.batchtools`.
 
 ```{r setup}
 library(bhmbasket)
@@ -29,12 +29,11 @@ rng_seed <- 5440
 set.seed(rng_seed)
 ```
 
-## Specifying the HPC environment
-`bhmbasket` is designed in such a way that the parallel backend is to be registered by the user in case parallelization is required.
-Below is some sample code for specifying a SLURM job using the future framework with `doFuture` and `future.batchtools`.
-Kindly see the documentation of these packages for further options.
-The script is to be run on the master node.
-```{r}
+## Setup of the parallel backend
+The code below provides an example for specifying a parallel backend using the future framework with the SLURM job scheduler.
+Kindly see the documentation of the R packages `doFuture` and `future.batchtools` for further options.
+This code is to be run on the master node.
+```{r SLURM_Setup}
 registerDoFuture()
 
 job_time  <- 24  # time for job in hours
@@ -54,11 +53,13 @@ slurm <- tweak(batchtools_slurm,
 plan(slurm)
 ```
 
-## Running the bhmbasket code
-The package is set up such that the code runs regardless of the type of parallel backend.
-Therefore, no further adjustments to the code are necessary.
-Below is code of one of the examples from `?getEstimates`.
-Note that running this small example on a parallel backend will most likely not result in a performance improvement.
+## Running some bhmbasket code on HPC
+The R package `bhmbasket` makes use of the foreach framework and runs with every applicable parallel backend.
+Therefore, no further adjustments to the code are necessary, which can be run on the master node.
+With a parallel backend registered as shown above, the job scheduler will automatically distribute the parallel jobs to the worker nodes.
+
+Below is some example code, which was taken from the examples section of `?bhmbasket::getEstimates`.
+Kindly note that running this small example on a HPC environment will most likely not result in a performance improvement.
 ```{r}
 scenarios_list <- simulateScenarios(
     n_subjects_list     = list(c(10, 20, 30)),

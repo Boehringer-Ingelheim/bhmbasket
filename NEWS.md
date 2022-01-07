@@ -2,13 +2,15 @@
 
 ### Fixed Bugs
 
+* Fixed a bug in continueRecruitment() that could result in additional subjects to be recruited when the overall decision for a trial realization is NoGo but some cohorts of that trial realization have Go decisions.
+
+* Fixed a bug in performAnalyses() that would occur if all trial realizations of a scenario had a previous overall NoGo decision and would result in performAnalyses() to return an empty list for that scenario's posterior quantiles.
+
 * Specified R2jags package version requirement in DESCRIPTION to prevent 'unused argument' bug in performAnalyses()
 
 * Fixed warning message not showing when specifying deprecated arguments 'seed' and 'n_cores' in performAnalyses() 
 
 ### New & Altered Features
-
-* Added a vignette that provides a short example on how to use bhmbasket in a high performance computing environment
 
 * Usage of doRNG package for reproducible results in parallel execution
 
@@ -21,6 +23,8 @@
 * Minor changes in code
 
 * Updated documentation
+
+* Updated CITATION
 
 # bhmbasket 0.9.3
 

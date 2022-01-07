@@ -709,29 +709,37 @@ continueRecruitment <- function (
       cohort_names   = cohort_names_new,
       n_trials       = n_trials)
 
-    n_responders_add <- add_scenario$n_responders
-    n_subjects_add   <- add_scenario$n_subjects
-
     ## Combine with existing data
 
+    ## get previous decisions
     go_decisions <- decisions_list[[s]]$decisions_list[[method_name]]
     previous_gos <- go_decisions
 
     if ("overall" %in% colnames(go_decisions)) {
+      overall_gos  <- go_decisions[, which(colnames(go_decisions) == "overall")]
       go_decisions <- go_decisions[, -which(colnames(go_decisions) == "overall")]
+    } else {
+      overall_gos <- rep(TRUE, nrow(go_decisions))
     }
     if (!all(index_new %in% as.numeric(sub("decision_", "", colnames(go_decisions))))) {
       stop (simpleError(
         "There must be a decision for each recruiting cohort in the 'decisions_list'"))
     }
 
-    go_decisions <- go_decisions[, index_new]
-
+    ## pick only cohorts that need updating
+    go_decisions <- go_decisions[overall_gos, index_new]
+    
+    ## additional subjects and responders, only those that have overall go
+    n_responders_add <- add_scenario$n_responders[overall_gos, ] * go_decisions
+    n_subjects_add   <- add_scenario$n_subjects[overall_gos, ] * go_decisions
+    
+    ## existing cohorts that need updating
     n_responders <- decisions_list[[s]]$scenario_data$n_responders
     n_subjects   <- decisions_list[[s]]$scenario_data$n_subjects
 
-    n_responders[, index_new] <- n_responders[, index_new] + go_decisions * n_responders_add
-    n_subjects[, index_new]   <- n_subjects[, index_new] + go_decisions * n_subjects_add
+    ## combine, only for cohorts that have overall go and need updating
+    n_responders[overall_gos, index_new] <- n_responders[overall_gos, index_new] + n_responders_add
+    n_subjects[overall_gos, index_new]   <- n_subjects[overall_gos, index_new] + n_subjects_add
 
     ## Saving Scenario
 

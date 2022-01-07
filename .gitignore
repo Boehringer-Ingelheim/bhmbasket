@@ -6,3 +6,5 @@ man/
 *.html
 *.pdf
 .Rproj.user
+/doc/
+/Meta/
