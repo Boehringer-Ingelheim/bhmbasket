@@ -14,7 +14,7 @@
 
 * Usage of doRNG package for fully reproducible results in parallel execution
 
-* Usage of hash tables for mapping unique trial realizations to scenario trial realizations resutling in performance improvement
+* Usage of hash tables for mapping unique trial realizations to scenario trial realizations resulting in performance improvement
 
 * Added a vignette that provides a short example on how to use bhmbasket in a high performance computing environment
 
