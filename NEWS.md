@@ -22,11 +22,11 @@
 
 * Updated Imports in DESCRIPTION
 
+* Updated CITATION
+
 * Minor changes in code
 
 * Updated documentation
-
-* Updated CITATION
 
 # bhmbasket 0.9.3
 
