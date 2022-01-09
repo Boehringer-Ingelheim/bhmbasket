@@ -280,3 +280,26 @@ listPerMethod <- function (
   return (out_list)
 
 }
+
+## Code inspired by https://www.r-bloggers.com/2019/01/hash-me-if-you-can/ 
+createHashTable <- function (keys, values, size = length(keys)) {
+  
+  # initialize environment to store key - value assignments, i.e. hash table
+  hash <- new.env(hash = TRUE, parent = emptyenv(), size = length(keys))
+  
+  # assign values to keys
+  assignHashes <- Vectorize(assign, vectorize.args = c("x", "value"))
+  assignHashes(x = keys, value = values, envir = hash)
+  
+  return (hash)
+  
+}
+
+## Code inspired by https://www.r-bloggers.com/2019/01/hash-me-if-you-can/ 
+getHashValues <- function(search_keys, hash_table) {
+  
+  unname(mget(search_keys, hash_table))
+  
+}
+
+createHashKeys <- rlang::hash

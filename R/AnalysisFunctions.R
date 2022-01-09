@@ -644,14 +644,15 @@ performAnalyses <- function (
 
   ## only get previous go indices if all conditions for previous trials are met
   if (applicable_previous_trials) {
-    go_trial_indices <- trials_unique[, ncol(trials_unique)] > 0
+    calc_trial_indices <- trials_unique[, ncol(trials_unique)] > 0
   } else {
-    go_trial_indices <- rep(TRUE, nrow(trials_unique))
+    calc_trial_indices <- rep(TRUE, nrow(trials_unique))
   }
 
   ## get resulting unique number of responders and number of subjects
-  n_responders  <- trials_unique[go_trial_indices, seq_len(n_cohorts)]
-  n_subjects    <- trials_unique[go_trial_indices, seq_len(n_cohorts) + n_cohorts]
+  trials_unique_calc <- trials_unique[calc_trial_indices, -ncol(trials_unique)]
+  n_responders       <- trials_unique_calc[, seq_len(n_cohorts)]
+  n_subjects         <- trials_unique_calc[, seq_len(n_cohorts) + n_cohorts]
 
   ## message to user
   if (verbose) {
@@ -728,7 +729,7 @@ performAnalyses <- function (
   scenario_method_quantiles_list <- mapUniqueTrials(
     scenario_list              = scenario_list,
     method_quantiles_list      = method_quantiles_list,
-    trials_unique_go           = trials_unique[go_trial_indices, -ncol(trials_unique)],
+    trials_unique_calc         = trials_unique_calc,
     applicable_previous_trials = applicable_previous_trials)
 
   ## message to user
@@ -813,7 +814,7 @@ mapUniqueTrials <- function (
   
   scenario_list,
   method_quantiles_list,
-  trials_unique_go,
+  trials_unique_calc,
   applicable_previous_trials
   
 ) {
@@ -821,56 +822,58 @@ mapUniqueTrials <- function (
   method_names     <- names(method_quantiles_list)
   scenario_numbers <- sapply(scenario_list, function (x) x$scenario_number)
   
+  ## Create hash tables for results for easy retrieval
+  hash_keys        <- apply(trials_unique_calc, 1, createHashKeys)
+  hash_tables_list <- vector(mode = "list", length = length(method_quantiles_list))
+  
+  for (n in seq_along(hash_tables_list)) {
+    
+    hash_tables_list[[n]] <- createHashTable(hash_keys, method_quantiles_list[[n]])
+    
+  }
+  
   ## prepare foreach
-  exported_stuff <- c("getRowIndexOfVectorInMatrix", "convertVector2Matrix")
+  exported_stuff <- c("convertVector2Matrix")
   
   ## run foreach
-  "%dopar%" <- foreach::"%dopar%"
+  "%do%" <- foreach::"%do%"
   scenario_method_quantiles_list <- foreach::foreach(k = seq_along(scenario_numbers),
                                                      .verbose  = FALSE,
                                                      .export   = exported_stuff
-  ) %dopar% {
+  ) %do% {
     
     ## Find the indices of the trials of a specific scenario for go trials
     scenario_data_matrix <- cbind(scenario_list[[k]]$n_responders,
                                   scenario_list[[k]]$n_subjects)
     
-    ## check whether there where previous analysis
+    ## check whether there where previous analyses
     if (applicable_previous_trials) {
       
-      scenario_go_flags <- scenario_list[[k]]$previous_analyses$go_decisions[, 1] > 0
-      
+      scenario_go_flags         <- scenario_list[[k]]$previous_analyses$go_decisions[, 1] > 0
       scenario_method_quantiles <- scenario_list[[k]]$previous_analyses$post_quantiles
       
     } else {
       
-      scenario_go_flags <- rep(TRUE, length = nrow(scenario_data_matrix))
-      
+      scenario_go_flags         <- rep(TRUE, length = nrow(scenario_data_matrix))
       scenario_method_quantiles <- vector(mode = "list", length = length(method_names))
       names(scenario_method_quantiles) <- method_names
       
     }
     
     ## In case there are trial realizations that need updating
-    ## Should only not be the case if all trial realizations of a scenario have a NoGo decision and
-    ## there are applicable previous trials.
+    ## This should only not be the case if all trial realizations of a scenario have a NoGo decision
+    ## and there are applicable previous trials.
     if (any(scenario_go_flags)) {
       
+      ## Get search keys
       scenario_data_matrix_go <- convertVector2Matrix(scenario_data_matrix[scenario_go_flags, ])
-      
-      indices_go_trials <- unlist(apply(scenario_data_matrix_go, 1, function (scenario_trial_go) {
-        getRowIndexOfVectorInMatrix(
-          vector_to_be_found    = scenario_trial_go,
-          matrix_to_be_searched = trials_unique_go)
-      }))
+      search_keys             <- apply(scenario_data_matrix_go, 1, createHashKeys)
       
       ## Save scenario specific posterior quantiles for each method
       for (n in seq_along(method_names)) {
         
         scenario_method_quantiles[[method_names[n]]][scenario_go_flags] <-
-          lapply(indices_go_trials, function (i) {
-            method_quantiles_list[[method_names[n]]][[i]]
-          })
+          getHashValues(search_keys, hash_tables_list[[n]])
         
       }
       
