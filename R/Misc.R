@@ -301,5 +301,3 @@ getHashValues <- function(search_keys, hash_table) {
   unname(mget(search_keys, hash_table))
   
 }
-
-createHashKeys <- rlang::hash

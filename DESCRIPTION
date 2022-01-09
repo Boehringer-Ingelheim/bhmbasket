@@ -29,10 +29,10 @@ Depends:
     R (>= 3.5.0)
 Imports: 
     foreach,
-    rlang,
-    R2jags (>= 0.7-1)
-Suggests: 
     doRNG,
+    R2jags (>= 0.7-1),
+    rlang
+Suggests: 
     doParallel,
     parallel,
     knitr,
