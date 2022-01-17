@@ -28,6 +28,8 @@
 
 * Updated documentation
 
+* Removed superfluous files
+
 # bhmbasket 0.9.3
 
 ### Fixed Bugs
