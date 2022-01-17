@@ -823,7 +823,8 @@ mapUniqueTrials <- function (
   scenario_numbers <- sapply(scenario_list, function (x) x$scenario_number)
   
   ## Create hash tables for results for easy retrieval
-  hash_keys        <- apply(trials_unique_calc, 1, rlang::hash)
+  
+  hash_keys        <- getHashKeys(trials_unique_calc)
   hash_tables_list <- vector(mode = "list", length = length(method_quantiles_list))
   
   for (n in seq_along(hash_tables_list)) {
@@ -867,7 +868,7 @@ mapUniqueTrials <- function (
       
       ## Get search keys
       scenario_data_matrix_go <- convertVector2Matrix(scenario_data_matrix[scenario_go_flags, ])
-      search_keys             <- apply(scenario_data_matrix_go, 1, rlang::hash)
+      search_keys             <- getHashKeys(scenario_data_matrix_go)
       
       ## Save scenario specific posterior quantiles for each method
       for (n in seq_along(method_names)) {

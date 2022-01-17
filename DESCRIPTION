@@ -30,8 +30,7 @@ Depends:
 Imports: 
     foreach,
     doRNG,
-    R2jags (>= 0.7-1),
-    rlang
+    R2jags (>= 0.7-1)
 Suggests: 
     doParallel,
     parallel,

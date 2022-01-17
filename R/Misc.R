@@ -281,6 +281,25 @@ listPerMethod <- function (
 
 }
 
+# apply(x, 1, rlang::hash)
+getHashKeys <- function (x) {
+  
+  x <- convertVector2Matrix(x)
+  
+  if (is.null(colnames(x))) {
+    
+    colnames_x <- as.character(paste0("x", seq_len(ncol(x))))
+      
+  } else {
+    
+    colnames_x <- colnames(x)
+    
+  }
+  
+  apply(x, 1, function (y) paste0(colnames_x, ":", as.character(y), collapse = "|"))
+  
+}
+
 ## Code inspired by https://www.r-bloggers.com/2019/01/hash-me-if-you-can/ 
 createHashTable <- function (keys, values, size = length(keys)) {
   
