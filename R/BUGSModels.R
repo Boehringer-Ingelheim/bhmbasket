@@ -27,6 +27,9 @@ writeModelFiles <- function (method_names) {
           ## Likelihood
           logit(p[j]) <- theta[j] + logit(p_t[j])
           r[j] ~ dbin(p[j], n[j])
+
+          # ## Predicted Responses
+          # r2[j] ~ dbin(p[j], m[j])
         
         }
       
@@ -94,7 +97,7 @@ writeModelFiles <- function (method_names) {
         for (j in 1:Nstrata) {
           LogOdds[Nmix, j] ~ dnorm(nex_mean[j], nex_prec[j]) ## Deviation from Appendix of Neuenschwander:
         }                                                    ## Different parameters for each
-        ## Nex component possible.
+                                                             ## Nex component possible.
         
         # latent mixture indicators:
         # exch_index: categorial 1, ..., Nmix = Nexch + 1
