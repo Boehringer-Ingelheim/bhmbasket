@@ -5,3 +5,4 @@ devtools_script.R
 example.R
 ^doc$
 ^Meta$
+^CRAN-SUBMISSION$
