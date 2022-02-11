@@ -1,3 +1,13 @@
+# bhmbasket 0.9.5
+
+### Fixed Bugs
+
+* Fixed a bug that occured due to a change in stats::aggregate()
+
+### New & Altered Features
+
+* Minor changes in code
+
 # bhmbasket 0.9.4
 
 ### Fixed Bugs
