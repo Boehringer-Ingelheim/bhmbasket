@@ -16,6 +16,8 @@
 
 * Recommended doFuture and future over doParallel and parallel when no parallel backend is detected
 
+* Updated SystemRequirements in DESCRIPTION
+
 * Minor changes in code
 
 # bhmbasket 0.9.4
