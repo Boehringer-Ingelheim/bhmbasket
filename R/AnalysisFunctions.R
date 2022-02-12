@@ -198,84 +198,132 @@ getPostQuantiles <- function (
   ## Run parallel loops
   ## prepare foreach loop over 
   
-  exported_stuff <- c("scenario_data", "j_data", "post_mean", "quantiles",
-                      "calc_differences", "j_parameters", "j_model_file", "n_mcmc_iterations",
-                      "getPosteriors", "save_path", "save_trial", "method_name",
-                      "posteriors2Quantiles",
-                      "qbetaDiff")
+  exported_stuff <- c(
+    # "scenario_data", "j_data", "post_mean", "quantiles",
+    # "calc_differences", "j_parameters", "j_model_file", "n_mcmc_iterations",
+    # "save_path", "save_trial", "method_name",
+    "posteriors2Quantiles", "getPosteriors", "getPostQuantilesOfTrial",
+    "qbetaDiff")
   
-  foreach_expression <- quote({
-    
-    ##  Retrieve the likelihood data for the kth unique simulation
-    j_data$r <- as.numeric(scenario_data$n_responders[k, ])
-    j_data$n <- as.numeric(scenario_data$n_subjects[k, ])
-    
-    if (method_name == "stratified") {
-      
-      posterior_quantiles <- getPostQuantilesStratified(
-        j_data            = j_data,
-        quantiles         = quantiles,
-        post_mean         = post_mean,
-        calc_differences  = calc_differences,
-        n_mcmc_iterations = n_mcmc_iterations)
-      
-    } else if (method_name == "pooled") {
-      
-      posterior_quantiles <- getPostQuantilesPooled(
-        j_data           = j_data,
-        quantiles        = quantiles,
-        calc_differences = calc_differences,
-        post_mean        = post_mean)
-      
-    } else {
-      
-      ## Get posterior response rates per indication
-      posterior_distributions <- getPosteriors(
-        j_parameters      = j_parameters,
-        j_model_file      = j_model_file,
-        j_data            = j_data,
-        n_mcmc_iterations = n_mcmc_iterations)
-      
-      ## Calculate differences between response rates of cohorts
-      if (!is.null(calc_differences)) {
-        
-        posterior_distributions <- calcDiffsMCMC(
-          posterior_distributions = posterior_distributions,
-          calc_differences        = calc_differences)
-        
-      }
-      
-      ## Save posterior response rates per indication for one randomly selected simulation,
-      ## due to time and storage space constraints only one simulation
-      if (!is.null(save_path)) {
-        if (k == save_trial) {
-          saveRDS(posterior_distributions,
-                  file = file.path(save_path, paste0("posterior_distributions_",
-                                                     k, "_", method_name, "_rds")))
-        }
-      }
-      
-      ## Calculate the required quantiles for the decision rules
-      posterior_quantiles <- posteriors2Quantiles(
-        quantiles  = quantiles,
-        post_mean  = post_mean,
-        posteriors = posterior_distributions)
-      
-    }
-    
-    return (posterior_quantiles)
-    
-  })
+  ## prepare chunking
+  chunks_outer <- chunkVector(seq_len(n_analyses), foreach::getDoParWorkers())
   
   "%dorng%" <- doRNG::"%dorng%"
   "%dopar%" <- foreach::"%dopar%"
   posterior_quantiles_list <- foreach::foreach(
-    k = seq_len(n_analyses),
+    k = chunks_outer,
+    .combine  = c,
     .verbose  = FALSE,
     .packages = c("R2jags"),
-    .export   = exported_stuff) %dorng% {eval(foreach_expression)}
+    .export   = exported_stuff) %dorng% {
+      
+      chunks_inner <- chunkVector(k, foreach::getDoParWorkers())
+      
+      foreach::foreach(i = chunks_inner, .combine = c) %dorng% {
+        
+        lapply(i, function (j) {
+          
+          ## Calculate the posterior quantiles for the kth unique trial outcome
+          getPostQuantilesOfTrial(
+            n_responders      = as.numeric(scenario_data$n_responders[j, ]),
+            n_subjects        = as.numeric(scenario_data$n_subjects[j, ]),
+            j_data            = j_data,
+            j_parameters      = j_parameters,
+            j_model_file      = j_model_file,
+            method_name       = method_name,
+            quantiles         = quantiles,
+            post_mean         = post_mean,
+            calc_differences  = calc_differences,
+            n_mcmc_iterations = n_mcmc_iterations,
+            save_path         = save_path,
+            save_trial        = save_trial)
+          
+        })
+        
+      }
+      
+    }
   
   return (posterior_quantiles_list)
+  
+}
+
+getPostQuantilesOfTrial <- function (
+  
+  n_responders,
+  n_subjects,
+  
+  j_data,
+  j_parameters,
+  j_model_file,
+  method_name,
+  quantiles,
+  post_mean,
+  calc_differences,
+  n_mcmc_iterations,
+  
+  save_path,
+  save_trial
+  
+) {
+  
+  j_data$r <- n_responders
+  j_data$n <- n_subjects
+  
+  if (method_name == "stratified") {
+    
+    posterior_quantiles <- getPostQuantilesStratified(
+      j_data            = j_data,
+      quantiles         = quantiles,
+      post_mean         = post_mean,
+      calc_differences  = calc_differences,
+      n_mcmc_iterations = n_mcmc_iterations)
+    
+  } else if (method_name == "pooled") {
+    
+    posterior_quantiles <- getPostQuantilesPooled(
+      j_data           = j_data,
+      quantiles        = quantiles,
+      post_mean        = post_mean,
+      calc_differences = calc_differences)
+    
+  } else {
+    
+    ## Get posterior response rates per indication
+    posterior_distributions <- getPosteriors(
+      j_parameters      = j_parameters,
+      j_model_file      = j_model_file,
+      j_data            = j_data,
+      n_mcmc_iterations = n_mcmc_iterations)
+    
+    ## Calculate differences between response rates of cohorts
+    if (!is.null(calc_differences)) {
+      
+      posterior_distributions <- calcDiffsMCMC(
+        posterior_distributions = posterior_distributions,
+        calc_differences        = calc_differences)
+      
+    }
+    
+    ## Save posterior response rates per indication for one randomly selected simulation,
+    ## due to time and storage space constraints only one simulation
+    if (!is.null(save_path)) {
+      if (k == save_trial) {
+        saveRDS(posterior_distributions,
+                file = file.path(save_path, paste0("posterior_distributions_",
+                                                   k, "_", method_name, "_rds")))
+      }
+    }
+    
+    ## Calculate the required quantiles for the decision rules
+    posterior_quantiles <- posteriors2Quantiles(
+      quantiles  = quantiles,
+      post_mean  = post_mean,
+      posteriors = posterior_distributions)
+    
+  }
+  
+  return (posterior_quantiles)
   
 }
 
@@ -634,6 +682,11 @@ mapUniqueTrials <- function (
 #' The default value might be a good compromise between run-time and approximation for
 #' the estimation of decision probabilities, but
 #' it should definitively be increased for the analysis of a single trial's outcome.
+#' 
+#' The analysis models will only be applied to the unique trial realizations accross 
+#' all simulated scenarios.
+#' The models can be applied in parallel by registering a parallel backend for the 'foreach'
+#' framework, e.g. with `doFuture::registerDoFuture()` and `future::plan(future::multisession)`.
 #'
 #' The JAGS code for the BHM `"exnex"` was taken from Neuenschwander et al. (2016).
 #' The JAGS code for the BHM `"exnex_adj"` is based on the JAGS code for `"exnex"`.
@@ -777,9 +830,8 @@ performAnalyses <- function (
     
     message("\nCaution: No parallel backend detected for the 'foreach' framework.",
             " For execution in parallel, register a parallel backend, e.g. with:\n",
-            "   n_cores <- parallel::detectCores() - 1L\n",
-            "   cl      <- parallel::makeCluster(n_cores)\n",
-            "   doParallel::registerDoParallel(cl)\n")
+            "   doFuture::registerDoFuture()\n",
+            "   future::plan(future::multisession)\n")
     
     tt <- suppressWarnings(foreach::foreach(k = 1:2) %dopar% {k^k^k})
     rm(tt)

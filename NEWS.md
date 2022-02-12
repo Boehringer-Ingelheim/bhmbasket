@@ -6,6 +6,16 @@
 
 ### New & Altered Features
 
+* Introduced nested parallelization for better usage of HPC resources
+
+* Introduced chunking of tasks for better performance in parallel environments
+
+* Updated vignette on HPC environment
+
+* Update documentation of performAnalyses()
+
+* Recommended doFuture and future over doParallel and parallel when no parallel backend is detected
+
 * Minor changes in code
 
 # bhmbasket 0.9.4

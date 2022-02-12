@@ -1,11 +1,22 @@
-## R CMD check appeasement
+## R CMD check appeasement for forach loop
 utils::globalVariables("k")
+utils::globalVariables("i")
 
 ## Code inspired by https://stackoverflow.com/questions/3318333/split-a-vector-into-chunks
 ## Answer by mathheadinclouds
-chunk_vector <- function(x, n_chunks) {
+chunkVector <- function(x, n_chunks) {
   
-  split(x, cut(seq_along(x), n_chunks, labels = FALSE)) 
+  if (n_chunks <= 1) {
+    
+    chunk_list <- list(x)
+    
+  } else {
+    
+    chunk_list <- unname(split(x, cut(seq_along(x), n_chunks, labels = FALSE)))
+    
+  }
+  
+  return (chunk_list)
   
 }
 
