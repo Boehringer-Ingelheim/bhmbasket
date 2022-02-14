@@ -32,8 +32,8 @@ Imports:
     doRNG,
     R2jags (>= 0.7-1)
 Suggests: 
-    doParallel,
-    parallel,
+    doFuture,
+    future,
     knitr,
     rmarkdown
 VignetteBuilder: 

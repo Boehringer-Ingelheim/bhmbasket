@@ -62,7 +62,7 @@ OK
 
 * Recommended doFuture and future over doParallel and parallel when no parallel backend is detected
 
-* Updated SystemRequirements in DESCRIPTION
+* Updated Suggests and SystemRequirements in DESCRIPTION
 
 * Added a WORDLIST
 
