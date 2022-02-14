@@ -2,7 +2,7 @@
 
 ### Fixed Bugs
 
-* Fixed a bug that occured due to a change in stats::aggregate()
+* Fixed a bug that occured in performAnalyses() using R-devel due to a recent change in stats::aggregate()
 
 ### New & Altered Features
 
@@ -17,6 +17,8 @@
 * Recommended doFuture and future over doParallel and parallel when no parallel backend is detected
 
 * Updated SystemRequirements in DESCRIPTION
+
+* Added a WORDLIST
 
 * Minor changes in code
 

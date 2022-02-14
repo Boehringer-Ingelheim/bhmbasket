@@ -2,11 +2,11 @@ Maintainer: 'Stephan Wojciekowski <stephan.wojciekowski@boehringer-ingelheim.com
 
 ## Test environments
 - x86_64-w64-mingw32 (64-bit), R 4.1.2
-- x86_64-w64-mingw32 (64-bit), R Under development (unstable) (2022-01-16 r81507 ucrt)
+- x86_64-w64-mingw32 (64-bit), R Under development (unstable) (2022-02-13 r81727 ucrt)
+- R-hub ubuntu-gcc-release (r-release)
 - R-hub ubuntu-gcc-devel (r-devel)
 - R-hub macos-m1-bigsur-release (r-release)
-- R-hub ubuntu-gcc-release (r-release)
-- R-hub windows-x86_64-devel (r-devel)
+- R-hub macos-highsierra-release-cran (r-release)
 
 ## R CMD check results
 
@@ -25,10 +25,7 @@ Found the following (possibly) invalid DOIs:
     Status: Service Unavailable
     Message: 503
 
-=> This DOI has not been changed since the last update and the respective publication can be accessed using this DOI via https://www.doi.org/
-
-### R-hub macos-m1-bigsur-release (r-release)
-OK
+=> This DOI has not been changed since since bhmbasket version 0.9.1 and the respective publication can be accessed using this DOI via https://www.doi.org/
 
 ### R-hub ubuntu-gcc-release (r-release)
 * checking CRAN incoming feasibility ... NOTE
@@ -39,53 +36,34 @@ Found the following (possibly) invalid DOIs:
     Status: Service Unavailable
     Message: 503
 
-=> This DOI has not been changed since the last update and the respective publication can be accessed using this DOI via https://www.doi.org/
+=> This DOI has not been changed since bhmbasket version 0.9.1 and the respective publication can be accessed using this DOI via https://www.doi.org/
 
-### R-hub windows-x86_64-devel (r-devel)
-* checking CRAN incoming feasibility ... NOTE
+### R-hub macos-m1-bigsur-release (r-release)
+OK
 
-Found the following (possibly) invalid DOIs:
-    From: DESCRIPTION
-  DOI: 10.1177/1740774513497539
-    Status: Service Unavailable
-    Message: 503
-    
-=> This DOI has not been changed since the last update and the respective publication can be accessed using this DOI via https://www.doi.org/
-    
-* checking for detritus in the temp directory ... NOTE
-Found the following files/directories:
-  'lastMiKTeXException'
-
-=> This note only appears on this server and I do not think that it is caused by the R package. I suspect a server issue
+### R-hub macos-highsierra-release-cran (r-release)
+OK
 
 ## From NEWS.md
 
 ### Fixed Bugs
 
-* Fixed a bug in continueRecruitment() that could result in additional subjects to be recruited when the overall decision for a trial realization is NoGo but some cohorts of that trial realization have Go decisions.
-
-* Fixed a bug in performAnalyses() that would occur if all trial realizations of a scenario had a previous overall NoGo decision and would result in performAnalyses() to return an empty list for that scenario's posterior quantiles.
-
-* Specified R2jags package version requirement in DESCRIPTION to prevent 'unused argument' bug in performAnalyses()
-
-* Fixed warning message not showing when specifying deprecated arguments 'seed' and 'n_cores' in performAnalyses() 
+* Fixed a bug that occured in performAnalyses() using R-devel due to a recent change in stats::aggregate()
 
 ### New & Altered Features
 
-* Usage of doRNG package for fully reproducible results in parallel execution
+* Introduced nested parallelization for better usage of HPC resources
 
-* Usage of hash tables for mapping unique trial realizations to scenario trial realizations resulting in performance improvement
+* Introduced chunking of tasks for better performance in parallel environments
 
-* Added a vignette that provides a short example on how to use bhmbasket in a high performance computing environment
+* Updated vignette on HPC environment
 
-* JAGS model files stored in package instead of writing to temporary files
+* Update documentation of performAnalyses()
 
-* Updated Imports in DESCRIPTION
+* Recommended doFuture and future over doParallel and parallel when no parallel backend is detected
 
-* Updated CITATION
+* Updated SystemRequirements in DESCRIPTION
+
+* Added a WORDLIST
 
 * Minor changes in code
-
-* Updated documentation
-
-* Removed superfluous files
