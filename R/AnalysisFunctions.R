@@ -683,10 +683,15 @@ mapUniqueTrials <- function (
 #' the estimation of decision probabilities, but
 #' it should definitively be increased for the analysis of a single trial's outcome.
 #' 
-#' The analysis models will only be applied to the unique trial realizations accross 
+#' The analysis models will only be applied to the unique trial realizations across 
 #' all simulated scenarios.
 #' The models can be applied in parallel by registering a parallel backend for the 'foreach'
 #' framework, e.g. with `doFuture::registerDoFuture()` and `future::plan(future::multisession)`.
+#' The parallelization is nested, so that the resources of a HPC environment can be used
+#' efficiently.
+#' For more on this topic, kindly see the respective vignette.
+#' The tasks that are to be performed in parallel are chunked according to the number of workers
+#' determined with `foreach::getDoParWorkers()`.
 #'
 #' The JAGS code for the BHM `"exnex"` was taken from Neuenschwander et al. (2016).
 #' The JAGS code for the BHM `"exnex_adj"` is based on the JAGS code for `"exnex"`.
