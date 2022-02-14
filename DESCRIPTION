@@ -1,6 +1,6 @@
 Package: bhmbasket
 Title: Bayesian Hierarchical Models for Basket Trials
-Version: 0.9.4.1
+Version: 0.9.5
 Authors@R: 
     person(given = 'Stephan',
            family = 'Wojciekowski',
