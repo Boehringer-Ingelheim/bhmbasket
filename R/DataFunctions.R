@@ -6,7 +6,8 @@
 #' the number of subjects per cohort to be additionally recruited.
 #' @param decisions_list A list with decisions per scenario created with
 #' \code{\link[bhmbasket]{getGoDecisions}}
-#' @param method_name A string for the method name of the analysis the decisions are based on
+#' @param method_name A string for the method name of the analysis the decisions are based on.
+#' Can be `NULL` if only one method has been used for analysis, Default: `NULL`
 #' @return An object of class `scenario_list` with the scenario data for each specified scenario.
 #' @details
 #' This function is intended to be used for analyses with the following work flow:\cr
@@ -51,7 +52,7 @@ continueRecruitment <- function (
   n_subjects_add_list,
   decisions_list,
   
-  method_name
+  method_name = NULL
   
 ) {
   
@@ -65,19 +66,37 @@ continueRecruitment <- function (
   
   if (missing(n_subjects_add_list))            stop (error_n_subjects_add_list)
   if (missing(decisions_list))                 stop (error_decisions_list)
-  if (missing(method_name))                    stop (error_method_name)
-  
-  method_name <- tryCatch({
-    
-    match.arg(
-      method_name,
-      choices    = c('berry', 'exnex', 'exnex_adj', 'pooled', 'stratified'),
-      several.ok = FALSE)
-    
-  }, error = function (e) e)
   
   if (!is.decision_list(decisions_list))       stop (error_decisions_list)
-  if (inherits(method_name, "error"))          stop (error_method_name)
+  
+  if (is.null(method_name)) {
+    
+    n_methods <- length(decisions_list$scenario_1$decisions_list)
+    
+    if (n_methods > 1) {
+      
+                                               stop (error_method_name)
+      
+    } else {
+      
+      method_name <- names(decisions_list$scenario_1$decisions_list)
+      
+    }
+    
+  } else {
+    
+    method_name <- tryCatch({
+      
+      match.arg(
+        method_name,
+        choices    = c('berry', 'exnex', 'exnex_adj', 'pooled', 'stratified'),
+        several.ok = FALSE)
+      
+    }, error = function (e) e)
+    
+    if (inherits(method_name, "error"))          stop (error_method_name)
+    
+  }
   
   if (!is.list(n_subjects_add_list)) {
     n_subjects_add_list <- rep(list(n_subjects_add_list), length(decisions_list))

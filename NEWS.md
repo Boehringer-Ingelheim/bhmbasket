@@ -4,11 +4,13 @@
 
 * Added function getAverageNSubjects()
 
+* In continueRecruitment(), the argument method_name can be omitted if only one method has been used in performAnalyses()
+
 * Caution message in performAnalyses() if no parallel backend is detected disabled for methods stratified and pooled
 
 * Changed message in performAnalyses that informs about the number of scenarios and unique trial realizations
 
-* Disabled loading package messages when calling functions from R2jags
+* Disabled loading package messages when calling functions from other packages
 
 * Minor changes in code
 
