@@ -753,7 +753,8 @@ print.scenario_list <- function(scenario_list) {
   response_rates <- lapply(scenario_list, function (x) x$response_rates)
   n_subjects     <- getAverageNSubjects(scenario_list)
   
-  cat("scenario_list of", n_scenarios, "scenarios with", n_cohorts, "cohorts\n\n")
+  cat("scenario_list of ", n_scenarios, " scenario", ifelse(n_scenarios == 1, "", "s"),
+      " with ", n_cohorts, " cohort", ifelse(n_cohorts == 1, "", "s"),"\n\n", sep = "")
   for (n in seq_along(scenario_names)) {
     
     df_out <- t(data.frame(c(response_rates[[n]]),
