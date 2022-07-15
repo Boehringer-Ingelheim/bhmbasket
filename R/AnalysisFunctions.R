@@ -117,17 +117,18 @@ getPosteriors <- function (
   
 ) {
   
-  jags_fit <- R2jags::jags(data               = j_data,
-                           parameters.to.save = j_parameters,
-                           model.file         = j_model_file,
-                           n.chains           = 2,
-                           n.iter             = n_mcmc_iterations,
-                           n.burnin           = floor(n_mcmc_iterations / 3),
-                           n.thin             = 1,
-                           DIC                = FALSE,
-                           progress.bar       = "none",
-                           jags.module        = NULL,#"mix",
-                           quiet              = TRUE)
+  jags_fit <- suppressMessages(
+    R2jags::jags(data               = j_data,
+                 parameters.to.save = j_parameters,
+                 model.file         = j_model_file,
+                 n.chains           = 2,
+                 n.iter             = n_mcmc_iterations,
+                 n.burnin           = floor(n_mcmc_iterations / 3),
+                 n.thin             = 1,
+                 DIC                = FALSE,
+                 progress.bar       = "none",
+                 jags.module        = NULL,#"mix",
+                 quiet              = TRUE))
   
   ## Adaption and burn-in not included in sims.array
   posterior_samples <- rbind(jags_fit$BUGSoutput$sims.array[, 1, ],
@@ -811,7 +812,8 @@ performAnalyses <- function (
   
   ## check for parallel backend
   "%dopar%" <- foreach::"%dopar%"
-  if(!foreach::getDoParRegistered()) {
+  if(!foreach::getDoParRegistered() &
+     !all(sapply(method_names, function (x) grepl(x, "stratified") | grepl(x, "pooled")))) {
     
     message("\nCaution: No parallel backend detected for the 'foreach' framework.",
             " For execution in parallel, register a parallel backend, e.g. with:\n",
@@ -874,10 +876,8 @@ performAnalyses <- function (
   ## message to user
   if (verbose) {
     
-    scenarios_message <- paste0(as.character(scenario_numbers), sep = ", ", collapse = "")
-    message("         Analyzing Scenario", ifelse(length(scenario_numbers) == 1, "", "s")," ",
-            substr(scenarios_message, 1, nchar(scenarios_message) - 2),
-            " (", nrow(n_responders), " unique", ifelse(applicable_previous_trials, " updated ", " "),
+    message("         Analyzing ", length(scenario_numbers) ," Scenario", ifelse(length(scenario_numbers) == 1, "", "s")," ",
+            "(", nrow(n_responders), " unique", ifelse(applicable_previous_trials, " updated ", " "),
             "trial realization", ifelse(nrow(trials_unique) == 1, "", "s"),")")
     
   }

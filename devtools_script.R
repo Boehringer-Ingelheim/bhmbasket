@@ -12,8 +12,6 @@ devtools::install()
 
 .rs.restartR()
 
-citation("bhmbasket")
-
 library(bhmbasket)
 
 # usethis::use_vignette("bhmbasket_on_HPC")

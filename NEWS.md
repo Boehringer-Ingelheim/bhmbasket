@@ -4,6 +4,12 @@
 
 * Added function getAverageNSubjects()
 
+* Caution message in performAnalyses() if no parallel backend is detected disabled for methods stratified and pooled
+
+* Changed message in performAnalyses that informs about the number of scenarios and unique trial realizations
+
+* Disabled loading package messages when calling functions from R2jags
+
 * Minor changes in code
 
 # bhmbasket 0.9.5
