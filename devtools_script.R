@@ -6,6 +6,8 @@
 
 # https://r-pkgs.org/release.html
 
+setwd("C:/Users/wojcieko/OneDrive - Boehringer Ingelheim/Desktop/bhmbasket development - bitbucket")
+
 rm(list = ls())
 devtools::document()
 devtools::install()
