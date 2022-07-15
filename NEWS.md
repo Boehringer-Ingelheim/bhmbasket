@@ -2,6 +2,8 @@
 
 ### New & Altered Features
 
+* Added print method for object scenario_list
+
 * Added function getAverageNSubjects()
 
 * In continueRecruitment(), the argument method_name can be omitted if only one method has been used in performAnalyses()
