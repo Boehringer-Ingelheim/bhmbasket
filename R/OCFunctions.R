@@ -29,9 +29,8 @@ getAllCohortNames <- function (
 #' @param scenario_list An object of class `scenario_list`,
 #' as created with \code{\link[bhmbasket]{simulateScenarios}} or
 #' \code{\link[bhmbasket]{continueRecruitment}}
-#
-#' @details This function can be usuful when performing interim analyses to assess
-#' decision rules with regard to the average number of subjects across scenarios.
+#' @details This function can be usuful to assess decision rules with regard to the average number 
+#' of subjects across scenarios when performing interim analyses.
 #' @return A named list of vectors for the average number of subjects in each scneario.
 #' @rdname getAverageNSubjects
 #' @seealso

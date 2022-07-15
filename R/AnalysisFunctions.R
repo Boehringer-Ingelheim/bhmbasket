@@ -117,18 +117,17 @@ getPosteriors <- function (
   
 ) {
   
-  jags_fit <- suppressMessages(
-    R2jags::jags(data               = j_data,
-                 parameters.to.save = j_parameters,
-                 model.file         = j_model_file,
-                 n.chains           = 2,
-                 n.iter             = n_mcmc_iterations,
-                 n.burnin           = floor(n_mcmc_iterations / 3),
-                 n.thin             = 1,
-                 DIC                = FALSE,
-                 progress.bar       = "none",
-                 jags.module        = NULL,#"mix",
-                 quiet              = TRUE))
+  jags_fit <-  R2jags::jags(data               = j_data,
+                            parameters.to.save = j_parameters,
+                            model.file         = j_model_file,
+                            n.chains           = 2,
+                            n.iter             = n_mcmc_iterations,
+                            n.burnin           = floor(n_mcmc_iterations / 3),
+                            n.thin             = 1,
+                            DIC                = FALSE,
+                            progress.bar       = "none",
+                            jags.module        = NULL,#"mix",
+                            quiet              = TRUE)
   
   ## Adaption and burn-in not included in sims.array
   posterior_samples <- rbind(jags_fit$BUGSoutput$sims.array[, 1, ],
@@ -207,38 +206,39 @@ getPostQuantiles <- function (
   
   "%dorng%" <- doRNG::"%dorng%"
   "%dopar%" <- foreach::"%dopar%"
-  posterior_quantiles_list <- foreach::foreach(
-    k = chunks_outer,
-    .combine  = c,
-    .verbose  = FALSE,
-    .packages = c("R2jags"),
-    .export   = exported_stuff) %dorng% {
-      
-      chunks_inner <- chunkVector(k, foreach::getDoParWorkers())
-      
-      foreach::foreach(i = chunks_inner, .combine = c) %dorng% {
+  posterior_quantiles_list <- suppressMessages(
+    foreach::foreach(
+      k = chunks_outer,
+      .combine  = c,
+      .verbose  = FALSE,
+      .packages = c("R2jags"),
+      .export   = exported_stuff) %dorng% {
         
-        lapply(i, function (j) {
-          
-          ## Calculate the posterior quantiles for the kth unique trial outcome
-          getPostQuantilesOfTrial(
-            n_responders      = as.numeric(scenario_data$n_responders[j, ]),
-            n_subjects        = as.numeric(scenario_data$n_subjects[j, ]),
-            j_data            = j_data,
-            j_parameters      = j_parameters,
-            j_model_file      = j_model_file,
-            method_name       = method_name,
-            quantiles         = quantiles,
-            calc_differences  = calc_differences,
-            n_mcmc_iterations = n_mcmc_iterations,
-            save_path         = save_path,
-            save_trial        = save_trial)
-          
-        })
+        chunks_inner <- chunkVector(k, foreach::getDoParWorkers())
         
-      }
-      
-    }
+        foreach::foreach(i = chunks_inner, .combine = c) %dorng% {
+          
+          lapply(i, function (j) {
+            
+            ## Calculate the posterior quantiles for the kth unique trial outcome
+            getPostQuantilesOfTrial(
+              n_responders      = as.numeric(scenario_data$n_responders[j, ]),
+              n_subjects        = as.numeric(scenario_data$n_subjects[j, ]),
+              j_data            = j_data,
+              j_parameters      = j_parameters,
+              j_model_file      = j_model_file,
+              method_name       = method_name,
+              quantiles         = quantiles,
+              calc_differences  = calc_differences,
+              n_mcmc_iterations = n_mcmc_iterations,
+              save_path         = save_path,
+              save_trial        = save_trial)
+            
+          })
+          
+        }
+        
+      })
   
   return (posterior_quantiles_list)
   
@@ -510,7 +510,7 @@ loadAnalyses <- function (
   
 }
 
-makeUniqueRows <- function (
+getUniqueRows <- function (
   
   matrix
   
@@ -849,7 +849,7 @@ performAnalyses <- function (
   
   n_cohorts     <- ncol(all_scenarios_n_responders)
   
-  trials_unique <- makeUniqueRows(cbind(all_scenarios_n_responders,
+  trials_unique <- getUniqueRows(cbind(all_scenarios_n_responders,
                                         all_scenarios_n_subjects,
                                         go_flag = all_scenarios_overall_gos))
   
