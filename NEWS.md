@@ -1,5 +1,13 @@
 # bhmbasket 0.9.5
 
+### New & Altered Features
+
+* Added function getAverageNSubjects()
+
+* Minor changes in code
+
+# bhmbasket 0.9.5
+
 ### Fixed Bugs
 
 * Fixed a bug that occured in performAnalyses() using R-devel due to a recent change in stats::aggregate()

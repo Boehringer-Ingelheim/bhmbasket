@@ -23,10 +23,69 @@ getAllCohortNames <- function (
   
 }
 
+#' @title getAverageNSubjects
+#' @md
+#' @description This function calculates the average number of subjects per scenario.
+#' @param scenario_list An object of class `scenario_list`,
+#' as created with \code{\link[bhmbasket]{simulateScenarios}} or
+#' \code{\link[bhmbasket]{continueRecruitment}}
+#
+#' @details This function can be usuful when performing interim analyses to assess
+#' decision rules with regard to the average number of subjects across scenarios.
+#' @return A named list of vectors for the average number of subjects in each scneario.
+#' @rdname getAverageNSubjects
+#' @seealso
+#'  \code{\link[bhmbasket]{simulateScenarios}}
+#'  \code{\link[bhmbasket]{continueRecruitment}}
+#' @examples
+#' interim_scenarios <- simulateScenarios(
+#'   n_subjects_list     = list(c(10, 20, 30)),
+#'   response_rates_list = list(rep(0.9, 3)),
+#'   n_trials            = 10)
+#'
+#' interim_analyses <- performAnalyses(
+#'   scenario_list       = interim_scenarios,
+#'   target_rates        = rep(0.5, 3),
+#'   n_mcmc_iterations   = 100)
+#'
+#' interim_gos <- getGoDecisions(
+#'   analyses_list       = interim_analyses,
+#'   cohort_names        = c("p_1", "p_2", "p_3"),
+#'   evidence_levels     = c(0.5, 0.8, 0.5),
+#'   boundary_rules      = quote(c(x[1] > 0.8, x[2] > 0.6, x[3] > 0.7)))
+#'     
+#' scenarios_list <- continueRecruitment(
+#'   n_subjects_add_list = list(c(30, 20, 10)),
+#'   decisions_list      = interim_gos,
+#'   method_name         = "exnex_adj")
+#'   
+#' getAverageNSubjects(scenarios_list)
+#'
+#' @author Stephan Wojciekowski
+#' @export
+getAverageNSubjects <- function (
+  
+  scenario_list
+  
+) {
+  
+  error_scenario_list <-
+    simpleError("Please provide an object of class scenario_list for the argument 'scenario_list'")
+  
+  if (missing(scenario_list))                      stop (error_scenario_list)
+  
+  if (!is.scenario_list(scenario_list))            stop (error_scenario_list)
+  
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  
+  lapply(scenario_list, function (x) colMeans(x$n_subjects))
+  
+}
+
 #' @title getEstimates
 #' @md
 #' @description This function calculates the point estimates and credible intervals per cohort,
-#' as well as estimates of the biases and the mean squared errors of the point estimates per cohort
+#' as well as estimates of the biases and the mean squared errors of the point estimates per cohort.
 #' @param analyses_list An object of class `analysis_list`,
 #' as created with \code{\link[bhmbasket]{performAnalyses}}
 #' @param add_parameters A vector of strings naming additional parameters
@@ -50,6 +109,7 @@ getAllCohortNames <- function (
 #' @rdname getEstimates
 #' @seealso
 #'  \code{\link[bhmbasket]{createTrial}}
+#'  \code{\link[bhmbasket]{simulateScenarios}}
 #'  \code{\link[bhmbasket]{performAnalyses}}
 #' @examples
 #'   scenarios_list <- simulateScenarios(
@@ -919,19 +979,9 @@ getPosteriorGammaQuantiles <- function (
 
   }
 
-  if (grepl("berry", method_name) | grepl("exnex", method_name)) {
-
-    posterior_gamma_quantiles <- lapply(posterior_quantiles, function (x) {
-      x[gamma_indices, cohort_indices]
-    })
-
-  } else if (method_name == "stratified" | method_name == "pooled") {
-
-    posterior_gamma_quantiles <- lapply(posterior_quantiles, function (x) {
-      x[gamma_indices, cohort_indices]
-    })
-
-  }
+  posterior_gamma_quantiles <- lapply(posterior_quantiles, function (x) {
+    x[gamma_indices, cohort_indices]
+  })
 
   if (length(gamma_indices) > 1) {
     posterior_gamma_quantiles <- lapply(posterior_gamma_quantiles, diag)
@@ -946,57 +996,6 @@ getPosteriorGammaQuantiles <- function (
 
   return (posterior_gamma_quantiles)
 
-}
-
-getRespRatesEstimates <- function (
-  
-  analyses_list,
-  cohort_names = NULL,
-  alpha_level  = 0.05
-  
-) {
-  
-  gamma_levels <- matrix(rep(c(1 - alpha_level / 2, 0.5, alpha_level / 2),
-                             each = length(cohort_names)), nrow = 3, byrow = TRUE)
-  
-  results_list <- vector(mode = "list", length = length(analyses_list))
-  names(results_list) <- names(analyses_list)
-  
-  for (s in seq_along(analyses_list)) {
-    
-    analysis_data <- analyses_list[[s]]
-    method_names  <- analysis_data$analysis_parameters$method_names
-    
-    results_per_method_list <- vector(mode = "list", length = length(method_names))
-    names(results_per_method_list) <- method_names
-    
-    for (method_name in method_names) {
-      
-      estimates <- apply(gamma_levels, 1, function (glevel) {
-        
-        colMeans(do.call(rbind, getPosteriorGammaQuantiles(
-          method_name              = method_name,
-          gamma_levels             = glevel,
-          quantiles                = analysis_data$analysis_parameters$quantiles,
-          posterior_quantiles_list = analysis_data$quantiles_list,
-          cohort_names             = cohort_names)))
-        
-      })
-      
-      colnames(estimates) <- paste0(c(alpha_level / 2, 0.5, 1 - alpha_level / 2) * 100, "%")
-      
-      results_per_method_list[[method_name]] <- estimates
-      
-    }
-    
-    results_list[[s]] <- results_per_method_list
-    
-  }
-  
-  results_list <- listPerMethod(results_list)
-  
-  return (results_list)
-  
 }
 
 getScenarioNumbers <- function (analyses_list) {

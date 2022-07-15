@@ -3,6 +3,7 @@
 export(combinePriorParameters)
 export(continueRecruitment)
 export(createTrial)
+export(getAverageNSubjects)
 export(getEstimates)
 export(getGoDecisions)
 export(getGoProbabilities)

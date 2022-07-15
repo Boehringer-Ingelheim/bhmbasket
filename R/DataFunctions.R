@@ -233,8 +233,8 @@ createTrial <- function (
   error_n_responders <- simpleError(
     "Please provide a vector of integers for the argument 'n_responders'")
 
-  if (missing(n_subjects))               stop (error_n_subjects)
-  if (missing(n_responders))             stop (error_n_responders)
+  if (missing(n_subjects))                stop (error_n_subjects)
+  if (missing(n_responders))              stop (error_n_responders)
 
   if (any(!is.wholenumber(n_subjects)))   stop (error_n_subjects)
   if (any(!is.wholenumber(n_responders))) stop (error_n_responders)
@@ -250,21 +250,6 @@ createTrial <- function (
 
   return (trial)
 
-}
-
-getInterimPassed <- function (
-  
-  interim_n_responders,
-  interim_n_min
-  
-) {
-  
-  interim_passed <- t(apply(interim_n_responders, 1, function (x) {
-    x >= interim_n_min
-  }))
-  
-  return (interim_passed)
-  
 }
 
 getNSubjects <- function (
@@ -353,27 +338,6 @@ getRecruitment <- function (
 
 getResponders <- function (
   
-  n_subjects,
-  response_rates
-  
-) {
-  
-  ## Adjust for working with apply()
-  if (is.null(dim(response_rates))) {
-    response_rates <- t(as.matrix(response_rates))
-  }
-  
-  n_responders <- t(apply(response_rates, 1,
-                          function (x) {stats::rbinom(n    = length(n_subjects),
-                                                      size = n_subjects,
-                                                      prob = x)}))
-  
-  return (n_responders)
-  
-}
-
-getRespondersNonParallel <- function (
-  
   response_rates,
   n_subjects,
   
@@ -424,7 +388,7 @@ getScenario <- function (
     }
 
     ## Simulate the number of responses without interim analysis
-    n_responders <- getRespondersNonParallel(
+    n_responders <- getResponders(
       response_rates = response_rates[, index_new],
       n_subjects     = n_subjects[index_new],
       n_trials       = n_trials)
@@ -507,94 +471,6 @@ getScenario <- function (
                         n_trials          = n_trials)
 
   return (scenario_data)
-
-}
-
-is.scenario_data <- function (x) {
-
-  if (missing(x)) stop ("Please provide an object for the argument 'x'")
-
-  inherits(x, "decision_list")
-
-  # ## x must be list
-  # if (!is.list(x)) {
-  #   warning ("x must be list")
-  #   return (FALSE)
-  # }
-  #
-  # ## names of x must be as below
-  # if (!identical(sort(names(x)), c("n_responders", "n_subjects", "n_trials",
-  #                                  "response_rates", "scenario_number", "seed"))) {
-  #   warning ("names of x must be c('n_responders', 'n_subjects', 'n_trials',
-  #                                  'response_rates', 'scenario_number', 'seed')")
-  #   return (FALSE)
-  # }
-  #
-  # ## x$n_subjects must be matrix with non-negative integers
-  # if (!is.matrix(x$n_subjects) || !is.numeric(x$n_subjects) ||
-  #     !all(is.wholenumber(x$n_subjects)) || !all(x$n_subjects >= 0)) {
-  #   warning ("x$n_subjects must be matrix with non-negative integers")
-  #   return (FALSE)
-  # }
-  #
-  # ## x$n_responders must be matrix with non-negative integers
-  # if (!is.matrix(x$n_responders) || !is.numeric(x$n_responders) ||
-  #     !all(is.wholenumber(x$n_responders)) || !all(x$n_responders >= 0)) {
-  #   warning ("x$n_responders must be matrix with non-negative integers")
-  #   return (FALSE)
-  # }
-  #
-  # ## x$n_subjects and x$n_responders must have same dimension
-  # if (!identical(dim(x$n_responders), dim(x$n_subjects))) {
-  #   warning ("x$n_subjects and x$n_responders must have same dimension")
-  #   return (FALSE)
-  # }
-  #
-  # ## x$response_rates must be matrix with with integers in [0, 1]
-  # if (!is.matrix(x$response_rates) || !is.numeric(x$response_rates) ||
-  #     !all(x$response_rates >= 0 && x$response_rates <= 1)) {
-  #   warning ("x$response_rates must be matrix with with integers in [0, 1]")
-  #   return (FALSE)
-  # }
-  #
-  # ## x$response_rates must have same number of columns as x$n_subjects
-  # if (!identical(ncol(x$response_rates), ncol(x$n_subjects))) {
-  #   warning ("x$response_rates must have same number of columns as x$n_subjects")
-  #   return (FALSE)
-  # }
-  #
-  # ## x$response_rates must have number of rows between 1 and nrow(x$n_subjects)
-  # if (!nrow(x$response_rates) >= 1 || !nrow(x$response_rates) <= nrow(x$n_subjects)) {
-  #   warning ("x$response_rates must have number of rows between 1 and nrow(x$n_subjects)")
-  #   return (FALSE)
-  # }
-  #
-  # ## x$n_trials must be positive integer
-  # if (!is.numeric(x$n_trials) || !is.wholenumber(x$n_trials) || !x$n_trials > 0) {
-  #   warning ("x$n_trials must be positive integer")
-  #   return (FALSE)
-  # }
-  #
-  # ## x$n_trials must be equal to nrow(x$n_subjects)
-  # if (!isTRUE(all.equal(x$n_trials, nrow(x$n_subjects)))) {
-  #   warning ("x$n_trials must be equal to nrow(x$n_subjects)")
-  #   return (FALSE)
-  # }
-  #
-  # ## x$seed must be non-negative integer
-  # if (!is.numeric(x$seed) || !is.wholenumber(x$seed) || !x$seed >= 0) {
-  #   warning ("x$seed must be non-negative integer")
-  #   return (FALSE)
-  # }
-  #
-  # ## x$scenario_number must be non-negative integer
-  # if (!is.numeric(x$scenario_number) || !is.wholenumber(x$scenario_number) ||
-  #     !x$scenario_number >= 0) {
-  #   warning ("x$scenario_number must be non-negative integer")
-  #   return (FALSE)
-  # }
-  #
-  # return (TRUE)
 
 }
 

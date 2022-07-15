@@ -48,17 +48,17 @@ applicablePreviousTrials <- function(
 
 calcDiffsMCMC <- function (
   
-  posterior_distributions,
+  posterior_samples,
   calc_differences
   
 ) {
   
-  org_names <- colnames(posterior_distributions)
+  org_names <- colnames(posterior_samples)
   
   diffs <- apply(calc_differences, 1, function (x) {
     
-    matrix(posterior_distributions[, grepl(x[1], org_names) & grepl("p", org_names)] -
-             posterior_distributions[, grepl(x[2], org_names) & grepl("p", org_names)],
+    matrix(posterior_samples[, grepl(x[1], org_names) & grepl("p", org_names)] -
+             posterior_samples[, grepl(x[2], org_names) & grepl("p", org_names)],
            ncol = 1)
     
   })
@@ -71,9 +71,9 @@ calcDiffsMCMC <- function (
   
   colnames(diffs) <- diff_names
   
-  posterior_distributions <- cbind(posterior_distributions, diffs)
+  posterior_samples <- cbind(posterior_samples, diffs)
   
-  return (posterior_distributions)
+  return (posterior_samples)
   
 }
 
@@ -130,26 +130,26 @@ getPosteriors <- function (
                            quiet              = TRUE)
   
   ## Adaption and burn-in not included in sims.array
-  posterior_distributions <- rbind(jags_fit$BUGSoutput$sims.array[, 1, ],
+  posterior_samples <- rbind(jags_fit$BUGSoutput$sims.array[, 1, ],
                                    jags_fit$BUGSoutput$sims.array[, 2, ])
   
   ## replace squarebrackets provided by R2jags with workable characters
-  colnames(posterior_distributions) <- gsub("\\[", "_", colnames(posterior_distributions))
-  colnames(posterior_distributions) <- gsub("\\]", "", colnames(posterior_distributions))
+  colnames(posterior_samples) <- gsub("\\[", "_", colnames(posterior_samples))
+  colnames(posterior_samples) <- gsub("\\]", "", colnames(posterior_samples))
   
-  weights_indices <- grepl("exch", colnames(posterior_distributions))
+  weights_indices <- grepl("exch", colnames(posterior_samples))
   if (any(weights_indices)) {
     
-    superfluous_weights <- !grepl(",1", colnames(posterior_distributions))
+    superfluous_weights <- !grepl(",1", colnames(posterior_samples))
     
-    colnames(posterior_distributions)[weights_indices] <-
+    colnames(posterior_samples)[weights_indices] <-
       paste0("w_", seq_along(j_data$n))
     
-    posterior_distributions <- posterior_distributions[, !(weights_indices & superfluous_weights)]
+    posterior_samples <- posterior_samples[, !(weights_indices & superfluous_weights)]
     
   }
   
-  return (posterior_distributions)
+  return (posterior_samples)
   
 }
 
@@ -158,7 +158,6 @@ getPostQuantiles <- function (
   ## The method to be applied to the likelihood and the quantiles of the posterior
   method_name,
   quantiles,
-  post_mean,
   
   ## Scenario data
   scenario_data,
@@ -199,9 +198,6 @@ getPostQuantiles <- function (
   ## prepare foreach loop over 
   
   exported_stuff <- c(
-    # "scenario_data", "j_data", "post_mean", "quantiles",
-    # "calc_differences", "j_parameters", "j_model_file", "n_mcmc_iterations",
-    # "save_path", "save_trial", "method_name",
     "posteriors2Quantiles", "getPosteriors", "getPostQuantilesOfTrial",
     "qbetaDiff")
   
@@ -232,7 +228,6 @@ getPostQuantiles <- function (
             j_model_file      = j_model_file,
             method_name       = method_name,
             quantiles         = quantiles,
-            post_mean         = post_mean,
             calc_differences  = calc_differences,
             n_mcmc_iterations = n_mcmc_iterations,
             save_path         = save_path,
@@ -258,7 +253,6 @@ getPostQuantilesOfTrial <- function (
   j_model_file,
   method_name,
   quantiles,
-  post_mean,
   calc_differences,
   n_mcmc_iterations,
   
@@ -275,7 +269,6 @@ getPostQuantilesOfTrial <- function (
     posterior_quantiles <- getPostQuantilesStratified(
       j_data            = j_data,
       quantiles         = quantiles,
-      post_mean         = post_mean,
       calc_differences  = calc_differences,
       n_mcmc_iterations = n_mcmc_iterations)
     
@@ -284,13 +277,12 @@ getPostQuantilesOfTrial <- function (
     posterior_quantiles <- getPostQuantilesPooled(
       j_data           = j_data,
       quantiles        = quantiles,
-      post_mean        = post_mean,
       calc_differences = calc_differences)
     
   } else {
     
     ## Get posterior response rates per indication
-    posterior_distributions <- getPosteriors(
+    posterior_samples <- getPosteriors(
       j_parameters      = j_parameters,
       j_model_file      = j_model_file,
       j_data            = j_data,
@@ -299,8 +291,8 @@ getPostQuantilesOfTrial <- function (
     ## Calculate differences between response rates of cohorts
     if (!is.null(calc_differences)) {
       
-      posterior_distributions <- calcDiffsMCMC(
-        posterior_distributions = posterior_distributions,
+      posterior_samples <- calcDiffsMCMC(
+        posterior_samples = posterior_samples,
         calc_differences        = calc_differences)
       
     }
@@ -309,8 +301,8 @@ getPostQuantilesOfTrial <- function (
     ## due to time and storage space constraints only one simulation
     if (!is.null(save_path)) {
       if (k == save_trial) {
-        saveRDS(posterior_distributions,
-                file = file.path(save_path, paste0("posterior_distributions_",
+        saveRDS(posterior_samples,
+                file = file.path(save_path, paste0("posterior_samples_",
                                                    k, "_", method_name, "_rds")))
       }
     }
@@ -318,8 +310,7 @@ getPostQuantilesOfTrial <- function (
     ## Calculate the required quantiles for the decision rules
     posterior_quantiles <- posteriors2Quantiles(
       quantiles  = quantiles,
-      post_mean  = post_mean,
-      posteriors = posterior_distributions)
+      posteriors = posterior_samples)
     
   }
   
@@ -331,7 +322,6 @@ getPostQuantilesPooled <- function(
   
   j_data,
   quantiles,
-  post_mean,
   calc_differences
   
 ) {
@@ -347,15 +337,11 @@ getPostQuantilesPooled <- function(
   colnames(posterior_quantiles) <- paste0("p_", seq_along(j_data$r))
   rownames(posterior_quantiles) <- paste0(quantiles * 100, "%")
   
-  if (post_mean) {
-    
-    posterior_mean      <- shape_1 / (shape_1 + shape_2)
-    posterior_sd        <- shape_1 * shape_2 / ((shape_1 + shape_2)^2 * (shape_1 + shape_2 + 1))
-    posterior_quantiles <- rbind(posterior_quantiles,
-                                 Mean = posterior_mean,
-                                 SD   = posterior_sd)
-    
-  }
+  posterior_mean      <- shape_1 / (shape_1 + shape_2)
+  posterior_sd        <- shape_1 * shape_2 / ((shape_1 + shape_2)^2 * (shape_1 + shape_2 + 1))
+  posterior_quantiles <- rbind(posterior_quantiles,
+                               Mean = posterior_mean,
+                               SD   = posterior_sd)
   
   if (!is.null(calc_differences)) {
     
@@ -385,7 +371,6 @@ getPostQuantilesStratified <- function(
   
   j_data,
   quantiles,
-  post_mean,
   calc_differences,
   n_mcmc_iterations
   
@@ -406,15 +391,11 @@ getPostQuantilesStratified <- function(
   colnames(posterior_quantiles) <- paste0("p_", seq_along(j_data$a_j))
   rownames(posterior_quantiles) <- paste0(quantiles * 100, "%")
   
-  if (post_mean) {
-    
-    posterior_mean      <- shape_1 / (shape_1 + shape_2)
-    posterior_sd        <- shape_1 * shape_2 / ((shape_1 + shape_2)^2 * (shape_1 + shape_2 + 1))
-    posterior_quantiles <- rbind(posterior_quantiles,
-                                 Mean = posterior_mean,
-                                 SD   = posterior_sd)
-    
-  }
+  posterior_mean      <- shape_1 / (shape_1 + shape_2)
+  posterior_sd        <- shape_1 * shape_2 / ((shape_1 + shape_2)^2 * (shape_1 + shape_2 + 1))
+  posterior_quantiles <- rbind(posterior_quantiles,
+                               Mean = posterior_mean,
+                               SD   = posterior_sd)
   
   if (!is.null(calc_differences)) {
     
@@ -422,7 +403,6 @@ getPostQuantilesStratified <- function(
       
       matrix(qbetaDiff(
         quantiles  = quantiles,
-        post_mean  = post_mean,
         x_1_shape1 = shape_1[x[1]],
         x_1_shape2 = shape_2[x[1]],
         x_2_shape1 = shape_1[x[2]],
@@ -936,7 +916,6 @@ performAnalyses <- function (
     method_quantiles_list[[method_names[n]]] <- getPostQuantiles(
       method_name       = method_names[n],
       quantiles         = quantiles,
-      post_mean         = TRUE,
       scenario_data     = list(n_subjects   = n_subjects,
                                n_responders = n_responders),
       calc_differences  = calc_differences,
@@ -1002,23 +981,17 @@ performAnalyses <- function (
 posteriors2Quantiles <- function (
   
   quantiles,
-  posteriors,
-  
-  post_mean = TRUE
+  posteriors
   
 ) {
   
   posterior_quantiles <- apply(posteriors, 2, function (x) stats::quantile(x, probs = quantiles))
   
-  if (post_mean) {
-    
-    posterior_mean      <- apply(posteriors, 2, mean)
-    posterior_sd        <- apply(posteriors, 2, stats::sd)
-    posterior_quantiles <- rbind(posterior_quantiles,
-                                 Mean = posterior_mean,
-                                 SD   = posterior_sd)
-    
-  }
+  posterior_mean      <- apply(posteriors, 2, mean)
+  posterior_sd        <- apply(posteriors, 2, stats::sd)
+  posterior_quantiles <- rbind(posterior_quantiles,
+                               Mean = posterior_mean,
+                               SD   = posterior_sd)
   
   return (posterior_quantiles)
   
@@ -1101,7 +1074,6 @@ prepareAnalysis <- function (
 qbetaDiff <- function (
 
   quantiles,
-  post_mean,
 
   x_1_shape1,
   x_1_shape2,
@@ -1119,13 +1091,9 @@ qbetaDiff <- function (
 
   quantiles_diff <- stats::quantile(difference, probs = quantiles)
 
-  if (post_mean) {
-
-    mean_diff      <- mean(difference)
-    sd_diff        <- stats::sd(difference)
-    quantiles_diff <- c(quantiles_diff, mean_diff, sd_diff)
-
-  }
+  mean_diff      <- mean(difference)
+  sd_diff        <- stats::sd(difference)
+  quantiles_diff <- c(quantiles_diff, mean_diff, sd_diff)
 
   return (quantiles_diff)
 
