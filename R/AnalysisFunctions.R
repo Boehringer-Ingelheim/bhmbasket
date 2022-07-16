@@ -339,7 +339,7 @@ getPostQuantilesPooled <- function(
   rownames(posterior_quantiles) <- paste0(quantiles * 100, "%")
   
   posterior_mean      <- shape_1 / (shape_1 + shape_2)
-  posterior_sd        <- shape_1 * shape_2 / ((shape_1 + shape_2)^2 * (shape_1 + shape_2 + 1))
+  posterior_sd        <- ((shape_1 * shape_2) / ((shape_1 + shape_2)^2 * (shape_1 + shape_2 + 1)))^0.5
   posterior_quantiles <- rbind(posterior_quantiles,
                                Mean = posterior_mean,
                                SD   = posterior_sd)
@@ -393,7 +393,7 @@ getPostQuantilesStratified <- function(
   rownames(posterior_quantiles) <- paste0(quantiles * 100, "%")
   
   posterior_mean      <- shape_1 / (shape_1 + shape_2)
-  posterior_sd        <- shape_1 * shape_2 / ((shape_1 + shape_2)^2 * (shape_1 + shape_2 + 1))
+  posterior_sd        <- ((shape_1 * shape_2) / ((shape_1 + shape_2)^2 * (shape_1 + shape_2 + 1)))^0.5
   posterior_quantiles <- rbind(posterior_quantiles,
                                Mean = posterior_mean,
                                SD   = posterior_sd)
@@ -1085,15 +1085,14 @@ print.analysis_list <- function (x, digits = 2, ...) {
   estimates          <- scaleRoundList(getEstimates(x), round_digits = digits)
   n_mcmc_interations <- x[[1]]$analysis_parameters$n_mcmc_iterations
   
+  evidence_levels <- sort(1 - x[[1]]$analysis_parameters$quantiles)
+  
   cat("analysis_list of ", n_scenarios, " scenario", ifelse(n_scenarios == 1, "", "s"),
       " with ", n_methods, " method", ifelse(n_methods == 1, "", "s"),"\n\n", sep = "")
   
   for (n in seq_along(scenario_names)) {
     
     mat_out <- do.call(rbind, lapply(estimates, function (y) t(y[[n]][, 1:2])))
-    
-
-    
     
     rownames(mat_out) <-  paste0(
       c("    - ", "      "),
@@ -1116,6 +1115,7 @@ print.analysis_list <- function (x, digits = 2, ...) {
   }
   
   cat("  -", n_mcmc_interations, "MCMC iterationns per BHM method\n")
+  cat("  - Available evidence levels:", evidence_levels, "\n")
   
 }
 

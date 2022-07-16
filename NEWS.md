@@ -1,5 +1,9 @@
 # bhmbasket 0.9.5
 
+### Fixed Bugs
+
+* Fixed calculation of standard deviation of response rates estimated with methods pooled and stratified
+
 ### New & Altered Features
 
 * Added print methods for scenario_list and analysis_list objects
