@@ -119,3 +119,22 @@ check.evidence.levels <- function (
     "that created the 'analyses_list'")))
   
 }
+
+### functions ####
+
+checkForParallelBackend <- function () {
+  
+  "%dopar%" <- foreach::"%dopar%"
+  if(!foreach::getDoParRegistered()) {
+    
+    message("\nCaution: No parallel backend detected for the 'foreach' framework.",
+            " For execution in parallel, register a parallel backend, e.g. with:\n",
+            "   doFuture::registerDoFuture()\n",
+            "   future::plan(future::multisession)\n")
+    
+    tt <- suppressWarnings(foreach::foreach(k = 1:2) %dopar% {k^k^k})
+    rm(tt)
+    
+  }
+  
+}

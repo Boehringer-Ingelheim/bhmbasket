@@ -428,6 +428,40 @@ getPostQuantilesStratified <- function(
   
 }
 
+getUniqueRows <- function (
+    
+  matrix
+  
+) {
+  
+  n_rows      <- nrow(matrix)
+  n_cols      <- ncol(matrix)
+  
+  unique_rows <- stats::aggregate(id ~ .,
+                                  data = cbind(id = seq_along(n_rows), matrix),
+                                  FUN  = length)
+  
+  return (unique_rows[, seq_len(n_cols)])
+  
+}
+
+getUniqueTrials <- function (
+    
+  scenario_list
+  
+) {
+  
+  all_scenarios_n_responders <- do.call(rbind, lapply(scenario_list, function (x) x$n_responders))
+  all_scenarios_n_subjects   <- do.call(rbind, lapply(scenario_list, function (x) x$n_subjects))
+  all_scenarios_overall_gos  <- do.call(rbind, lapply(scenario_list, function (x) 
+    x$previous_analyses$go_decisions))[, 1]
+  
+  return (getUniqueRows(cbind(all_scenarios_n_responders,
+                              all_scenarios_n_subjects,
+                              go_flag = all_scenarios_overall_gos)))
+  
+}
+
 is.analysis_list <- function (x) {
   
   if (missing(x)) stop ("Please provide an object for the argument 'x'")
@@ -507,23 +541,6 @@ loadAnalyses <- function (
   class(analyses_list) <- "analysis_list"
   
   return (analyses_list)
-  
-}
-
-getUniqueRows <- function (
-  
-  matrix
-  
-) {
-  
-  n_rows      <- nrow(matrix)
-  n_cols      <- ncol(matrix)
-  
-  unique_rows <- stats::aggregate(id ~ .,
-                                  data = cbind(id = seq_along(n_rows), matrix),
-                                  FUN  = length)
-  
-  return (unique_rows[, seq_len(n_cols)])
   
 }
 
@@ -811,17 +828,10 @@ performAnalyses <- function (
   if (!is.logical(verbose))                               stop (error_verbose)
   
   ## check for parallel backend
-  "%dopar%" <- foreach::"%dopar%"
-  if(!foreach::getDoParRegistered() &
-     !all(sapply(method_names, function (x) grepl(x, "stratified") | grepl(x, "pooled")))) {
+  if (!all(sapply(method_names,
+                  function (x) grepl(x, "stratified") | grepl(x, "pooled")))) {
     
-    message("\nCaution: No parallel backend detected for the 'foreach' framework.",
-            " For execution in parallel, register a parallel backend, e.g. with:\n",
-            "   doFuture::registerDoFuture()\n",
-            "   future::plan(future::multisession)\n")
-    
-    tt <- suppressWarnings(foreach::foreach(k = 1:2) %dopar% {k^k^k})
-    rm(tt)
+    checkForParallelBackend()
     
   }
   
@@ -842,16 +852,8 @@ performAnalyses <- function (
   scenario_numbers <- sapply(scenario_list, function (x) x$scenario_number)
   
   ## get unique trials over all scenarios
-  all_scenarios_n_responders <- do.call(rbind, lapply(scenario_list, function (x) x$n_responders))
-  all_scenarios_n_subjects   <- do.call(rbind, lapply(scenario_list, function (x) x$n_subjects))
-  all_scenarios_overall_gos  <- do.call(rbind, lapply(scenario_list, function (x) 
-    x$previous_analyses$go_decisions))[, 1]
-  
-  n_cohorts     <- ncol(all_scenarios_n_responders)
-  
-  trials_unique <- getUniqueRows(cbind(all_scenarios_n_responders,
-                                        all_scenarios_n_subjects,
-                                        go_flag = all_scenarios_overall_gos))
+  trials_unique <- getUniqueTrials(scenario_list)
+  n_cohorts     <- (ncol(trials_unique) - 1L) / 2
   
   ## analyze only unique trials that have not been previously analyzed
   applicable_previous_trials <- applicablePreviousTrials(

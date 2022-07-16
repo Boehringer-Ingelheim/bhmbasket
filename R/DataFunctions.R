@@ -564,11 +564,14 @@ print.scenario_list <- function(x, ...) {
   n_scenarios    <- length(x)
   scenario_names <- names(x)
   
-  n_cohorts      <- length(x$scenario_1$response_rates)
+  n_cohorts      <- length(x[[1]]$response_rates)
   cohort_names   <- paste0("c_", seq_len(n_cohorts))
   
   response_rates <- lapply(x, function (x) x$response_rates)
   n_subjects     <- getAverageNSubjects(x)
+  
+  n_trial_realizations  <- x[[1]]$n_trials
+  n_unique_realizations <- nrow(getUniqueTrials(x))
   
   cat("scenario_list of ", n_scenarios, " scenario", ifelse(n_scenarios == 1, "", "s"),
       " with ", n_cohorts, " cohort", ifelse(n_cohorts == 1, "", "s"),"\n\n", sep = "")
@@ -586,6 +589,9 @@ print.scenario_list <- function(x, ...) {
     cat("\n")
     
   }
+  
+  cat("  -", n_trial_realizations, "trial realizations per scenario\n")
+  cat("  -", n_unique_realizations, "unique trial realizations overall\n")
   
 }
 
