@@ -558,6 +558,37 @@ loadScenarios <- function (
 
 }
 
+#' @export
+print.scenario_list <- function(x, ...) {
+  
+  n_scenarios    <- length(x)
+  scenario_names <- names(x)
+  
+  n_cohorts      <- length(x$scenario_1$response_rates)
+  cohort_names   <- paste0("c_", seq_len(n_cohorts))
+  
+  response_rates <- lapply(x, function (x) x$response_rates)
+  n_subjects     <- getAverageNSubjects(x)
+  
+  cat("scenario_list of ", n_scenarios, " scenario", ifelse(n_scenarios == 1, "", "s"),
+      " with ", n_cohorts, " cohort", ifelse(n_cohorts == 1, "", "s"),"\n\n", sep = "")
+  for (n in seq_along(scenario_names)) {
+    
+    df_out <- t(data.frame(c(response_rates[[n]]),
+                           n_subjects[[n]]))
+    rownames(df_out) <- c("    - true response rates:",
+                          "    - average number of subjects:")
+    colnames(df_out) <- cohort_names
+    
+    cat("  -", scenario_names[n], "\n")
+    print(df_out)
+    
+    cat("\n")
+    
+  }
+  
+}
+
 #' @title saveScenarios
 #' @md
 #' @description Saves the scenario data in a newly created or existing directory
@@ -738,36 +769,5 @@ simulateScenarios <- function (
   class(scenario_list) <- "scenario_list"
   
   return (scenario_list)
-  
-}
-
-#' @export
-print.scenario_list <- function(scenario_list) {
-  
-  n_scenarios    <- length(scenario_list)
-  scenario_names <- names(scenario_list)
-  
-  n_cohorts      <- length(scenario_list$scenario_1$response_rates)
-  cohort_names   <- paste0("c_", seq_len(n_cohorts))
-  
-  response_rates <- lapply(scenario_list, function (x) x$response_rates)
-  n_subjects     <- getAverageNSubjects(scenario_list)
-  
-  cat("scenario_list of ", n_scenarios, " scenario", ifelse(n_scenarios == 1, "", "s"),
-      " with ", n_cohorts, " cohort", ifelse(n_cohorts == 1, "", "s"),"\n\n", sep = "")
-  for (n in seq_along(scenario_names)) {
-    
-    df_out <- t(data.frame(c(response_rates[[n]]),
-                           n_subjects[[n]]))
-    rownames(df_out) <- c("    - true response rates:",
-                          "    - average number of subjects:")
-    colnames(df_out) <- cohort_names
-    
-    cat("  -", scenario_names[n], "\n")
-    print(df_out)
-    
-    cat("\n")
-    
-  }
   
 }
