@@ -2,7 +2,7 @@
 
 ### Fixed Bugs
 
-* Fixed calculation of standard deviation of response rates estimated with methods pooled and stratified
+* Fixed a bug in getEstimates(), which used to calculate variances instead of the standard deviations of response rates estimated with the methods pooled and stratified
 
 ### New & Altered Features
 
