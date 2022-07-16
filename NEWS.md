@@ -2,7 +2,7 @@
 
 ### New & Altered Features
 
-* Added print method for object scenario_list
+* Added print methods for scenario_list and analysis_list objects
 
 * Added function getAverageNSubjects()
 
