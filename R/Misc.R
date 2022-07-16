@@ -55,6 +55,12 @@ firstUpper <- function (string) {
   
 }
 
+getBlankString <- function (length) {
+  
+  do.call(paste0, as.list(rep(" ", length)))
+  
+}
+
 getHashKeys <- function (x) {
   
   x <- convertVector2Matrix(x)

@@ -878,7 +878,7 @@ performAnalyses <- function (
   ## message to user
   if (verbose) {
     
-    message("         Analyzing ", length(scenario_numbers) ," Scenario", ifelse(length(scenario_numbers) == 1, "", "s")," ",
+    message("         Analyzing ", length(scenario_numbers) ," scenario", ifelse(length(scenario_numbers) == 1, "", "s")," ",
             "(", nrow(n_responders), " unique", ifelse(applicable_previous_trials, " updated ", " "),
             "trial realization", ifelse(nrow(trials_unique) == 1, "", "s"),")")
     
@@ -940,7 +940,7 @@ performAnalyses <- function (
   ## message to user
   if (verbose) {
     start_time  <- Sys.time()
-    message("         Processing Scenarios ...")
+    message("         Processing scenarios ...")
   }
   
   ## Process scenarios
@@ -1071,6 +1071,52 @@ prepareAnalysis <- function (
   return (list(j_parameters = j_parameters,
                j_model_file = j_model_file,
                j_data       = j_data))
+}
+
+#' @export
+print.analysis_list <- function (x, digits = 2, ...) {
+  
+  n_scenarios    <- length(x)
+  scenario_names <- names(x)
+  
+  n_methods      <- length(x[[1]]$quantiles_list)
+  method_names   <- names(x[[1]]$quantiles_list)
+  
+  estimates          <- scaleRoundList(getEstimates(x), round_digits = digits)
+  n_mcmc_interations <- x[[1]]$analysis_parameters$n_mcmc_iterations
+  
+  cat("analysis_list of ", n_scenarios, " scenario", ifelse(n_scenarios == 1, "", "s"),
+      " with ", n_methods, " method", ifelse(n_methods == 1, "", "s"),"\n\n", sep = "")
+  
+  for (n in seq_along(scenario_names)) {
+    
+    mat_out <- do.call(rbind, lapply(estimates, function (y) t(y[[n]][, 1:2])))
+    
+
+    
+    
+    rownames(mat_out) <-  paste0(
+      c("    - ", "      "),
+      c(rbind(
+        paste0(
+          firstUpper(method_names),
+          sapply(method_names, function (y) {
+            getBlankString(max(nchar(method_names)) - nchar(y) + 1)
+          })),
+        rep(getBlankString(max(nchar(method_names)) + 3),
+            length = length(method_names))
+      )),
+      rownames(mat_out))
+    
+    cat("  -", scenario_names[n], "\n")
+    print(mat_out)
+    
+    cat("\n")
+    
+  }
+  
+  cat("  -", n_mcmc_interations, "MCMC iterationns per BHM method\n")
+  
 }
 
 qbetaDiff <- function (
