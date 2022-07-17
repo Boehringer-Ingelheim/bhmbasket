@@ -761,7 +761,10 @@ getGoDecisions <- function (
            analysis_data  = list(
              quantiles_list      = analyses_list[[s]]$quantiles_list,
              analysis_parameters = analyses_list[[s]]$analysis_parameters),
-           scenario_data  = analyses_list[[s]]$scenario_data)
+           scenario_data  = analyses_list[[s]]$scenario_data,
+           decision_rules = list(cohort_names   = cohort_names,
+                                  gamma_levels   = gamma_levels,
+                                  boundary_rules = boundary_rules))
   }
   
   names(decisions_list) <- names(analyses_list)
@@ -1001,6 +1004,84 @@ getScenarioNumbers <- function (analyses_list) {
 
   as.numeric(sub("scenario_", "", names(analyses_list)))
 
+}
+
+#' @export
+print.decision_list <- function (x, digits = 2, ...) {
+  
+  n_scenarios    <- length(x)
+  scenario_names <- names(x)
+  
+  n_methods      <- length(x[[1]]$decisions_list)
+  method_names   <- names(x[[1]]$decisions_list)
+  
+  go_probs       <- getGoProbabilities(x)
+  
+  if (!is.null(x[[1]]$decision_rules)) {
+    
+    decision_rules <- x[[1]]$decision_rules
+    
+    out_rules <- lapply(decision_rules$boundary_rules, as.character)
+    
+    for (n in seq_len(n_methods)) {
+      
+      out_rules <- lapply(out_rules, gsub,
+             pattern     = paste0("x\\[", n, "\\]"),
+             replacement = decision_rules$cohort_names[n])
+      
+    }
+    
+    out_rules <- lapply(out_rules, gsub, pattern = "p_", replacement = "P(p_")
+    
+    for (n in seq_len(n_methods)) {
+      
+      out_rules_n <- lapply(strsplit(out_rules[[n]][-1], "&&"), trimws)
+      
+      out_rules_n <- unlist(as.relistable(out_rules_n))
+      
+      out_rules_n[grepl("P\\(", out_rules_n)] <-
+        paste0(out_rules_n[grepl("P\\(", out_rules_n)],
+               ") > ", decision_rules$gamma_levels[[n]])
+      
+      out_rules_n <- relist(out_rules_n)
+      
+      indexAND <- sapply(out_rules_n, length) == 2
+      
+      out_rules_n[[which(indexAND)]] <- sapply(out_rules_n[indexAND], function (y) {
+        
+        paste0(y[1], " && ", y[2])
+        
+      })
+      
+      out_rules[[n]] <- unlist(unclass(out_rules_n))
+      
+    }
+    
+  }
+  
+  cat("decision_list of ", n_scenarios, " scenario", ifelse(n_scenarios == 1, "", "s"),
+      " with ", n_methods, " method", ifelse(n_methods == 1, "", "s"),"\n\n", sep = "")
+  
+  for (n in seq_along(scenario_names)) {
+    
+    mat_out <- do.call(rbind, lapply(go_probs, function (y) y[[n]]))
+    
+    rownames(mat_out) <-  paste0(
+      "    - ",
+      paste0(
+        firstUpper(method_names),
+        sapply(method_names, function (y) {
+          getBlankString(max(nchar(method_names)) - nchar(y) + 1)
+        }))
+      )
+    
+    cat("  -", scenario_names[n], "\n")
+    print(round(mat_out, digits = digits))
+    
+    cat("\n")
+    
+  }
+  
 }
 
 is.decision_list <- function (x) {

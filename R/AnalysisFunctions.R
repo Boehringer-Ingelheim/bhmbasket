@@ -1082,7 +1082,7 @@ print.analysis_list <- function (x, digits = 2, ...) {
   n_methods      <- length(x[[1]]$quantiles_list)
   method_names   <- names(x[[1]]$quantiles_list)
   
-  estimates          <- scaleRoundList(getEstimates(x), round_digits = digits)
+  estimates          <- getEstimates(x)
   n_mcmc_interations <- x[[1]]$analysis_parameters$n_mcmc_iterations
   
   evidence_levels <- sort(1 - x[[1]]$analysis_parameters$quantiles)
@@ -1108,7 +1108,7 @@ print.analysis_list <- function (x, digits = 2, ...) {
       rownames(mat_out))
     
     cat("  -", scenario_names[n], "\n")
-    print(mat_out)
+    print(round(mat_out, digits = digits))
     
     cat("\n")
     
