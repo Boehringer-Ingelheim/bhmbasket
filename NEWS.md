@@ -6,9 +6,11 @@
 
 ### New & Altered Features
 
-* Added print methods for scenario_list and analysis_list objects
+* Added print methods for scenario_list, analysis_list, and decision_list objects
 
 * Added function getAverageNSubjects()
+
+* getGoDecisions() saves the decisions rules used to derive the decisions
 
 * In continueRecruitment(), the argument method_name can be omitted if only one method has been used in performAnalyses()
 
