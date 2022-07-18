@@ -578,7 +578,7 @@ print.scenario_list <- function(x, ...) {
   for (n in seq_along(scenario_names)) {
     
     df_out <- t(data.frame(c(response_rates[[n]]),
-                           n_subjects[[n]]))
+                             n_subjects[[n]]))
     rownames(df_out) <- c("    - true response rates:",
                           "    - average number of subjects:")
     colnames(df_out) <- cohort_names

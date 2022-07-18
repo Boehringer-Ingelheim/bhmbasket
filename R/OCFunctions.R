@@ -10,9 +10,9 @@ getAllCohortNames <- function (
            
            lapply(x$quantiles_list, function (y) {
              
-             post_names <- Reduce(intersect, lapply(y, colnames))
+             post_names <- Reduce(intersect, lapply(y, colnames)) # colnames(y[[1]])
              indices    <- grep("p_", post_names)
-             
+
              post_names[indices]
              
            })
@@ -267,35 +267,39 @@ getEstimates <- function (
       
       ## Setting up gamma levels
       n_parameters <- length(parameter_names)
-      gamma_levels_list <- list(rep("mean", n_parameters),
-                                rep("sd", n_parameters),
-                                rep(1 - alpha_level / 2, n_parameters),
-                                rep(0.5, n_parameters),
-                                rep(alpha_level / 2, n_parameters))
       
-      matrix_estimates_list <- lapply(gamma_levels_list, function (gamma_levels) {
-        
-        do.call(rbind, getPosteriorGammaQuantiles(
-          method_name              = method_names[n],
-          gamma_levels             = gamma_levels,
-          quantiles                = analyses_list[[s]]$analysis_parameters$quantiles,
-          posterior_quantiles_list = analyses_list[[s]]$quantiles_list,
-          cohort_names             = parameter_names))
-        
-      })
+      gamma_levels <- c(rep("mean", n_parameters),
+                        rep("sd", n_parameters),
+                        rep(1 - alpha_level / 2, n_parameters),
+                        rep(0.5, n_parameters),
+                        rep(alpha_level / 2, n_parameters))
+      
+      matrix_estimates <- do.call(rbind, getPosteriorGammaQuantiles(
+        method_name              = method_names[n],
+        gamma_levels             = gamma_levels,
+        quantiles                = analyses_list[[s]]$analysis_parameters$quantiles,
+        posterior_quantiles_list = analyses_list[[s]]$quantiles_list,
+        cohort_names             = rep(parameter_names, times = 5)))
       
       ## Mean, SD & Quantiles
-      post_quantiles <- t(do.call(rbind, lapply(matrix_estimates_list, colMeans)))
+      post_quantiles <- matrix(colMeans(matrix_estimates), ncol = 5)
       
+      rownames(post_quantiles) <- parameter_names
       colnames(post_quantiles) <- c(
         "Mean", "SD",
         paste0(c(alpha_level / 2, 0.5, 1 - alpha_level / 2) * 100, "%"))
       
       ## Bias and MSE
-      matrix_estimates <- matrix_estimates_list[[ifelse(point_estimator == "median", 4, 1)]]
+      if (point_estimator == "median") {
+        indices_point_est <- n_parameters * 3 + seq_len(n_parameters)
+      } else {
+        indices_point_est <- seq_len(n_parameters)
+      }
+      
+      matrix_estimates <- matrix_estimates[, indices_point_est]
       
       ## if only a single trial (i.e. a trial outcome) has been evaluated
-      if (identical(nrow(matrix_estimates), 1L)) {
+      if (is.null(dim(matrix_estimates))) {
         
         estimates <- post_quantiles
         
@@ -341,17 +345,7 @@ getEstimates <- function (
     
   }
   
-  if (length(results_list) == 1) {
-    
-    results_list <- results_list[[1]]
-    
-  } else {
-    
-    results_list <- listPerMethod(results_list)
-    
-  }
-  
-  return (results_list)
+  return (listPerMethod(results_list))
   
 }
 
@@ -980,14 +974,21 @@ getPosteriorGammaQuantiles <- function (
                  "to the number of cohorts to be analyzed."))
 
   }
+  
+  u_gamma_indices  <- unique(gamma_indices)
+  u_cohort_indices <- unique(cohort_indices)
 
   posterior_gamma_quantiles <- lapply(posterior_quantiles, function (x) {
-    x[gamma_indices, cohort_indices]
+    as.vector(t(x[u_gamma_indices, u_cohort_indices]))
   })
-
-  if (length(gamma_indices) > 1) {
-    posterior_gamma_quantiles <- lapply(posterior_gamma_quantiles, diag)
-  }
+  
+  # posterior_gamma_quantiles <- lapply(posterior_quantiles, function (x) {
+  #   x[gamma_indices, cohort_indices]
+  # })
+  # 
+  # if (length(gamma_indices) > 1) {
+  #   posterior_gamma_quantiles <- lapply(posterior_gamma_quantiles, diag)
+  # }
 
   for (i in seq_along(posterior_gamma_quantiles)) {
 
@@ -1037,21 +1038,25 @@ print.decision_list <- function (x, digits = 2, ...) {
       
       out_rules_n <- lapply(strsplit(out_rules[[n]][-1], "&&"), trimws)
       
-      out_rules_n <- unlist(as.relistable(out_rules_n))
+      out_rules_n <- unlist(utils::as.relistable(out_rules_n))
       
       out_rules_n[grepl("P\\(", out_rules_n)] <-
         paste0(out_rules_n[grepl("P\\(", out_rules_n)],
                ") > ", decision_rules$gamma_levels[[n]])
       
-      out_rules_n <- relist(out_rules_n)
+      out_rules_n <- utils::relist(out_rules_n)
       
       indexAND <- sapply(out_rules_n, length) == 2
       
-      out_rules_n[[which(indexAND)]] <- sapply(out_rules_n[indexAND], function (y) {
+      if (any(indexAND)) {
         
-        paste0(y[1], " && ", y[2])
+        out_rules_n[[which(indexAND)]] <- sapply(out_rules_n[indexAND], function (y) {
+          
+          paste0(y[1], " && ", y[2])
+          
+        })
         
-      })
+      }
       
       out_rules[[n]] <- unlist(unclass(out_rules_n))
       

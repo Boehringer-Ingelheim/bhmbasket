@@ -1092,7 +1092,17 @@ print.analysis_list <- function (x, digits = 2, ...) {
   
   for (n in seq_along(scenario_names)) {
     
-    mat_out <- do.call(rbind, lapply(estimates, function (y) t(y[[n]][, 1:2])))
+    if (n_scenarios == 1L) {
+      
+      f <- function (y) {t(y[, 1:2])}
+      
+    } else {
+      
+      f <- function (y) {t(y[[n]][, 1:2])}
+      
+    }
+    
+    mat_out <- do.call(rbind, lapply(estimates, f))
     
     rownames(mat_out) <-  paste0(
       c("    - ", "      "),
