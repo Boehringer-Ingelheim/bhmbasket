@@ -14,6 +14,8 @@
 
 * In continueRecruitment(), the argument method_name can be omitted if only one method has been used in performAnalyses()
 
+* Slight performance increase in getEstimates() and getGoDecisions()
+
 * Caution message in performAnalyses() if no parallel backend is detected disabled for methods stratified and pooled
 
 * Changed message in performAnalyses that informs about the number of scenarios and unique trial realizations
