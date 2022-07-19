@@ -24,6 +24,8 @@
 
 * Disabled loading package messages when calling functions from other packages
 
+* Updated Imports in DESCRIPTION
+
 * Minor changes in code
 
 # bhmbasket 0.9.5
