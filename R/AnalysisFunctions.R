@@ -117,23 +117,14 @@ getPosteriors <- function (
   
 ) {
   
-  jags_fit <-  R2jags::jags(data               = j_data,
-                            parameters.to.save = j_parameters,
-                            model.file         = j_model_file,
-                            n.chains           = 2,
-                            n.iter             = n_mcmc_iterations,
-                            n.burnin           = floor(n_mcmc_iterations / 3),
-                            n.thin             = 1,
-                            DIC                = FALSE,
-                            progress.bar       = "none",
-                            jags.module        = NULL,#"mix",
-                            quiet              = TRUE)
+  ## Adaption and burn-in not included
+  posterior_samples <- performJags(
+    data               = j_data,
+    parameters_to_save = j_parameters,
+    model_file         = j_model_file, 
+    n_iter             = n_mcmc_iterations)
   
-  ## Adaption and burn-in not included in sims.array
-  posterior_samples <- rbind(jags_fit$BUGSoutput$sims.array[, 1, ],
-                                   jags_fit$BUGSoutput$sims.array[, 2, ])
-  
-  ## replace squarebrackets provided by R2jags with workable characters
+  ## replace squarebrackets provided by rjags with workable characters
   colnames(posterior_samples) <- gsub("\\[", "_", colnames(posterior_samples))
   colnames(posterior_samples) <- gsub("\\]", "", colnames(posterior_samples))
   
@@ -211,7 +202,7 @@ getPostQuantiles <- function (
       k = chunks_outer,
       .combine  = c,
       .verbose  = FALSE,
-      .packages = c("R2jags"),
+      .packages = c("rjags"),
       .export   = exported_stuff) %dorng% {
         
         chunks_inner <- chunkVector(k, foreach::getDoParWorkers())
@@ -978,6 +969,50 @@ performAnalyses <- function (
   
   return (analyses_list)
   
+}
+
+## based on R2jags::jags
+##  stripped down to improve performance
+performJags <- function (
+  
+  data,
+  parameters_to_save,
+  model_file, 
+  n_chains = 2,
+  n_iter   = 1e4,
+  n_burnin = floor(n_iter/3)
+
+) {
+    
+  
+  n_adapt <- ifelse(n_burnin > 0, n_burnin, 100)
+  
+  inits <- vector("list", n_chains)
+  for (i in 1:n_chains) {
+    inits[[i]]$.RNG.name <- "base::Wichmann-Hill"
+    inits[[i]]$.RNG.seed <- stats::runif(1, 0, 2^31)
+  }
+  
+  j_model <- rjags::jags.model(file     = model_file,
+                               data     = data,
+                               inits    = inits, 
+                               n.chains = n_chains,
+                               n.adapt  = 0,
+                               quiet    = TRUE)
+  
+  rjags::adapt(object         = j_model,
+               n.iter         = n_adapt,
+               progress.bar   = "none",
+               end.adaptation = TRUE)
+  
+  samples <- rjags::coda.samples(model          = j_model,
+                                 variable.names = parameters_to_save, 
+                                 n.iter         = n_iter - n_burnin,
+                                 thin           = 1, 
+                                 progress.bar   = "none")
+  
+  return(do.call(rbind, samples))
+    
 }
 
 posteriors2Quantiles <- function (

@@ -8,6 +8,8 @@
 
 setwd("C:/Users/wojcieko/OneDrive - Boehringer Ingelheim/Desktop/bhmbasket development - bitbucket")
 
+devtools::load_all()
+
 rm(list = ls())
 devtools::document()
 devtools::install()
