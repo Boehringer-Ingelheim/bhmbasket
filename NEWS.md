@@ -1,4 +1,4 @@
-# bhmbasket 0.9.5
+# bhmbasket 0.9.6
 
 ### Fixed Bugs
 
@@ -10,9 +10,9 @@
 
 * Added function getAverageNSubjects()
 
-* Switched from R2jags to rjags for slight performance increase
+* Switched from R2jags to rjags for performance increase
 
-* Slight performance increases in performAnalyses, getEstimates(), and getGoDecisions()
+* Performance increases in performAnalyses(), getEstimates(), and getGoDecisions()
 
 * getGoDecisions() saves the decisions rules used to derive the decisions
 
