@@ -10,15 +10,17 @@
 
 * Added function getAverageNSubjects()
 
+* Switched from R2jags to rjags for slight performance increase
+
+* Slight performance increases in performAnalyses, getEstimates(), and getGoDecisions()
+
 * getGoDecisions() saves the decisions rules used to derive the decisions
 
 * In continueRecruitment(), the argument method_name can be omitted if only one method has been used in performAnalyses()
 
-* Slight performance increase in getEstimates() and getGoDecisions()
-
 * Caution message in performAnalyses() if no parallel backend is detected disabled for methods stratified and pooled
 
-* Changed message in performAnalyses that informs about the number of scenarios and unique trial realizations
+* Changed message from performAnalyses()
 
 * Disabled loading package messages when calling functions from other packages
 
