@@ -10,12 +10,12 @@ knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
 ```
 
 
-This guide provides an overview of the R package [bhmbasket](https://cran.r-project.org/web/packages/bhmbasket/index.html) on how to use its functions to evaluate the operating characteristics of a basket trial.
-The design of the example trial is depicted on Figure 1.
-The example trial consists of three cohorts included in the trial, and the third cohort is already observed historical data.
-Cohort 1 and 2 will be analyzed in a futility analysis with simple Bayesian Go/NoGo decision making after 10 subjects have been recruited in each cohort.
-Based on the futility analysis, the recruitment will continue until 10 and 15 additional subjects were recruited in Cohort 1 and 2, respectively.
-The final analysis will be performed with Go/NoGo decision making according to [Fisch et al. (2015)](https://link.springer.com/article/10.1177/2168479014533970).
+This guide provides an overview of the R package [bhmbasket](https://cran.r-project.org/web/packages/bhmbasket/index.html) on how to use its functions to evaluate the operating characteristics of a basket trial with binary endpoints.
+An example trial will be used to guide through the functions, the design of which is depicted in Figure 1.
+The example trial consists of three cohorts where the third cohort is already observed historical data.
+Cohorts 1 and 2 will be analyzed in a futility analysis using simple Bayesian Go/NoGo decision rules after 10 subjects have been recruited in each cohort assuming equal recruitment rates.
+Based on the futility analysis, the recruitment will continue until 10 and 15 additional subjects are recruited in Cohorts 1 and 2, respectively.
+The final analysis will be performed with Go/NoGo decision rules according to [Fisch et al. (2015)](https://link.springer.com/article/10.1177/2168479014533970).
 
 
 <center>
@@ -28,8 +28,8 @@ Figure 1: Trial design
 
 Figure 2 depicts the main functions and the workflow of the package.
 The first step is to simulate scenarios with `simulateScenarios()`.
-The simulated trial outcomes are analyzed with Bayesian hierarchical models (BHMs) with `performAnalyses()`.
-The user can then apply the decision making framework with `getGoDecisions()` to calculate decision probabilities using `getGoProbabilities()` and to recruit additional patients with `continueRecruitment()` for subsequent analyses.
+The simulated trial outcomes are analyzed with Bayesian hierarchical models (BHMs) using `performAnalyses()`.
+The user can then specify and apply the decision rules with `getGoDecisions()` and can subsequently calculate decision probabilities using `getGoProbabilities()` and recruit additional patients with `continueRecruitment()` for later analyses.
 
 <center>
 <img src="C:\Users\eblelisa\OneDrive - Boehringer Ingelheim\Documents\bhmbasketVignette\bhmbasketOverview.png" width="60%" height="60%"/>
@@ -57,15 +57,15 @@ plan(multisession)
 
 ## Simulation of Scenarios
 
-The function `simulateScenarios()` is used to simulate scenario data according to scenarios.
-One must provide the number of subjects and the true response rates per cohort.
+The function `simulateScenarios()` is used to simulate data according to scenarios.
+For each scenario, one must provide the number of subjects and the true response rates per cohort.
 Historical data can be included in the simulated trial outcomes.
 
-This example consists of four scenarios and three cohorts, whereby the third cohort is historical with a fixed number of five responders.
+This example consists of four scenarios and three cohorts, whereby the third cohort is historical with a fixed number of five responders out of 15 subjects.
 
-The trial design will be investigated with a positive, two nugget, and a negative scenario.
-The positive and negative scenarios cover the highest and lowest response rates that lead to a continuation or stop of the trial, respectively.
-In the nugget cases, only one cohort assumes the positive response rate, whereas the other cohorts assume the negative response rates. 
+The trial design will be investigated with a positive scenario, two nugget scenarios, and a negative scenario.
+The positive and negative scenarios cover the true highest and lowest response rates that lead to a continuation or stop, respectively, of the development of the drug.
+In the nugget scenarios, only one of the cohorts assumes the positive response rate, whereas the other cohorts assume the negative response rates. 
 
 ```{r}
 scenarios_list <- list(
@@ -86,8 +86,8 @@ scenario_list <- simulateScenarios(
 <!-- If the number of subjects is not the same for all scenarios, one has to provide a list of vectors with the number of subjects of each scenario. -->
 
 ### Observed Outcome Data
-In addition to assessing the operating characteristics of a basket trial, an observed trial outcome can be analyzed as well.
-It can be specified with the function `createTrial()` as shown below.
+Also actual trial outcomes can be analyzed with [bhmbasket](https://cran.r-project.org/web/packages/bhmbasket/index.html).
+An observed trial outcome can be specified with the function `createTrial()` as shown below.
 
 <!-- The package provides the possibility to analyse simulated, observed and historical data. -->
 <!-- The function `simulateScenarios()` is used for data to be simulated and historical data as shown above. -->
@@ -99,21 +99,23 @@ trial_outcome <- createTrial(n_subjects   = c(10, 20, 30, 40),
                              n_responders = c( 1,  2,  3,  4))
 ```
 
-The created trial outcome can be processed in the same way as the simulated trial outcomes generated by `simulateScenarios()` as shown in the next section.
+The created trial outcome can be processed in the same way as the simulated trial outcomes generated by `simulateScenarios()`.
 
 ## Analyses
 
-The function [`performAnalyses()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/performAnalyses.html) approximates the posterior distribution for each trial realization via MCMC sampling and returns the quantiles of the posterior response rates among other outcome parameters.
-Required arguments are the created scenario list, the name of at least one analysis method and the target rates per cohort:
+The function [`performAnalyses()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/performAnalyses.html) approximates the joint posterior distribution for each trial realization via MCMC sampling and returns the quantiles of the marginal posterior response rates among other model parameters.
+Required arguments are the scenario list created e.g. with `simulateScenarios()`, the name of at least one analysis method and the target rates per cohort.
+In the example, the methods !!! TODO !!!
 
-```{r, include = FALSE}
-## dummy code to avoid loading package messages triggered by 1st run of performAnalyses()
-dummy_list <- createTrial(c(10, 10), c(1, 2))
-performAnalyses(
-  scenario_list    = dummy_list,
-  method_names     = c("berry"),
-  target_rates     = c(0.5, 0.5))
-```
+<!-- This should no longer be required with the latest package update -->
+<!-- ```{r, include = FALSE} -->
+<!-- ## dummy code to avoid loading package messages triggered by 1st run of performAnalyses() -->
+<!-- dummy_list <- createTrial(c(10, 10), c(1, 2)) -->
+<!-- performAnalyses( -->
+<!--  scenario_list    = dummy_list, -->
+<!--  method_names     = c("berry"), -->
+<!--  target_rates     = c(0.5, 0.5)) -->
+<!-- ``` -->
 
 ```{r, warning = FALSE}
 analysis_list <- performAnalyses(
@@ -126,8 +128,9 @@ analysis_list <- performAnalyses(
 Available methods are the BHM proposed by [Berry et al. (2013)](https://journals.sagepub.com/doi/10.1177/1740774513497539)) (*berry*), the BHM proposed by [Neuenschwander et al. (2016)](https://onlinelibrary.wiley.com/doi/10.1002/pst.1730)) (*exnex*), and a BHM that combines both approaches called exnex adjusted (*exnex_adj*), as well as the two beta-binomial approaches *pooled* and *stratified*.
 The target rates are required for the methods *berry* and *exnex adjusted* as well as for setting default prior parameters for the analysis models.
 One can use [`getPriorParameters()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getPriorParameters.html) and the `setPriorParameters...()` family of functions for a custom choice of prior parameters.
-Additional evidence levels can be provided to the default evidence levels.
-Furthermore, differences of cohorts can be calculated using the argument `calc_differences`. For example, for the difference between cohort x and y, one uses `calc_differences = c(x, y)`.
+Further evidence levels can be provided in addition to the default evidence levels.
+Posterior differences of cohorts' response rates can be calculated using the argument `calc_differences`.
+For example, for the difference between cohort x and y, one uses `calc_differences = c(x, y)`.
 This can be used to compare outcomes of cohorts directly, e.g. when comparing cohorts with monotreatment and cohorts with combination treatment.
 
 ### Getting Estimates   
@@ -148,20 +151,18 @@ round(estimates$exnex_adj$scenario_3, digits = 2)
 Go/NoGo decision rules can be implemented with [`getGoDecisions()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoDecisions.html).
 The function calculates Go decisions for each cohort of a trial outcome based on decision rules.
 The resulting decision list can be used to calculate the cohort-wise and overall decision probabilities using the functions [`getGoProbabilities()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoProbabilities.html) and [`negateGoDecisions()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/negateGoDecisions.html).
- 
 
 ### Implementation of Decision Rules in General
 
 A Bayesian decision rule is generally defined as follows:
 $$P(p_j|\text{data} > p_{Bj}) > \gamma_j,$$
 
-where $p_j|\text{data}$ is the posterior response rate of cohort $j$, and $\gamma_j$ and $p_{Bj}$ are its evidence level and decision boundary, respectively.
+where $p_j|\text{data}$ is the posterior response rate of cohort $j$, and $\gamma_j$ and $p_{Bj}$ are its evidence level and decision boundary, respectively. This rule may be rewritten with the 1-$\gamma$-quantile of the posterior response rate of cohort $j$ as follows:
 
-<!-- This rule may be rewritten with the 1-$\gamma$-quantile of the posterior response rate of cohort $j$ as follows: -->
+$$q_{1-\gamma_j} > p_{Bj}$$
+As keeping the MCMC samples or marginal posterior densities of the parameters of interest would require too much memory, only pre-specifed quantiles of the MCMC samples are stored when applying [`performAnalyses()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/performAnalyses.html).
 
-<!-- $$q_{1-\gamma_j} > p_{Bj}$$   -->
-
-#### Example Decision
+#### Example Decision Rule
 
 Three arguments are used to implement such a decision rule with `getGoDecisions()`, namely the cohort names, the evidence levels, and the boundary rules.
 

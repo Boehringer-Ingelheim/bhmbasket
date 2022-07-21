@@ -20,9 +20,9 @@
 
 * Caution message in performAnalyses() if no parallel backend is detected disabled for methods stratified and pooled
 
-* Changed message from performAnalyses()
-
 * Disabled loading package messages when calling functions from other packages
+
+* Changed message from performAnalyses()
 
 * Updated Imports in DESCRIPTION
 
