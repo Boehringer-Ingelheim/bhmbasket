@@ -1,3 +1,33 @@
+addCohorts <- function (
+  
+  decisions_list,
+  
+  n_subjects_list,
+  response_rates_list
+  
+) {
+  
+  error_decisions_list <-
+    simpleError("Please provide an object of class decisions_list for the argument 'scenario_list'")
+  error_n_subjects_list     <- simpleError(
+    "Please provide a list of vectors of positive integers for the argument 'n_subjects_list'")
+  error_response_rates_list <- simpleError(
+    paste("Please provide a list of vectors of non-negative numerics for the argument",
+          "'response_rates_list'\n", "Values outside of (0, 1) must be integers"))
+  
+  if (missing(decisions_list))                      stop (error_decisions_list)
+  
+  if (missing(n_subjects_list))                     stop (error_n_subjects_list)
+  if (missing(response_rates_list))                 stop (error_response_rates_list)
+  
+  
+  if (!is.scenario_list(decisions_list))            stop (error_decisions_list)
+  
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  
+}
+
+
 #' @title continueRecruitment
 #' @md
 #' @description This function continues the recruitment of subjects for a set of scenarios
