@@ -1,7 +1,7 @@
 ---
 title: "bhmbasket - Getting Started"
 author: "Lisamaria Eble"
-date: "28-06-2022"
+date: "22-07-2022"
 output: html_document
 ---
 
@@ -13,8 +13,8 @@ knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
 This guide provides an overview of the R package [bhmbasket](https://cran.r-project.org/web/packages/bhmbasket/index.html) on how to use its functions to evaluate the operating characteristics of a basket trial with binary endpoints.
 An example trial will be used to guide through the functions, the design of which is depicted in Figure 1.
 The example trial consists of three cohorts where the third cohort is already observed historical data.
-Cohorts 1 and 2 will be analyzed in a futility analysis using simple Bayesian Go/NoGo decision rules after 10 subjects have been recruited in each cohort assuming equal recruitment rates.
-Based on the futility analysis, the recruitment will continue until 10 and 15 additional subjects are recruited in Cohorts 1 and 2, respectively.
+Cohorts 1 and 2 will be analyzed in a futility analysis using simple Bayesian Go/NoGo decision rules after 10 and 15 subjects have been recruited in Cohorts 1 and 2, respectively.
+Based on the futility analysis, the recruitment will continue until 15 additional subjects are recruited in each cohort.
 The final analysis will be performed with Go/NoGo decision rules according to [Fisch et al. (2015)](https://link.springer.com/article/10.1177/2168479014533970).
 
 
@@ -43,7 +43,7 @@ Figure 2: Workflow of bhmbasket <br>
 
 ```{r, message=FALSE, warning=FALSE}
 library(bhmbasket)
-set.seed(1705)
+set.seed(677643)
 ```
 
 The function `performAnalyses()` is set up for parallel execution, which can be leveraged by providing a parallel backend that is accepted by the foreach framework, as e.g. provided by the R package [doFuture](https://cran.r-project.org/web/packages/doFuture/vignettes/doFuture.html):
@@ -62,7 +62,6 @@ For each scenario, one must provide the number of subjects and the true response
 Historical data can be included in the simulated trial outcomes.
 
 This example consists of four scenarios and three cohorts, whereby the third cohort is historical with a fixed number of five responders out of 15 subjects.
-
 The trial design will be investigated with a positive scenario, two nugget scenarios, and a negative scenario.
 The positive and negative scenarios cover the true highest and lowest response rates that lead to a continuation or stop, respectively, of the development of the drug.
 In the nugget scenarios, only one of the cohorts assumes the positive response rate, whereas the other cohorts assume the negative response rates. 
@@ -71,12 +70,14 @@ In the nugget scenarios, only one of the cohorts assumes the positive response r
 scenarios_list <- list(
   rr_positive = c(0.2, 0.35, 5),
   rr_nugget1  = c(0.2, 0.15, 5),
-  rr_nugget2  = c(0.1, 0.35, 5),
-  rr_negative = c(0.1, 0.15, 5))
+  rr_nugget2  = c(0.05, 0.35, 5),
+  rr_negative = c(0.05, 0.15, 5))
 
 scenario_list <- simulateScenarios(
-  n_subjects_list     = c(10, 10, 15),
+  n_subjects_list     = c(15, 10, 15),
   response_rates_list = scenarios_list)
+
+scenario_list
 ```
 
 <!-- The function distinguishes historical data from the data to be simulated by the response rate argument. -->
@@ -123,6 +124,8 @@ analysis_list <- performAnalyses(
   method_names     = c("berry", "exnex_adj", "stratified"), 
   calc_differences = c(2, 1),
   target_rates     = c(0.2, 0.35, 0.3))
+
+analysis_list
 ```
 
 Available methods are the BHM proposed by [Berry et al. (2013)](https://journals.sagepub.com/doi/10.1177/1740774513497539)) (*berry*), the BHM proposed by [Neuenschwander et al. (2016)](https://onlinelibrary.wiley.com/doi/10.1002/pst.1730)) (*exnex*), and a BHM that combines both approaches called exnex adjusted (*exnex_adj*), as well as the two beta-binomial approaches *pooled* and *stratified*.
@@ -130,7 +133,7 @@ The target rates are required for the methods *berry* and *exnex adjusted* as we
 One can use [`getPriorParameters()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getPriorParameters.html) and the `setPriorParameters...()` family of functions for a custom choice of prior parameters.
 Further evidence levels can be provided in addition to the default evidence levels.
 Posterior differences of cohorts' response rates can be calculated using the argument `calc_differences`.
-For example, for the difference between cohort x and y, one uses `calc_differences = c(x, y)`.
+For example, for the difference between Cohort x and y, one uses `calc_differences = c(x, y)`.
 This can be used to compare outcomes of cohorts directly, e.g. when comparing cohorts with monotreatment and cohorts with combination treatment.
 
 ### Getting Estimates   
@@ -157,7 +160,8 @@ The resulting decision list can be used to calculate the cohort-wise and overall
 A Bayesian decision rule is generally defined as follows:
 $$P(p_j|\text{data} > p_{Bj}) > \gamma_j,$$
 
-where $p_j|\text{data}$ is the posterior response rate of cohort $j$, and $\gamma_j$ and $p_{Bj}$ are its evidence level and decision boundary, respectively. This rule may be rewritten with the 1-$\gamma$-quantile of the posterior response rate of cohort $j$ as follows:
+where $p_j|\text{data}$ is the posterior response rate of cohort $j$, and $\gamma_j$ and $p_{Bj}$ are its evidence level and decision boundary, respectively. 
+This rule may be rewritten with the 1-$\gamma$-quantile of the posterior response rate of cohort $j$ as follows:
 
 $$q_{1-\gamma_j} > p_{Bj}$$
 As keeping the MCMC samples or marginal posterior densities of the parameters of interest would require too much memory, only pre-specifed quantiles of the MCMC samples are stored when applying [`performAnalyses()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/performAnalyses.html).
@@ -188,7 +192,7 @@ Cohort 1: $P(p_1|\text{data} > 0.11) > 0.5$
 Cohort 2: $P(p_2|\text{data} > 0.22) > 0.5$  
 
 Note that there must be a decision rule specified for each cohort in the trial, i.e., the vector in the quote must have the same length as the number of cohorts in the trial. 
-In this example, the third cohort should not get a decision in the futility analysis.
+In this example, the third cohort should not get a decision.
 Therefore, the argument `boundary_rules` contains the value `TRUE` on the third position.
 To assess the overall futility operating characteristics, the required number of cohort-wise Go decisions for an overall Go is increased to two.
 
@@ -197,7 +201,7 @@ futility_decision_list <- getGoDecisions(
   analyses_list   = analysis_list,
   cohort_names    = c("p_1", "p_2"),
   evidence_levels = c(0.5, 0.5),
-  boundary_rules  = list(quote(c(x[1] > 0.11,
+  boundary_rules  = list(quote(c(x[1] > 0.12,
                                  x[2] > 0.22,
                                  TRUE))),
   overall_min_gos = 2)
@@ -221,26 +225,28 @@ decision_list_adj <- getGoDecisions(
   analyses_list   = analysis_list,
   cohort_names    = c("p_1", "p_2"),
   evidence_levels = c(0.5, 0.5),
-  boundary_rules  = list(quote(c(x[1] > 0.12,
-                                 x[2] > 0.23,
+  boundary_rules  = list(quote(c(x[1] > 0.14,
+                                 x[2] > 0.24,
                                  TRUE)),      #berry
-                         quote(c(x[1] > 0.11,
+                         quote(c(x[1] > 0.1,
                                  x[2] > 0.21,
                                  TRUE)),      #exnex adjusted
-                         quote(c(x[1] > 0.08,
-                                 x[2] > 0.18,
+                         quote(c(x[1] > 0.07,
+                                 x[2] > 0.19,
                                  TRUE))),     #stratified
   overall_min_gos = 2)
 
 
-go_probabilities <- getGoProbabilities(
-  go_decisions_list = decision_list_adj)
+#go_probabilities <- getGoProbabilities(
+#  go_decisions_list = decision_list_adj)
+#
+#scaleRoundList(go_probabilities, round_digits = 2)
 
-scaleRoundList(go_probabilities, round_digits = 2)
+decision_list_adj
 ```
-The false Go probabilities of the method Stratified are comparatively high with 64% in Cohort 1 and 46% in Cohort 2.
-Using the model ExNex adjusted leads to a false Go probability of 44% in Cohort 1 and 36% in Cohort 2.
-The false Go probability in Cohort 1, using the model proposed by Berry et al. (2013), is xx percentage points lower compared to the probability when using the model ExNex adjusted.
+The false Go probabilities of the method Stratified are comparatively high with an overall Go of 55%, and 16% in Cohort 1 and 46% in Cohort 2.
+Using the model ExNex adjusted leads to a false Go probability of 16% in Cohort 1 and 23% in Cohort 2.
+The false Go probability in Cohort 1, using the model proposed by Berry et al. (2013), is 6 percentage points lower compared to the probability when using the model ExNex adjusted.
 
 The difference between the models can be attributed to the different amounts of borrowing of information between the cohorts.
 The more borrowing, the smaller the false Go probability in the negative scenario.
@@ -258,8 +264,9 @@ Only the simulated trial outcomes with an overall Go decision will get additiona
 In this case, *exnex adjusted* will be used to continue the recruitment.
 
 ```{r, message=FALSE, warning=FALSE}
+set.seed(677643)
 final_scenario_list <- continueRecruitment(
-  n_subjects_add_list = c(10, 15),
+  n_subjects_add_list = c(15, 15),
   decisions_list      = futility_decision_list,
   method_name         = "exnex_adj")
  
@@ -318,9 +325,9 @@ nogo_boundary_rules = quote(c(x[1] > 0.8 | x[3] > 0.4,
 <!-- The decision making proposed by Fisch et al. (2015) implies that another set of decision rules is required as above. -->
 <!-- The entire implementation of this decision rules is implemented as follows: -->
 
-For the final analysis of this example, the decision rules for Cohort 1 for relevance and significance are $P(p_1|\text{data} > 0.2) > 0.5$ and $P(p_1|\text{data} > 0.1) > 0.95$, respectively.
-In Cohort 2, the relevance criteria $P(p_2|\text{data} > 0.25) > 0.5$ ∧ $P(p_2-p_1|\text{data} > 0.1) > 0.5$ is a combination of boundary rules for the point estimate and the difference between Cohort 2 and 1.
-The rules for significance is implemented with $P(p_2|\text{data} > 0.1) > 0.95$.
+For the final analysis of this example, the decision rules for Cohort 1 for relevance and significance are $P(p_1|\text{data} > 0.147) > 0.5 $ and $P(p_1|\text{data} > 0.05) > 0.8$, respectively.
+In Cohort 2, the relevance criteria $P(p_2|\text{data} > 0.28) > 0.5$ ∧ $P(p_2-p_1|\text{data} > 0) > 0.5 $ is a combination of boundary rules for the point estimate and the difference between Cohort 2 and 1.
+The rules for significance is implemented with $P(p_2|\text{data} > 0.15) > 0.8$.
 The third cohort should not get a decision as well as in the futility analysis and therefore, `boundary_rules` contains the value `TRUE` on the third position.
 
 
@@ -331,8 +338,8 @@ final_decision_list <- getGoDecisions(
                       "p_1", "p_2"),
   evidence_levels = c(0.5, 0.5, 0.5,
                       0.8, 0.8),
-  boundary_rules  = quote(c(x[1] > 0.13               & x[4] > 0.05,
-                            x[2] > 0.26 & x[3] > 0.03 & x[5] > 0.14, 
+  boundary_rules  = quote(c(x[1] > 0.147           & x[4] > 0.05,
+                            x[2] > 0.28  & x[3] > 0 & x[5] > 0.15, 
                             TRUE)),
   overall_min_gos = 2)
 
@@ -344,9 +351,10 @@ final_nogo_decision_list <- negateGoDecisions(
                         "p_1", "p_2"),
     evidence_levels = c(0.5, 0.5, 0.5,
                         0.8, 0.8), 
-    boundary_rules  = quote(c(x[1] > 0.13               | x[4] > 0.05,
-                              x[2] > 0.26 & x[3] > 0.03 | x[5] > 0.14,
-                              TRUE))),
+    boundary_rules  = quote(c(x[1] > 0.147            | x[4] > 0.05,
+                              x[2] > 0.28  & x[3] > 0 | x[5] > 0.15,
+                              TRUE)),
+    overall_min_gos = 2),
   overall_min_nogos = 2)
 
 final_probability_list <- getGoProbabilities(
@@ -357,6 +365,6 @@ scaleRoundList(final_probability_list, round_digits = 2)
 ```
 
 It is always a trade-off sample size and required go probabilities.
-In this case, the sets of decision rules lead to an overall Go probability of xx% and individual Go probabilities of xx% in Cohort 1 and xx% in Cohort 2. 
-The probabilities of identifying the nugget cohorts are xx% and xx%.
-In the negative scenario, the overall Go probability is xx%.
+In this case, the sets of decision rules lead to an overall Go probability of 88% and individual Go probabilities of 68% in Cohort 1 and 70% in Cohort 2. 
+The probabilities of identifying the nugget cohorts are 60% and 65%.
+In the negative scenario, the overall Go probability is 11%.
