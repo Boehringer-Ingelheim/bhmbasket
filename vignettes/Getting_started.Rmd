@@ -259,7 +259,6 @@ In case of ExNex adjusted, the amount of borrowing depends on the similarity of 
 
 After an analysis as above, one can continue the recruitment and add more subjects to the cohorts.
 The function [`continueRecruitment()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/continueRecruitment.html) is used to update the scenario list and to add a specified number of subjects to the current number of subjects of the simulated cohorts.
-Only the simulated trial outcomes with an overall Go decision will get additional subjects in the cohorts with cohort-wise Go decisions and only those trial outcomes will be analysed again in `performAnalyses()`.
 `continueRecruitment()` only allows to add subjects according to one method.
 In this case, *exnex adjusted* will be used to continue the recruitment.
 
@@ -276,7 +275,15 @@ final_analysis_list <- performAnalyses(
   calc_differences = c(2, 1),
   target_rates  = c(0.2, 0.35, 0.3))
 ```
+Only the simulated trial outcomes with an overall Go decision will get additional subjects in the cohorts with cohort-wise Go decisions and only those trial outcomes will be analysed again in `performAnalyses()`.
+Due to the different numbers of subjects in the trials, the decision rules can be assessed regarding to the average number of subjects across the different scenarios.
+The average number of subjects can be calculated using `getAverageNSubjects()`.
 
+```{r}
+getAverageNSubjects(
+  scenario_list = final_scenario_list
+)
+```
 
 ### Final Decision Making
 
