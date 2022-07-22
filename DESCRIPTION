@@ -39,5 +39,5 @@ Suggests:
 VignetteBuilder: 
     knitr
 Encoding: UTF-8
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.1
 SystemRequirements: JAGS 4.x.y (http://mcmc-jags.sourceforge.net)

@@ -1,6 +1,9 @@
 seed <- 1633099466 #as.integer(Sys.time())
 set.seed(seed)
 
+doFuture::registerDoFuture()
+future::plan(future::multisession)
+
 scenarios <- bhmbasket::simulateScenarios(
   n_subjects_list     = list(c(15, 15, 20),
                              c(15, 10, 20)),
