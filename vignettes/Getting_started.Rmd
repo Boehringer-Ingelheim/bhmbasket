@@ -262,8 +262,11 @@ The function [`continueRecruitment()`](https://search.r-project.org/CRAN/refmans
 `continueRecruitment()` only allows to add subjects according to one method.
 In this case, *exnex adjusted* will be used to continue the recruitment.
 
-```{r, message=FALSE, warning=FALSE}
+```{r, include = FALSE}
 set.seed(677643)
+```
+
+```{r, message=FALSE, warning=FALSE}
 final_scenario_list <- continueRecruitment(
   n_subjects_add_list = c(15, 15),
   decisions_list      = futility_decision_list,
