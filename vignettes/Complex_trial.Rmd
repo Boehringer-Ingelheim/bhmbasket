@@ -370,6 +370,6 @@ final_probability_list <- getGoProbabilities(go_decisions_3, nogo_decisions_3)
 scaleRoundList(final_probability_list, round_digits = 2)
 ```
 
-The sets of decision rules lead to an overall Go probability of xx% and individual Go probabilities of 71% in Cohort 1. 
-The probabilities of identifying the nugget cohort is 73%.
+The sets of decision rules lead to an overall Go probability of 98% and individual Go probabilities of 71% in Cohort 1. 
+The probabilities of identifying the nugget cohorts are 70% and 69%.
 In the negative scenario, the overall Go probability is 3%.
