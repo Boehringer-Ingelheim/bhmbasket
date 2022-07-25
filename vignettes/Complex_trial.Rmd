@@ -216,8 +216,11 @@ The recruitment can be continued, once the futility analysis is performed and th
 Cohort 1 will recruit additional 13 subjects and Cohort 4 will recruit 25 subjects.
 In both cases, only the trial outcomes that reached a Go in the previous futility analysis will recruit additional subjects and will be analysed afterwards.
 
-```{r}
+```{r, include = FALSE}
 set.seed(1705)
+```
+
+```{r}
 ## add 13 subjects for Cohort 1 and 25 subjects for Cohort 4
 scenarios_2 <- continueRecruitment(
   n_subjects_add_list = c(13, 0, 0, 25),
@@ -298,8 +301,11 @@ rm(s)
 
 The filtered decision list is used for continuation of recruitment fulfilling the aforementioned precondition.
 
-```{r}
+```{r, include = FALSE}
 set.seed(1705)
+```
+
+```{r}
 scenarios_3 <- continueRecruitment(
   n_subjects_add_list = c(45, 0, 0, 0),
   decisions_list      = go_decisions_for_analysis_3,
