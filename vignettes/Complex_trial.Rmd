@@ -1,8 +1,8 @@
 ---
 title: "Untitled"
 author: "Lisamaria Eble"
-date: "07-06-2022"
-output: word_document
+date: "25-07-2022"
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -15,7 +15,7 @@ Further information about the functions of the package [bhmbasket](https://cran.
 
 ## Trial Design
 
-The trial consists of four cohorts with a planned total of 70, 25, 25, and 25 subjects.
+The example trial consists of four cohorts with a planned total of 70, 25, 25, and 25 subjects.
 The first cohort will be analysed in a futility analysis after 12 subjects.
 The second and third cohorts are assumed to have all 25 subjects recruited at that time.
 Recruitment of the fourth cohort is depended on Cohort 1 passing its futility analysis and by the time of the 2nd analysis of Cohort 1, Cohort 4 is expected to be fully recruited.
@@ -50,9 +50,9 @@ plan(multisession)
 
 ## First Simulations
 
-The setup of the trial design starts with the simulation of the scenario data with the function `simulateScenarios()`.
+The setup of the trial design starts with the simulation of scenario data with the function `simulateScenarios()`.
 In this example there are four cohorts included, whereby the fourth one will start later and is filtered by taking out the fourth entry of the number of subjects and target rates.
-The cohorts will be simulated in three different scenarios, a positive, a nugget, and a negative scenario. 
+The cohorts will be simulated in four different scenarios, a positive scenario, a SuperGo scenario, a nugget scenario, and a negative scenario. 
 
 ```{r}
 ## scenarios
@@ -69,61 +69,61 @@ orr_target_rates <- c(0.35, 0.3, 0.2, 0.2)
 n_subjects_Ph1 <- c(12, 25, 25, 0)
 
 ## simulation
-scenarios_interim_1 <- simulateScenarios(
+scenarios_futility_1 <- simulateScenarios(
   n_subjects_list     = n_subjects_Ph1[-4],
   response_rates_list = lapply(orr_scenario_list, function (x) x[-4]),
   n_trials = 1000)
 
-scenarios_interim_1
+scenarios_futility_1
 ```
 
 ### Analysis I
 
-The first analysis follows directly after the simulation.
-Therefore, the function `performAnalyses()` analyses all cohorts (except Cohort 4) with 10 000 MCMC iterations.
+The first analysis will be performed after Cohort 1 has 12 subjects recruited.
+The function `performAnalyses()` analyses all cohorts (except Cohort 4) with 10 000 MCMC iterations.
 In this case, the model *ExNex adjusted* is used, a combination of the Bayesian hierarchical models (BHM) proposed by [Berry et al. (2013)](https://journals.sagepub.com/doi/10.1177/1740774513497539) and *ExNex*, the BHM proposed by [Neuenschwander et al. (2016)](https://onlinelibrary.wiley.com/doi/10.1002/pst.1730)).
 
 ```{r, message=FALSE, warning=FALSE}
-analyses_interim_1 <- performAnalyses(
-  scenario_list     = scenarios_interim_1,
+analyses_futility_1 <- performAnalyses(
+  scenario_list     = scenarios_futility_1,
   method_names      = "exnex_adj",
   target_rates      = orr_target_rates[-4])
 
-analyses_interim_1
+analyses_futility_1
 ```
 
-One can get point estimates and credible intervals per cohorts, as well as estimated biases and mean squared errors of the point estimators using the function `getEstimates(analyses_interim_1)`.
+One can get point estimates and credible intervals per cohorts, as well as estimated biases and mean squared errors of the point estimators using the function `getEstimates(analyses_futility_1)`.
 
 #### Decision Making
 
-The created analyses list is now used to make Go/NoGo decisions as part of the interim analysis.
+The created analyses list will be used to make Go/NoGo decisions as part of the futility analysis.
 In this case, decisions for Cohort 2 and 3 are not of interest and therefore, the argument `boundary_rules` obtains `TRUE` at the second and third position.
 The decision rule for Cohort 1 is implemented as follows:
 
 $P(p_1|\text{data} > 0.2) > 0.5$
 
 ```{r}
-go_decisions_interim_1 <- getGoDecisions(
-  analyses_list   = analyses_interim_1,
+go_decisions_futility <- getGoDecisions(
+  analyses_list   = analyses_futility_1,
   cohort_names    = "p_1",
   evidence_levels = 0.5,
   boundary_rules  = quote(c(x[1] >= 0.2, TRUE, TRUE)))
 
-go_probability_interim <- getGoProbabilities(go_decisions_interim_1)
-scaleRoundList(go_probability_interim, round_digits = 2)
+go_probability_futility <- getGoProbabilities(go_decisions_futility_1)
+scaleRoundList(go_probability_futility, round_digits = 2)
 ```
 
 ##### SuperGo
 
-After the first Go/NoGo decision making, a SuperGo decision making will be performed with different decision boundaries.
-The additional SuperGo outcome can be used for a potential accelerated approval or to skip directly to the next Phase.
-In this case, Cohort 1 will have the next Phase directly after reaching a SuperGo in the futility analysis without being analysed in a second analysis.
+After the first Go/NoGo decision making, an additional SuperGo decision making will be performed, implementing different decision boundaries.
+In general, the SuperGo outcome can be used for a potential accelerated approval or to skip directly to the next Phase.
+In this case, Cohort 1 will have the next Phase directly after reaching a SuperGo in this futility analysis without a second analysis.
 The boundary rules of the SuperGo decision are implemented in the same way as above: 
 
-$P(p_1|\text{data} > 0.6) > 0.8$
+$P(p_1|\text{data} > 0.33) > 0.5$
 ```{r}
 go_decisions_SuperGo <- getGoDecisions(
-  analyses_list   = analyses_interim_1,
+  analyses_list   = analyses_futility_1,
   cohort_names    = "p_1",
   evidence_levels = 0.5,
   boundary_rules  = quote(c(x[1] >= 0.33, TRUE, TRUE)),
@@ -134,33 +134,33 @@ scaleRoundList(go_probability_SuperGo, round_digits = 2)
 ```
 
 The Go probabilities of this SuperGo decision is lower than the probabilities of the previous Go/NoGo decision, as expected.
-To make sure that there are not more SuperGos than Gos in this two decision lists, a sanity check is performed.
+To make sure that there are not more SuperGo decisions than Go decisions in this two decision lists, a sanity check is performed.
 
 ```{r}
 ## sanity check: go probability in PoCP always greater than or equal to SuperGo probability
 all(
-  sapply(seq_along(scenarios_interim_1), function (i) getGoProbabilities(go_decisions_interim_1)[[1]][[i]])[1, ] >=
-    sapply(seq_along(scenarios_interim_1), function (i) getGoProbabilities(go_decisions_SuperGo)[[1]][[i]])[1, ])
+  sapply(seq_along(scenarios_futility_1), function (i) getGoProbabilities(go_decisions_futility_1)[[1]][[i]])[1, ] >=
+    sapply(seq_along(scenarios_futility_1), function (i) getGoProbabilities(go_decisions_SuperGo)[[1]][[i]])[1, ])
 ```
 
 ### Add new Cohort
 
-After Cohort 1 passed the interim analysis, Cohort 4 will be included.
+After Cohort 1 passed the futility analysis, Cohort 4 will be included.
 Therefore, the decision list must be manipulated.
-This includes adding another cohort as well as decisions for this cohort, which are necessary for the subsequent continuation of recruitment. 
+This includes adding scenario data of another cohort as well as decisions, which are necessary for the subsequent continuation of recruitment. 
 The decision list will be copied in `go_decisions_1` and adjusted for each scenario. 
 
 ```{r}
-go_decisions_1 <- go_decisions_interim_1
+go_decisions_1 <- go_decisions_futility_1
 ```
 
-The first step is to combine the overall decision and the decisions for Cohort 1, 2, and 3 with a decision for Cohort 4.
+The first step is to combine the already existing decisions of the futility analysis with decisions for Cohort 4.
 Cohort 4 is taking over the decisions of Cohort 1, due to the prerequisite that the start of Cohort 4 depends on Cohort 1 passing its futility analysis.
 
 ```{r}
 go_decisions_1[[1]]$decisions_list$exnex_adj <-
     cbind(go_decisions_1[[1]]$decisions_list$exnex_adj[, c(1, 2, 3, 4)],
-          "decision_4" = go_decisions_interim_1[[1]]$decisions_list$exnex_adj[, 2])
+          "decision_4" = go_decisions_futility_1[[1]]$decisions_list$exnex_adj[, 2])
 
 head(go_decisions_1[[1]]$decisions_list$exnex_adj)
 ```
@@ -173,7 +173,7 @@ This ensures that, using the function `continueRecruitment()`, Cohort 4 will onl
 Implementation for number of subjects:
 ```{r}
 go_decisions_1[[1]]$scenario_data$n_subjects <- 
-    cbind(go_decisions_interim_1[[1]]$scenario_data$n_subjects[, c(1, 2, 3)],
+    cbind(go_decisions_futility_1[[1]]$scenario_data$n_subjects[, c(1, 2, 3)],
           "n_4" = 0)
   
 head(go_decisions_1[[1]]$scenario_data$n_subjects)
@@ -182,23 +182,23 @@ head(go_decisions_1[[1]]$scenario_data$n_subjects)
 The entire implementation of the manipulation of the decision list is implemented in a for loop, due to the number of scenarios:
  
 ```{r}
-go_decisions_1 <- go_decisions_interim_1
+go_decisions_1 <- go_decisions_futility_1
 for (s in seq_along(orr_scenario_list)) {
   
   ## add go decisions
   go_decisions_1[[s]]$decisions_list$exnex_adj <-
     cbind(go_decisions_1[[1]]$decisions_list$exnex_adj[, c(1, 2, 3, 4)],
-          "decision_4" = go_decisions_interim_1[[1]]$decisions_list$exnex_adj[, 2])
+          "decision_4" = go_decisions_futility_1[[1]]$decisions_list$exnex_adj[, 2])
   
   ## add additional cohort in scenarios
   ### subjects
   go_decisions_1[[s]]$scenario_data$n_subjects <- 
-    cbind(go_decisions_interim_1[[1]]$scenario_data$n_subjects[, c(1, 2, 3)],
+    cbind(go_decisions_futility_1[[1]]$scenario_data$n_subjects[, c(1, 2, 3)],
           "n_4" = 0)
   
   ### responders
   go_decisions_1[[s]]$scenario_data$n_responders <- 
-    cbind(go_decisions_interim_1[[s]]$scenario_data$n_responders[, c(1, 2, 3)],
+    cbind(go_decisions_futility_1[[s]]$scenario_data$n_responders[, c(1, 2, 3)],
           "r_4" = 0)
   
   ### response rates
@@ -278,7 +278,7 @@ scaleRoundList(decision_2, round_digits = 2)
 ## Second Simulations
 
 In the next Phase, Cohort 1 will recruit additional 45 subjects.
-The precondition for this recruitment is a SuperGo in the futility analysis or a Go in the primary analysis II.
+The precondition for this recruitment is a SuperGo in the futility analysis or a Go in analysis II.
 Due to this precondition, the decision list must be modified again:
 
 ```{r}
@@ -299,7 +299,7 @@ for (s in seq_along(orr_scenario_list)) {
 rm(s)
 ```
 
-The filtered decision list is used for continuation of recruitment fulfilling the aforementioned precondition.
+The modified decision list can be used for the continuation of recruitment fulfilling the aforementioned precondition.
 
 ```{r, include = FALSE}
 set.seed(1705)
@@ -315,7 +315,7 @@ scenarios_3
 ```
 
 **Include?**  
-If one is interested in the mean number of subjects per scenario, one can get an overview with following function:
+If one is interested in the mean number of subjects per scenario, one can get an overview with function `getAverageNSubjects()`.
 ```{r}
 ## mean number of subjects per scenario in Phase 2
 getAverageNSubjects(
@@ -326,7 +326,7 @@ getAverageNSubjects(
 ### Analysis III
 
 The primary analysis III is only based on Cohort 1.
-Therefore, the model *stratified* is used, due to no required borrowing between the cohorts.
+Thus no borrowing between the cohorts is required and the model *stratified* is used.
 
 ```{r, message=FALSE, warning=FALSE}
 analyses_3 <- performAnalyses(
@@ -340,27 +340,29 @@ analyses_3
 #### Decision Making
 
 The final decision rules for Cohort 1 are proposed by [Fisch et al. (2015)](https://link.springer.com/article/10.1177/2168479014533970).
-Further information on how to apply these rules proposed by Fisch et al. are available in the vignette [Getting started](...) of the bhmbasket package.
-The decision rules are based on relevance and significance and are implemented as follows:  
+Further information on how to apply these rules proposed by Fisch et al. are available in the vignette [Getting started](...) of the package bhmbasket.
+The decision rules are based on relevance and significance, as follows.
 
-Significance: $P(p_1|\text{data} > 0.3) > 0.95$  
-Relevance:    $P(p_1|\text{data} > 0.6) > 0.5$ 
+Relevance:    $P(p_1|\text{data} > 0.3) > 0.5$  
+Significance: $P(p_1|\text{data} > 0.15) > 0.95$
 
 ```{r}
 go_decisions_3  <- getGoDecisions(
   analyses_list   = analyses_3,
   cohort_names    = c("p_1", "p_1"),
   evidence_levels = c(0.5, 0.9),
-  boundary_rules  = quote(c(x[1] >= 0.3 & x[2] > 0.15, TRUE, TRUE, TRUE)),
-  overall_min_gos = 4)
+  boundary_rules  = quote(c(x[1] >= 0.3 & x[2] > 0.15, TRUE, TRUE, TRUE))
+  )
+ # overall_min_gos = 4)
 
 nogo_decisions_3  <- negateGoDecisions(
   getGoDecisions(
     analyses_list   = analyses_3,
     cohort_names    = c("p_1", "p_1"),
     evidence_levels = c(0.5, 0.9),
-    boundary_rules  = quote(c(x[1] >= 0.3 | x[2] > 0.15, TRUE, TRUE, TRUE)),
-    overall_min_gos = 4))
+    boundary_rules  = quote(c(x[1] >= 0.3 | x[2] > 0.15, TRUE, TRUE, TRUE))
+  ))
+   # overall_min_gos = 4))
 
 
 final_probability_list <- getGoProbabilities(go_decisions_3, nogo_decisions_3)
@@ -368,4 +370,6 @@ final_probability_list <- getGoProbabilities(go_decisions_3, nogo_decisions_3)
 scaleRoundList(final_probability_list, round_digits = 2)
 ```
 
-Interpretation
+The sets of decision rules lead to an overall Go probability of xx% and individual Go probabilities of 71% in Cohort 1. 
+The probabilities of identifying the nugget cohort is 73%.
+In the negative scenario, the overall Go probability is 3%.
