@@ -145,10 +145,10 @@ round(estimates$exnex_adj$scenario_3, digits = 2)
 
 Go/NoGo decision rules can be implemented with [`getGoDecisions()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoDecisions.html).
 The function calculates Go decisions for each cohort of a trial outcome based on decision rules.
-The resulting decision list can be used to calculate the cohort-wise and overall decision probabilities using the functions [`getGoProbabilities()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoProbabilities.html).
+The resulting decision list can be used to calculate the cohort-wise and overall Go decision probabilities using the functions [`getGoProbabilities()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoProbabilities.html).
 Optional, adding a NoGo decision list using [`negateGoDecisions()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/negateGoDecisions.html), the function `getGoProbability()` provides additional NoGo and Consider probabilities.
 
-Calling the printing function of the decision list leads automatically to the execution of `getGoProbabilities()`.
+Calling the printing function of the decision list leads automatically to the execution of `getGoProbabilities()` and the output of the Go probabilities.
 
 ### Implementation of Decision Rules in General
 
