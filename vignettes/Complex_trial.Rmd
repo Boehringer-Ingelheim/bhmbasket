@@ -103,14 +103,13 @@ The decision rule for Cohort 1 is implemented as follows:
 $P(p_1|\text{data} > 0.2) > 0.5$
 
 ```{r}
-go_decisions_futility <- getGoDecisions(
+go_decisions_futility_1 <- getGoDecisions(
   analyses_list   = analyses_futility_1,
   cohort_names    = "p_1",
   evidence_levels = 0.5,
   boundary_rules  = quote(c(x[1] >= 0.2, TRUE, TRUE)))
 
-go_probability_futility <- getGoProbabilities(go_decisions_futility_1)
-scaleRoundList(go_probability_futility, round_digits = 2)
+go_decisions_futility_1
 ```
 
 ##### SuperGo
@@ -129,8 +128,7 @@ go_decisions_SuperGo <- getGoDecisions(
   boundary_rules  = quote(c(x[1] >= 0.33, TRUE, TRUE)),
   overall_min_gos = 3)
 
-go_probability_SuperGo <- getGoProbabilities(go_decisions_SuperGo)
-scaleRoundList(go_probability_SuperGo, round_digits = 2)
+go_decisions_SuperGo
 ```
 
 The Go probabilities of this SuperGo decision is lower than the probabilities of the previous Go/NoGo decision, as expected.
@@ -318,9 +316,7 @@ scenarios_3
 If one is interested in the mean number of subjects per scenario, one can get an overview with function `getAverageNSubjects()`.
 ```{r}
 ## mean number of subjects per scenario in Phase 2
-getAverageNSubjects(
-  scenario_list = scenarios_3
-)
+getAverageNSubjects(scenarios_3)
 ```
 
 ### Analysis III
@@ -331,7 +327,7 @@ Thus no borrowing between the cohorts is required and the model *stratified* is 
 ```{r, message=FALSE, warning=FALSE}
 analyses_3 <- performAnalyses(
   scenario_list         = scenarios_3,
-  method_names          = "stratified",
+  method_names          = c("exnex_adj", "stratified"),
   target_rates          = orr_target_rates)
 
 analyses_3
@@ -351,19 +347,14 @@ go_decisions_3  <- getGoDecisions(
   analyses_list   = analyses_3,
   cohort_names    = c("p_1", "p_1"),
   evidence_levels = c(0.5, 0.9),
-  boundary_rules  = quote(c(x[1] >= 0.3 & x[2] > 0.15, TRUE, TRUE, TRUE))
-  )
- # overall_min_gos = 4)
+  boundary_rules  = quote(c(x[1] >= 0.3 & x[2] > 0.15, TRUE, TRUE, TRUE)))
 
 nogo_decisions_3  <- negateGoDecisions(
   getGoDecisions(
     analyses_list   = analyses_3,
     cohort_names    = c("p_1", "p_1"),
     evidence_levels = c(0.5, 0.9),
-    boundary_rules  = quote(c(x[1] >= 0.3 | x[2] > 0.15, TRUE, TRUE, TRUE))
-  ))
-   # overall_min_gos = 4))
-
+    boundary_rules  = quote(c(x[1] >= 0.3 | x[2] > 0.15, TRUE, TRUE, TRUE))))
 
 final_probability_list <- getGoProbabilities(go_decisions_3, nogo_decisions_3)
 
@@ -373,3 +364,16 @@ scaleRoundList(final_probability_list, round_digits = 2)
 The sets of decision rules lead to an overall Go probability of 98% and individual Go probabilities of 71% in Cohort 1. 
 The probabilities of identifying the nugget cohorts are 70% and 69%.
 In the negative scenario, the overall Go probability is 3%.
+
+##### Sensitivity Analysis
+
+
+```{r}
+go_decisions_sens  <- getGoDecisions(
+  analyses_list        = analyses_3,
+  cohort_names         = c("p_1"),
+  evidence_levels      = 0.975,
+  boundary_rules       = quote(c(x[1] >= 0.3, TRUE, TRUE, TRUE)))
+
+go_decisions_sens
+```
