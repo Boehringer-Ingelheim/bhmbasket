@@ -20,7 +20,7 @@ The final analysis will be performed with Go/NoGo decision rules according to [F
 
 <center>
 <img src="C:\Users\eblelisa\OneDrive - Boehringer Ingelheim\Pictures\TrialExample.png" width="70%" height="70%"/>  
-Figure 1: Trial design
+Figure 1: Example Trial Design
 </center>
 
 
@@ -30,6 +30,7 @@ Figure 2 depicts the main functions and the workflow of the package.
 The first step is to simulate scenarios with `simulateScenarios()`.
 The simulated trial outcomes are analyzed with Bayesian hierarchical models (BHMs) using `performAnalyses()`.
 The user can then specify and apply the decision rules with `getGoDecisions()` and can subsequently calculate decision probabilities using `getGoProbabilities()` and recruit additional patients with `continueRecruitment()` for later analyses.
+The package provides printing functions to print the outputs of the analysis list, the scenario list, and the decision list.
 
 <center>
 <img src="C:\Users\eblelisa\OneDrive - Boehringer Ingelheim\Documents\bhmbasketVignette\bhmbasketOverview.png" width="60%" height="60%"/>
@@ -87,7 +88,7 @@ scenario_list
 <!-- If the number of subjects is not the same for all scenarios, one has to provide a list of vectors with the number of subjects of each scenario. -->
 
 ### Observed Outcome Data
-Also actual trial outcomes can be analyzed with [bhmbasket](https://cran.r-project.org/web/packages/bhmbasket/index.html).
+Also actual trial outcomes can be analyzed with bhmbasket.
 An observed trial outcome can be specified with the function `createTrial()` as shown below.
 
 <!-- The package provides the possibility to analyse simulated, observed and historical data. -->
@@ -106,30 +107,21 @@ The created trial outcome can be processed in the same way as the simulated tria
 
 The function [`performAnalyses()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/performAnalyses.html) approximates the joint posterior distribution for each trial realization via MCMC sampling and returns the quantiles of the marginal posterior response rates among other model parameters.
 Required arguments are the scenario list created e.g. with `simulateScenarios()`, the name of at least one analysis method and the target rates per cohort.
-In the example, the methods !!! TODO !!!
-
-<!-- This should no longer be required with the latest package update -->
-<!-- ```{r, include = FALSE} -->
-<!-- ## dummy code to avoid loading package messages triggered by 1st run of performAnalyses() -->
-<!-- dummy_list <- createTrial(c(10, 10), c(1, 2)) -->
-<!-- performAnalyses( -->
-<!--  scenario_list    = dummy_list, -->
-<!--  method_names     = c("berry"), -->
-<!--  target_rates     = c(0.5, 0.5)) -->
-<!-- ``` -->
+Target rates are used to derive default prior parameters and are part of some analysis models.
+For some models do not require target rates, prior parameters can be specified directly with `prior_parameters_list`.
 
 ```{r, warning = FALSE}
 analysis_list <- performAnalyses(
   scenario_list    = scenario_list,
   method_names     = c("berry", "exnex_adj", "stratified"), 
-  calc_differences = c(2, 1),
-  target_rates     = c(0.2, 0.35, 0.3))
+  target_rates     = c(0.2, 0.35, 0.3),
+  calc_differences = c(2, 1))
 
 analysis_list
 ```
 
-Available methods are the BHM proposed by [Berry et al. (2013)](https://journals.sagepub.com/doi/10.1177/1740774513497539)) (*berry*), the BHM proposed by [Neuenschwander et al. (2016)](https://onlinelibrary.wiley.com/doi/10.1002/pst.1730)) (*exnex*), and a BHM that combines both approaches called exnex adjusted (*exnex_adj*), as well as the two beta-binomial approaches *pooled* and *stratified*.
-The target rates are required for the methods *berry* and *exnex adjusted* as well as for setting default prior parameters for the analysis models.
+Available methods are the BHM proposed by [Berry et al. (2013)](https://journals.sagepub.com/doi/10.1177/1740774513497539)) (*berry*), the BHM proposed by [Neuenschwander et al. (2016)](https://onlinelibrary.wiley.com/doi/10.1002/pst.1730)) (*ExNex*), and a BHM that combines both approaches called exnex adjusted (*exnex_adj*), as well as the two beta-binomial approaches *pooled* and *stratified*.
+The target rates are required for the methods *berry* and *ExNex adjusted* as well as for setting default prior parameters for the analysis models.
 One can use [`getPriorParameters()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getPriorParameters.html) and the `setPriorParameters...()` family of functions for a custom choice of prior parameters.
 Further evidence levels can be provided in addition to the default evidence levels.
 Posterior differences of cohorts' response rates can be calculated using the argument `calc_differences`.
@@ -153,7 +145,10 @@ round(estimates$exnex_adj$scenario_3, digits = 2)
 
 Go/NoGo decision rules can be implemented with [`getGoDecisions()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoDecisions.html).
 The function calculates Go decisions for each cohort of a trial outcome based on decision rules.
-The resulting decision list can be used to calculate the cohort-wise and overall decision probabilities using the functions [`getGoProbabilities()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoProbabilities.html) and [`negateGoDecisions()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/negateGoDecisions.html).
+The resulting decision list can be used to calculate the cohort-wise and overall decision probabilities using the functions [`getGoProbabilities()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoProbabilities.html).
+Optional, adding a NoGo decision list using [`negateGoDecisions()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/negateGoDecisions.html), the function `getGoProbability()` provides additional NoGo and Consider probabilities.
+
+Calling the printing function of the decision list leads automatically to the execution of `getGoProbabilities()`.
 
 ### Implementation of Decision Rules in General
 
@@ -164,7 +159,7 @@ where $p_j|\text{data}$ is the posterior response rate of cohort $j$, and $\gamm
 This rule may be rewritten with the 1-$\gamma$-quantile of the posterior response rate of cohort $j$ as follows:
 
 $$q_{1-\gamma_j} > p_{Bj}$$
-As keeping the MCMC samples or marginal posterior densities of the parameters of interest would require too much memory, only pre-specifed quantiles of the MCMC samples are stored when applying [`performAnalyses()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/performAnalyses.html).
+As keeping the MCMC samples or marginal posterior densities of the parameters of interest would require too much memory, only pre-specified quantiles of the MCMC samples are stored when applying `performAnalyses()`.
 
 #### Example Decision Rule
 
@@ -196,6 +191,7 @@ In this example, the third cohort should not get a decision.
 Therefore, the argument `boundary_rules` contains the value `TRUE` on the third position.
 To assess the overall futility operating characteristics, the required number of cohort-wise Go decisions for an overall Go is increased to two.
 
+
 ```{r}
 futility_decision_list <- getGoDecisions(
   analyses_list   = analysis_list,
@@ -205,16 +201,8 @@ futility_decision_list <- getGoDecisions(
                                  x[2] > 0.22,
                                  TRUE))),
   overall_min_gos = 2)
-```
 
-The function `getGoProbability()` calculates the cohort-wise Go probabilities based on the previous created decisions list.
-Optional, providing a NoGo decision list, the function can calculate additional NoGo probabilities using `negateGoDecisions()`.
-
-```{r}
-futility_go_probabilities <- getGoProbabilities(
-   go_decisions_list = futility_decision_list)
-
-scaleRoundList(futility_go_probabilities, round_digits = 2)
+futility_decision_list
 ```
 
 To compare the performance of different analysis models, it is possible to set up different decision rules for each method to calculate similar decision probabilities for a certain scenario.
@@ -237,30 +225,24 @@ decision_list_adj <- getGoDecisions(
   overall_min_gos = 2)
 
 
-#go_probabilities <- getGoProbabilities(
-#  go_decisions_list = decision_list_adj)
-#
-#scaleRoundList(go_probabilities, round_digits = 2)
-
 decision_list_adj
 ```
-The false Go probabilities of the method Stratified are comparatively high with an overall Go of 55%, and 16% in Cohort 1 and 46% in Cohort 2.
-Using the model ExNex adjusted leads to a false Go probability of 16% in Cohort 1 and 23% in Cohort 2.
-The false Go probability in Cohort 1, using the model proposed by Berry et al. (2013), is 6 percentage points lower compared to the probability when using the model ExNex adjusted.
+The false Go probabilities of the method *Stratified* are comparatively high with an overall Go of 55%, and 16% in Cohort 1 and 46% in Cohort 2.
+Using the model *ExNex adjusted* leads to a false Go probability of 16% in Cohort 1 and 23% in Cohort 2.
+The false Go probability in Cohort 1, using the model proposed by Berry et al. (2013), is 6 percentage points lower compared to the probability when using the model *ExNex adjusted*.
 
 The difference between the models can be attributed to the different amounts of borrowing of information between the cohorts.
-The more borrowing, the smaller the false Go probability in the negative scenario.
-Using the method Stratified leads to the highest false Go probabilities, which can be attributed to the absence of borrowing.
-In this case, the model proposed by Berry et al. (2013) leads to the highest amount of borrowing and therefore, to the best outcome.
-In case of ExNex adjusted, the amount of borrowing depends on the similarity of the cohorts. 
-<!-- The more similar the cohorts, the higher the amount of borrowing. -->
+In this example, the more borrowing, the smaller the false Go probability in the negative scenario.
+The model proposed by Berry et al. (2013) leads to the highest amount of borrowing and therefore, to the best outcome.
+In general, using *ExNex adjusted* results in less borrowing of information compared to *berry*.
+Using the method *Stratified* yields the highest false Go probabilities, which can be attributed to the absence of borrowing.
 
 ### Continue Recruitment
 
 After an analysis as above, one can continue the recruitment and add more subjects to the cohorts.
 The function [`continueRecruitment()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/continueRecruitment.html) is used to update the scenario list and to add a specified number of subjects to the current number of subjects of the simulated cohorts.
 `continueRecruitment()` only allows to add subjects according to one method.
-In this case, *exnex adjusted* will be used to continue the recruitment.
+In this case, *ExNex adjusted* will be used to continue the recruitment.
 
 ```{r, include = FALSE}
 set.seed(677643)
@@ -283,9 +265,7 @@ Due to the different numbers of subjects in the trials, the decision rules can b
 The average number of subjects can be calculated using `getAverageNSubjects()`.
 
 ```{r}
-getAverageNSubjects(
-  scenario_list = final_scenario_list
-)
+getAverageNSubjects(final_scenario_list)
 ```
 
 ### Final Decision Making
