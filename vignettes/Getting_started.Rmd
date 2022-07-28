@@ -30,7 +30,6 @@ Figure 2 depicts the main functions and the workflow of the package.
 The first step is to simulate scenarios with `simulateScenarios()`.
 The simulated trial outcomes are analyzed with Bayesian hierarchical models (BHMs) using `performAnalyses()`.
 The user can then specify and apply the decision rules with `getGoDecisions()` and can subsequently calculate decision probabilities using `getGoProbabilities()` and recruit additional patients with `continueRecruitment()` for later analyses.
-The package provides printing functions to print the outputs of the analysis list, the scenario list, and the decision list.
 
 <center>
 <img src="C:\Users\eblelisa\OneDrive - Boehringer Ingelheim\Documents\bhmbasketVignette\bhmbasketOverview.png" width="60%" height="60%"/>
