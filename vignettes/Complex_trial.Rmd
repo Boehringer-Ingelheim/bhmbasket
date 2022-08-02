@@ -322,7 +322,6 @@ getAverageNSubjects(scenarios_3)
 ### Analysis III
 
 The primary analysis III is only based on Cohort 1.
-Thus no borrowing between the cohorts is required and the model *stratified* is used.
 
 ```{r, message=FALSE, warning=FALSE}
 analyses_3 <- performAnalyses(
@@ -335,45 +334,48 @@ analyses_3
 
 #### Decision Making
 
-The final decision rules for Cohort 1 are proposed by [Fisch et al. (2015)](https://link.springer.com/article/10.1177/2168479014533970).
+The decision making of Analysis 3 is divided into a final analysis and a sensitivity analysis.
+The final decision rules for Cohort 1 are proposed by [Fisch et al. (2015)](https://link.springer.com/article/10.1177/2168479014533970), using the model *exnex adjusted*.
 Further information on how to apply these rules proposed by Fisch et al. are available in the vignette [Getting started](...) of the package bhmbasket.
-The decision rules are based on relevance and significance, as follows.
+The decision rules are based on relevance and significance, as follows:
 
 Relevance:    $P(p_1|\text{data} > 0.3) > 0.5$  
 Significance: $P(p_1|\text{data} > 0.15) > 0.95$
 
+The second part of the analysis is the sensitivity analyses, which is performed to make sure, which effect should be expected in the study.
+No borrowing is required between the cohorts, thus the model *stratified* is used.
+The decision rules for the sensitivity analysis looks as follows:
+
+Go:   $P(p_1|\text{data} > 0.25) > 0.9$  
+NoGo: $P(p_1|\text{data} > 0.15) > 0.9$ 
+
 ```{r}
 go_decisions_3  <- getGoDecisions(
   analyses_list   = analyses_3,
-  cohort_names    = c("p_1", "p_1"),
-  evidence_levels = c(0.5, 0.9),
-  boundary_rules  = quote(c(x[1] >= 0.3 & x[2] > 0.15, TRUE, TRUE, TRUE)))
+  cohort_names    = c("p_1", "p_1", "p_1"),
+  evidence_levels = c(0.5, 0.9, 0.9),
+  boundary_rules  = list(quote(c(x[1] >= 0.305 & x[2] > 0.15, TRUE, TRUE, TRUE)),  # final analysis: exnex
+                         quote(c(x[3] >= 0.25,                TRUE, TRUE, TRUE)))) # sensitivity analysis: stratified
 
 nogo_decisions_3  <- negateGoDecisions(
   getGoDecisions(
     analyses_list   = analyses_3,
-    cohort_names    = c("p_1", "p_1"),
-    evidence_levels = c(0.5, 0.9),
-    boundary_rules  = quote(c(x[1] >= 0.3 | x[2] > 0.15, TRUE, TRUE, TRUE))))
+    cohort_names    = c("p_1", "p_1", "p_1"),
+    evidence_levels = c(0.5, 0.9, 0.9),
+    boundary_rules  = list(quote(c(x[1] >= 0.305 | x[2] > 0.15, TRUE, TRUE, TRUE)),   # final analysis: exnex
+                           quote(c(x[3] >= 0.15,                TRUE, TRUE, TRUE))))) # sensitivity analysis: stratified
 
 final_probability_list <- getGoProbabilities(go_decisions_3, nogo_decisions_3)
 
 scaleRoundList(final_probability_list, round_digits = 2)
 ```
 
-The sets of decision rules lead to an overall Go probability of 98% and individual Go probabilities of 71% in Cohort 1. 
+In case of the final analysis, the sets of decision rules lead to an overall Go probability of 98% and individual Go probability of 71% in Cohort 1. 
 The probabilities of identifying the nugget cohorts are 70% and 69%.
 In the negative scenario, the overall Go probability is 3%.
 
-##### Sensitivity Analysis
+The sensitivity analysis is adapted to the negative scenario of the final analysis. 
+Thus, the overall Go probability is 3%.
+However, the individual Go probability of Cohort 1 is xx%. 
 
-
-```{r}
-go_decisions_sens  <- getGoDecisions(
-  analyses_list        = analyses_3,
-  cohort_names         = c("p_1"),
-  evidence_levels      = 0.975,
-  boundary_rules       = quote(c(x[1] >= 0.3, TRUE, TRUE, TRUE)))
-
-go_decisions_sens
-```
+... Interpretation ...
