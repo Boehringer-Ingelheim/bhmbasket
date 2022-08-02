@@ -335,7 +335,7 @@ analyses_3
 #### Decision Making
 
 The decision making of Analysis 3 is divided into a final analysis and a sensitivity analysis.
-The final decision rules for Cohort 1 are proposed by [Fisch et al. (2015)](https://link.springer.com/article/10.1177/2168479014533970), using the model *exnex adjusted*.
+The final decision rules for Cohort 1 are proposed by [Fisch et al. (2015)](https://link.springer.com/article/10.1177/2168479014533970), using the model *ExNex adjusted*.
 Further information on how to apply these rules proposed by Fisch et al. are available in the vignette [Getting started](...) of the package bhmbasket.
 The decision rules are based on relevance and significance, as follows:
 
@@ -370,9 +370,9 @@ final_probability_list <- getGoProbabilities(go_decisions_3, nogo_decisions_3)
 scaleRoundList(final_probability_list, round_digits = 2)
 ```
 
-In case of the final analysis, the sets of decision rules lead to an overall Go probability of 98% and individual Go probability of 71% in Cohort 1. 
+In case of the final analysis, the set of decision rules leads to an overall Go probability of 98% and individual Go probability of 71% in Cohort 1. 
 The probabilities of identifying the nugget cohorts are 70% and 69%.
-In the negative scenario, the overall Go probability is 3%.
+The overall Go probability in the negative scenario is 3%.
 
 The sensitivity analysis is adapted to the negative scenario of the final analysis. 
 Thus, the overall Go probability is 3%.
