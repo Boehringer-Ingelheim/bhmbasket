@@ -11,21 +11,21 @@ knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
 
 
 This guide provides an overview of the R package [bhmbasket](https://cran.r-project.org/web/packages/bhmbasket/index.html) on how to use its functions to evaluate the operating characteristics of a basket trial with binary endpoints.
-An example trial will be used to guide through the functions, the design of which is depicted in Figure 1.
+An example trial will be used to guide through the functions.
+The design of the trial is depicted in Figure 1.
 The example trial consists of three cohorts where the third cohort is already observed historical data.
 Cohorts 1 and 2 will be analyzed in a futility analysis using simple Bayesian Go/NoGo decision rules after 10 and 15 subjects have been recruited in Cohorts 1 and 2, respectively.
 Based on the futility analysis, the recruitment will continue until 15 additional subjects are recruited in each cohort.
-The final analysis will be performed with Go/NoGo decision rules according to [Fisch et al. (2015)](https://link.springer.com/article/10.1177/2168479014533970).
+The final analysis will be performed with a Go/NoGo decision making framework as proposed by [Fisch et al. (2015)](https://link.springer.com/article/10.1177/2168479014533970).
 
 
 <center>
 <img src="C:\Users\eblelisa\OneDrive - Boehringer Ingelheim\Pictures\TrialExample.png" width="70%" height="70%"/>  
-Figure 1: Example Trial Design
+Figure 1: Trial design
 </center>
 
 
 ## Overview and Workflow
-
 Figure 2 depicts the main functions and the workflow of the package.
 The first step is to simulate scenarios with `simulateScenarios()`.
 The simulated trial outcomes are analyzed with Bayesian hierarchical models (BHMs) using `performAnalyses()`.
@@ -40,7 +40,6 @@ Figure 2: Workflow of bhmbasket <br>
 
 
 ## Prerequisites
-
 ```{r, message=FALSE, warning=FALSE}
 library(bhmbasket)
 set.seed(677643)
@@ -56,15 +55,14 @@ plan(multisession)
 ```
 
 ## Simulation of Scenarios
-
 The function `simulateScenarios()` is used to simulate data according to scenarios.
 For each scenario, one must provide the number of subjects and the true response rates per cohort.
-Historical data can be included in the simulated trial outcomes.
+Also observed, historical data can be included in the simulated trial outcomes.
 
-This example consists of four scenarios and three cohorts, whereby the third cohort is historical with a fixed number of five responders out of 15 subjects.
+This example consists of four scenarios and three cohorts, whereby the third cohort is historical with an observed number of five responders out of 15 subjects.
 The trial design will be investigated with a positive scenario, two nugget scenarios, and a negative scenario.
-The positive and negative scenarios cover the true highest and lowest response rates that lead to a continuation or stop, respectively, of the development of the drug.
-In the nugget scenarios, only one of the cohorts assumes the positive response rate, whereas the other cohorts assume the negative response rates. 
+The positive and negative scenarios cover the true highest and lowest response rates that lead to a continuation or stop of the development of the drug, respectively.
+In the nugget scenarios, only one of the cohorts assumes the response rate of the positive scenario, whereas the other cohorts assume the response rates of the negative scenario. 
 
 ```{r}
 scenarios_list <- list(
@@ -80,20 +78,14 @@ scenario_list <- simulateScenarios(
 scenario_list
 ```
 
+Note that the argument `n_subjects_list` also takes a vector for the case that each scenario consists of the same number of subjects.
 <!-- The function distinguishes historical data from the data to be simulated by the response rate argument. -->
 <!-- If the vector providing the scenario response rates contains an integer, it will be identified as the number of historical responders.   -->
-
-
 <!-- If the number of subjects is not the same for all scenarios, one has to provide a list of vectors with the number of subjects of each scenario. -->
 
 ### Observed Outcome Data
-Also actual trial outcomes can be analyzed with bhmbasket.
+<!-- Also actual trial outcomes can be analyzed with [bhmbasket](https://cran.r-project.org/web/packages/bhmbasket/index.html). -->
 An observed trial outcome can be specified with the function `createTrial()` as shown below.
-
-<!-- The package provides the possibility to analyse simulated, observed and historical data. -->
-<!-- The function `simulateScenarios()` is used for data to be simulated and historical data as shown above. -->
-<!-- The function `createTrial()` is used for observed data and creates only a single trial outcome. -->
-<!-- In both cases, one has to specify the number of subjects and the response rates or the number of responders and the result will be a list of the class scenario list, that can be further used. -->
 
 ```{r}
 trial_outcome <- createTrial(n_subjects   = c(10, 20, 30, 40),
@@ -104,28 +96,28 @@ The created trial outcome can be processed in the same way as the simulated tria
 
 ## Analyses
 
-The function [`performAnalyses()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/performAnalyses.html) approximates the joint posterior distribution for each trial realization via MCMC sampling and returns the quantiles of the marginal posterior response rates among other model parameters.
-Required arguments are the scenario list created e.g. with `simulateScenarios()`, the name of at least one analysis method and the target rates per cohort.
-Target rates are used to derive default prior parameters and are part of some analysis models.
-For some models do not require target rates, prior parameters can be specified directly with `prior_parameters_list`.
+The function [`performAnalyses()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/performAnalyses.html) approximates the joint posterior distribution for each trial realization via MCMC sampling and returns the quantiles of the marginal posterior response rates and of other model parameters.
+Required arguments are a scenario list created e.g. with `simulateScenarios()`, the name of at least one analysis method and the target rates per cohort.
+Optionally, cohorts can be specified for which differences in marginal response rate distributions should be calculated.
 
 ```{r, warning = FALSE}
 analysis_list <- performAnalyses(
   scenario_list    = scenario_list,
-  method_names     = c("berry", "exnex_adj", "stratified"), 
+  method_names     = c("berry", "exnex_adj", "stratified"),
   target_rates     = c(0.2, 0.35, 0.3),
   calc_differences = c(2, 1))
 
 analysis_list
 ```
 
-Available methods are the BHM proposed by [Berry et al. (2013)](https://journals.sagepub.com/doi/10.1177/1740774513497539)) (*berry*), the BHM proposed by [Neuenschwander et al. (2016)](https://onlinelibrary.wiley.com/doi/10.1002/pst.1730)) (*ExNex*), and a BHM that combines both approaches called exnex adjusted (*exnex_adj*), as well as the two beta-binomial approaches *pooled* and *stratified*.
-The target rates are required for the methods *berry* and *ExNex adjusted* as well as for setting default prior parameters for the analysis models.
+Available methods are the BHM proposed by [Berry et al. (2013)](https://journals.sagepub.com/doi/10.1177/1740774513497539)) (*berry*), the model proposed by [Neuenschwander et al. (2016)](https://onlinelibrary.wiley.com/doi/10.1002/pst.1730)) (*exnex*), and a BHM that combines both approaches called exnex adjusted (*exnex_adj*), as well as two beta-binomial approaches called *pooled* and *stratified*.
+The target rates are required for the methods *berry* and *exnex_adj* as well as for setting default prior parameters for the analysis models.
 One can use [`getPriorParameters()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getPriorParameters.html) and the `setPriorParameters...()` family of functions for a custom choice of prior parameters.
-Further evidence levels can be provided in addition to the default evidence levels.
+In case further evidence levels are required, they can be provided in addition to the default evidence levels with the argument `evidence_levels`.
 Posterior differences of cohorts' response rates can be calculated using the argument `calc_differences`.
-For example, for the difference between Cohort x and y, one uses `calc_differences = c(x, y)`.
+For example, for the difference between cohorts x and y, one uses `calc_differences = c(x, y)`.
 This can be used to compare outcomes of cohorts directly, e.g. when comparing cohorts with monotreatment and cohorts with combination treatment.
+Note that several differences can be specified by providing a matrix.
 
 ### Getting Estimates   
 
@@ -144,25 +136,23 @@ round(estimates$exnex_adj$scenario_3, digits = 2)
 
 Go/NoGo decision rules can be implemented with [`getGoDecisions()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoDecisions.html).
 The function calculates Go decisions for each cohort of a trial outcome based on decision rules.
-The resulting decision list can be used to calculate the cohort-wise and overall Go decision probabilities using the functions [`getGoProbabilities()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoProbabilities.html).
-Optional, adding a NoGo decision list using [`negateGoDecisions()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/negateGoDecisions.html), the function `getGoProbability()` provides additional NoGo and Consider probabilities.
-
-Calling the printing function of the decision list leads automatically to the execution of `getGoProbabilities()` and the output of the Go probabilities.
+The resulting decision list can be used to calculate the cohort-wise and overall decision probabilities using the functions [`getGoProbabilities()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoProbabilities.html) and [`negateGoDecisions()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/negateGoDecisions.html).
 
 ### Implementation of Decision Rules in General
 
-A Bayesian decision rule is generally defined as follows:
+A simple Bayesian decision rule is
 $$P(p_j|\text{data} > p_{Bj}) > \gamma_j,$$
 
-where $p_j|\text{data}$ is the posterior response rate of cohort $j$, and $\gamma_j$ and $p_{Bj}$ are its evidence level and decision boundary, respectively. 
-This rule may be rewritten with the 1-$\gamma$-quantile of the posterior response rate of cohort $j$ as follows:
+where $p_j|\text{data}$ is the posterior response rate of cohort $j$ and $\gamma_j$ and $p_{Bj}$ are its evidence level and decision boundary, respectively. 
+This rule may be rewritten as follows
+$$q_{1-\gamma_j} > p_{Bj},$$
+where $q_{1-\gamma_j}$ is the 1-$\gamma$-quantile of the posterior response rate of cohort $j$.
 
-$$q_{1-\gamma_j} > p_{Bj}$$
-As keeping the MCMC samples or marginal posterior densities of the parameters of interest would require too much memory, only pre-specified quantiles of the MCMC samples are stored when applying `performAnalyses()`.
+As keeping the MCMC samples or marginal posterior densities of the parameters of interest would require too much memory, only pre-specifed quantiles of the MCMC samples are stored when applying [`performAnalyses()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/performAnalyses.html).
 
 #### Example Decision Rule
 
-Three arguments are used to implement such a decision rule with `getGoDecisions()`, namely the cohort names, the evidence levels, and the boundary rules.
+To implement such a decision rule with `getGoDecisions()`, three arguments are used, namely the `cohort_names`, the `evidence_levels`, and the `boundary_rules`.
 
 As an example, the decision rules $P(p_1|\text{data} > 0.1) > 0.5$ and $P(p_2|\text{data} > 0.2) > 0.9$ would be implemented with the arguments of `getGoDecisions()` as follows:
 
@@ -174,7 +164,8 @@ boundary_rules  = quote(c(x[1] > 0.1), x[2] > 0.2)
 
 The first evidence level `0.5` and the first cohort name `p_1` are addressed by `x[1]`.
 Accordingly, the evidence level `0.9` and the second cohort name `p_2` are addressed by `x[2]`.
-Inside the quote for the boundary rule, `x[1]` and `x[2]` can be used in any order, and the rules can be nested, or conditioned, which makes this approach very flexible for implementing different decision rules.
+Inside the quote for the boundary rule, `x[1]` and `x[2]` can be used in any order or repeated as often as required, and the rules can be nested, or conditioned.
+This makes this approach very flexible for implementing many different and potentially comlex decision rules.
 
 
 #### Futility Analysis
@@ -182,14 +173,13 @@ Inside the quote for the boundary rule, `x[1]` and `x[2]` can be used in any ord
 The first decision making in this example is part of the futility analysis.
 The function `getGoDecisions()` creates the Go decisions for the specified cohorts with the rules outlined above:  
 
-Cohort 1: $P(p_1|\text{data} > 0.11) > 0.5$  
-Cohort 2: $P(p_2|\text{data} > 0.22) > 0.5$  
+* Cohort 1: $P(p_1|\text{data} > 0.11) > 0.5$  
+* Cohort 2: $P(p_2|\text{data} > 0.22) > 0.5$  
 
 Note that there must be a decision rule specified for each cohort in the trial, i.e., the vector in the quote must have the same length as the number of cohorts in the trial. 
 In this example, the third cohort should not get a decision.
 Therefore, the argument `boundary_rules` contains the value `TRUE` on the third position.
 To assess the overall futility operating characteristics, the required number of cohort-wise Go decisions for an overall Go is increased to two.
-
 
 ```{r}
 futility_decision_list <- getGoDecisions(
@@ -200,8 +190,16 @@ futility_decision_list <- getGoDecisions(
                                  x[2] > 0.22,
                                  TRUE))),
   overall_min_gos = 2)
+```
 
-futility_decision_list
+The function `getGoProbability()` calculates the cohort-wise Go probabilities based on the previously created decisions list.
+Optionally providing a NoGo decision list, `getGoProbability()` calculates also Consider and NoGo decision probabilities.
+
+```{r}
+futility_go_probabilities <- getGoProbabilities(
+   go_decisions_list = futility_decision_list)
+
+scaleRoundList(futility_go_probabilities, round_digits = 2)
 ```
 
 To compare the performance of different analysis models, it is possible to set up different decision rules for each method to calculate similar decision probabilities for a certain scenario.
@@ -224,30 +222,30 @@ decision_list_adj <- getGoDecisions(
   overall_min_gos = 2)
 
 
+#go_probabilities <- getGoProbabilities(
+#  go_decisions_list = decision_list_adj)
+#
+#scaleRoundList(go_probabilities, round_digits = 2)
+
 decision_list_adj
 ```
-The false Go probabilities of the method *Stratified* are comparatively high with an overall Go of 55%, and 16% in Cohort 1 and 46% in Cohort 2.
-Using the model *ExNex adjusted* leads to a false Go probability of 16% in Cohort 1 and 23% in Cohort 2.
-The false Go probability in Cohort 1, using the model proposed by Berry et al. (2013), is 6 percentage points lower compared to the probability when using the model *ExNex adjusted*.
+In the negative scenario, the false Go probabilities of the method Stratified are comparatively high with an overall Go probability of 55%, and 16% and 46% cohort-wise false go probability in Cohorts 1 and 2, respectively.
+Using the model ExNex adjusted leads to false Go probabilities of 16% in Cohort 1 and 23% in Cohort 2.
+The false Go probability of Cohort 1, using the model proposed by Berry et al. (2013), is 6 percentage points lower compared to the probability when using the model ExNex adjusted.
 
-The difference between the models can be attributed to the different amounts of borrowing of information between the cohorts.
-In this example, the more borrowing, the smaller the false Go probability in the negative scenario.
-The model proposed by Berry et al. (2013) leads to the highest amount of borrowing and therefore, to the best outcome.
-In general, using *ExNex adjusted* results in less borrowing of information compared to *berry*.
-Using the method *Stratified* yields the highest false Go probabilities, which can be attributed to the absence of borrowing.
+The differences between the models can be attributed to the different amounts of borrowing of information between the cohorts.
+The more borrowing, the smaller the false Go probability in the negative scenario.
+Using the method Stratified leads to the highest false Go probabilities, due to the absence of borrowing.
+In this scenario, the model proposed by Berry et al. (2013) leads to the highest amount of borrowing and therefore, to the best outcome.
 
 ### Continue Recruitment
 
 After an analysis as above, one can continue the recruitment and add more subjects to the cohorts.
-The function [`continueRecruitment()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/continueRecruitment.html) is used to update the scenario list and to add a specified number of subjects to the current number of subjects of the simulated cohorts.
+The function [`continueRecruitment()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/continueRecruitment.html) is used to add a specified number of subjects to the current number of subjects of the simulated cohorts.
 `continueRecruitment()` only allows to add subjects according to one method.
-In this case, *ExNex adjusted* will be used to continue the recruitment.
-
-```{r, include = FALSE}
-set.seed(677643)
-```
-
+In this case, ExNex adjusted will be used to continue the recruitment.
 ```{r, message=FALSE, warning=FALSE}
+set.seed(677643)
 final_scenario_list <- continueRecruitment(
   n_subjects_add_list = c(15, 15),
   decisions_list      = futility_decision_list,
@@ -260,44 +258,40 @@ final_analysis_list <- performAnalyses(
   target_rates  = c(0.2, 0.35, 0.3))
 ```
 Only the simulated trial outcomes with an overall Go decision will get additional subjects in the cohorts with cohort-wise Go decisions and only those trial outcomes will be analysed again in `performAnalyses()`.
-Due to the different numbers of subjects in the trials, the decision rules can be assessed regarding to the average number of subjects across the different scenarios.
-The average number of subjects can be calculated using `getAverageNSubjects()`.
 
+Due to the different numbers of subjects in the trials, the decision rules can be assessed with regard to the average number of subjects across the different scenarios using `getAverageNSubjects()`.
 ```{r}
-getAverageNSubjects(final_scenario_list)
+getAverageNSubjects(
+  scenario_list = final_scenario_list
+)
 ```
 
 ### Final Decision Making
 
 In this example, decision making as proposed by [Fisch et al. (2015)](https://link.springer.com/article/10.1177/2168479014533970) is implemented for the final analysis.
-This approach leads to a three-way decision making with Go, Consider, and NoGo outcomes based on decision rules labeled significance and relevance.
-Each cohort will have a decision boundary for relevance and for significance.
-To receive a Go decision, relevance and significance must be true.
-If both criteria are false, the decision will be a NoGo.
-If either relevance or significance is true, it will be a Consider.
+This approach leads to a three-way decision making framework with Go, Consider, and NoGo outcomes.
+For each cohort, two decision rules labeled significance and relevance are specified.
+For a Go decision for a cohort, both the relevance and the significance rules of that cohort must be fulfilled.
+If both rules are false, the decision will be a NoGo, and if either the relevance or the significance rule is true (and not both), the decision for that Cohort is Consider.
 
 #### Implementation of Decision Rules According to Fisch et al. (2015)
 
-Decision rules following the framework proposed by Fisch et al. (2015) are implemented in a similar way as presented above.
+Decision rules following the framework proposed by Fisch et al. (2015) are implemented in a similar way as described above.
 <!-- To get a Consider decision and its probability, it is not enough to just negate the Go decision list, using `negateGoDecisions(decision_list)`. -->
 <!-- It is necessary to set up another set of decision rules and negate them afterwards. -->
-For each cohort, the Go and NoGo decision rules can be represented as a conjunction of relevance and significance. The set up of these rules is depict below.
+For each cohort, the Go and NoGo decision rules are a combination of the relevance ($R$)  and significance ($S$) rules of that cohort:
 
-Go: $R ∧ S$   
-NoGo: $-R ∧ -S  = -(R ∨ S)$  
-else Consider
+* Go: $R ∧ S$   
+* NoGo: $-R ∧ -S  = -(R ∨ S)$  
+* else Consider
 
-To implement the NoGo rule, $-(R ∨ S)$, the function `negateGoDecisions()` can be used in conjunction with `getGoDecisions()`.
-As an example, decision rules applying relevance and significance can be implemented as follows:
-
-Relevance: $P(p_1|\text{data} > 0.8) > 0.5$  
-Significance: $P(p_1|\text{data} > 0.4) > 0.95$
-
-
+To implement the NoGo rule $-(R ∨ S)$, the function `negateGoDecisions()` can be used in conjunction with `getGoDecisions()`.
+As an example, decision rules applying the relevance rule $P(p_1|\text{data} > 0.8) > 0.5$ and the significance rule $P(p_1|\text{data} > 0.4) > 0.95$ can be implemented as follows:
 ```{r, eval=FALSE}
 cohort_names    = c('p_1', 'p_2',
                     'p_1', 'p_2')
-evidence_levels = c(0.5, 0.5,
+
+evidence_levels = c(0.5,  0.5,
                     0.95, 0.95)
 
 # argument for first call of getGoDecisions()
@@ -309,16 +303,11 @@ nogo_boundary_rules = quote(c(x[1] > 0.8 | x[3] > 0.4,
                               x[2] > 0.8 | x[4] > 0.4)
 ```
 
-#### Final Decision Example Trial
-
-<!-- The decision making proposed by Fisch et al. (2015) implies that another set of decision rules is required as above. -->
-<!-- The entire implementation of this decision rules is implemented as follows: -->
-
+#### Final Analysis of the Example Trial
 For the final analysis of this example, the decision rules for Cohort 1 for relevance and significance are $P(p_1|\text{data} > 0.147) > 0.5 $ and $P(p_1|\text{data} > 0.05) > 0.8$, respectively.
-In Cohort 2, the relevance criteria $P(p_2|\text{data} > 0.28) > 0.5$ ∧ $P(p_2-p_1|\text{data} > 0) > 0.5 $ is a combination of boundary rules for the point estimate and the difference between Cohort 2 and 1.
-The rules for significance is implemented with $P(p_2|\text{data} > 0.15) > 0.8$.
-The third cohort should not get a decision as well as in the futility analysis and therefore, `boundary_rules` contains the value `TRUE` on the third position.
-
+For Cohort 2, the relevance criterion $P(p_2|\text{data} > 0.28) > 0.5$ ∧ $P(p_2-p_1|\text{data} > 0) > 0.5 $ is a combination of rules for the point estimate and for the difference between Cohort 2 and Cohort 1.
+The rule for significance for Cohohrt 2 is $P(p_2|\text{data} > 0.15) > 0.8$.
+The third cohort should not get a decision as in the futility analysis.
 
 ```{r}
 final_decision_list <- getGoDecisions(
@@ -352,8 +341,7 @@ final_probability_list <- getGoProbabilities(
 
 scaleRoundList(final_probability_list, round_digits = 2)
 ```
-
-It is always a trade-off sample size and required go probabilities.
-In this case, the sets of decision rules lead to an overall Go probability of 88% and individual Go probabilities of 68% in Cohort 1 and 70% in Cohort 2. 
-The probabilities of identifying the nugget cohorts are 60% and 65%.
-In the negative scenario, the overall Go probability is 11%.
+In this case, the specified decision rules lead to an overall Go probability of 88% and individual Go probabilities of 68% in Cohort 1 and 70% in Cohort 2 in the positive scenario. 
+The probabilities of identifying the nugget cohorts are 60% and 65%, respectively.
+In the negative scenario, the overall false Go probability is 11%.
+Note that there is a trade-off between targeted decision probabilities and sample size.
