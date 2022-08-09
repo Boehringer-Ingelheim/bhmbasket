@@ -1,8 +1,13 @@
 ---
 title: "bhmbasket - Getting Started"
 author: "Lisamaria Eble"
-date: "22-07-2022"
-output: html_document
+date: '`r format(Sys.time(), "%B %d, %Y")`'
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{bhmbasket - Getting Started}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+
 ---
 
 ```{r setup, include=FALSE}
@@ -100,12 +105,31 @@ The function [`performAnalyses()`](https://search.r-project.org/CRAN/refmans/bhm
 Required arguments are a scenario list created e.g. with `simulateScenarios()`, the name of at least one analysis method and the target rates per cohort.
 Optionally, cohorts can be specified for which differences in marginal response rate distributions should be calculated.
 
-```{r, warning = FALSE}
+```{r, eval = FALSE}
 analysis_list <- performAnalyses(
   scenario_list    = scenario_list,
   method_names     = c("berry", "exnex_adj", "stratified"),
   target_rates     = c(0.2, 0.35, 0.3),
   calc_differences = c(2, 1))
+
+analysis_list
+```
+
+```{r, echo=FALSE}
+if (file.exists("analyses_lists/gettingStarted_analysis_1.rds")) {
+  
+  analysis_list <- readRDS("analyses_lists/gettingStarted_analysis_1.rds")
+  
+} else {
+  
+  analysis_list <- performAnalyses(
+  scenario_list    = scenario_list,
+  method_names     = c("berry", "exnex_adj", "stratified"),
+  target_rates     = c(0.2, 0.35, 0.3),
+  calc_differences = c(2, 1))
+  
+  saveRDS(analysis_list, "analyses_lists/gettingStarted_analysis_1.rds")
+}
 
 analysis_list
 ```
@@ -250,13 +274,39 @@ final_scenario_list <- continueRecruitment(
   n_subjects_add_list = c(15, 15),
   decisions_list      = futility_decision_list,
   method_name         = "exnex_adj")
- 
-final_analysis_list <- performAnalyses(
-  scenario_list = final_scenario_list, 
-  method_names  = "exnex_adj",
-  calc_differences = c(2, 1),
-  target_rates  = c(0.2, 0.35, 0.3))
+
+final_scenario_list
 ```
+
+```{r, eval = FALSE}
+final_analysis_list <- performAnalyses(
+  scenario_list    = final_scenario_list, 
+  method_names     = "exnex_adj",
+  calc_differences = c(2, 1),
+  target_rates     = c(0.2, 0.35, 0.3))
+
+final_analysis_list
+```
+
+```{r, echo=FALSE}
+if (file.exists("analyses_lists/gettingStarted_analysis_2.rds")) {
+  
+  final_analysis_list <- readRDS("analyses_lists/gettingStarted_analysis_2.rds")
+  
+} else {
+  
+  final_analysis_list <- performAnalyses(
+  scenario_list    = final_scenario_list, 
+  method_names     = "exnex_adj",
+  calc_differences = c(2, 1),
+  target_rates     = c(0.2, 0.35, 0.3))
+  
+  saveRDS(final_analysis_list, "analyses_lists/gettingStarted_analysis_2.rds")
+}
+
+final_analysis_list
+```
+
 Only the simulated trial outcomes with an overall Go decision will get additional subjects in the cohorts with cohort-wise Go decisions and only those trial outcomes will be analysed again in `performAnalyses()`.
 
 Due to the different numbers of subjects in the trials, the decision rules can be assessed with regard to the average number of subjects across the different scenarios using `getAverageNSubjects()`.
