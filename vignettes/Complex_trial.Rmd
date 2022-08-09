@@ -1,8 +1,73 @@
 ---
 title: "Untitled"
 author: "Lisamaria Eble"
-date: "25-07-2022"
-output: html_document
+date: '`r format(Sys.time(), "%B %d, %Y")`'
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Complexe Trial Design}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+references:
+  - id: exnex2016
+    title: Robust exchangeability designs for early phase clinical trials with multiple strata
+    author: 
+      - family: Neuenschwander
+        given: Beat
+      - family: Wandel
+        given: Simon
+      - family: Roychoudhury
+        given: Satrajit
+      - family: Bailey
+        given: Stuart
+    container-title: Pharmaceutical statistics
+    volume: 15
+    DOI: 10.1002/pst.1730
+    issue: 2
+    page: 123-134
+    type: article-journal
+    issued:
+      year: 2016
+  - id: berry2013
+    title: Bayesian hierarchical modeling of patient subpopulations: efficient designs of phase II oncology clinical trials
+    author:
+      - family: Berry
+        given: Scott M.
+      - family: Broglio
+        given: Kristine R.
+      - family: Groshen
+        given: Susan
+      - family: Berry
+        given: Donald A
+    container-title: Clinical Trials
+    volume: 10
+    DOI: 10.1177/1740774513497539
+    issue: 5
+    page: 720-734
+    type: article-journal
+    issued:
+      year: 2013
+  - id: fisch2015
+    title: Bayesian design of proof-of-concept trials
+    author:
+      - family: Fisch
+        given: Roland
+      - family: Jones
+        given: Ieuan
+      - family: Jones
+        given: Julie
+      - family: Kerman
+        given: Jouni
+      - family: Rosenkranz
+        given: Gerd K.
+      - family: Schmidli
+        given: Heinz
+    container-title: Therapeutic Innovation & Regulatory Science
+    volume: 49
+    DOI: 10.1177/2168479014533970
+    page: 155-162
+    type:
+    issued:
+      year: 2015
 ---
 
 ```{r setup, include=FALSE}
@@ -83,7 +148,8 @@ The first analysis will be performed after Cohort 1 has 12 subjects recruited.
 The function `performAnalyses()` analyses all cohorts (except Cohort 4) with 10 000 MCMC iterations.
 In this case, the model *ExNex adjusted* is used, a combination of the Bayesian hierarchical models (BHM) proposed by [Berry et al. (2013)](https://journals.sagepub.com/doi/10.1177/1740774513497539) and *ExNex*, the BHM proposed by [Neuenschwander et al. (2016)](https://onlinelibrary.wiley.com/doi/10.1002/pst.1730)).
 
-```{r, message=FALSE, warning=FALSE}
+
+```{r, eval=FALSE}
 analyses_futility_1 <- performAnalyses(
   scenario_list     = scenarios_futility_1,
   method_names      = "exnex_adj",
@@ -91,6 +157,25 @@ analyses_futility_1 <- performAnalyses(
 
 analyses_futility_1
 ```
+
+```{r, echo=FALSE}
+if (file.exists("analyses_lists/complex_analysis_1.rds")) {
+  
+  analyses_futility_1 <- readRDS("analyses_lists/complex_analysis_1.rds")
+  
+} else {
+  
+  analyses_futility_1 <- performAnalyses(
+  scenario_list     = scenarios_futility_1,
+  method_names      = "exnex_adj",
+  target_rates      = orr_target_rates[-4])
+  
+  saveRDS(analyses_futility_1, "analyses_lists/complex_analysis_1.rds")
+}
+
+analyses_futility_1
+```
+
 
 One can get point estimates and credible intervals per cohorts, as well as estimated biases and mean squared errors of the point estimators using the function `getEstimates(analyses_futility_1)`.
 
@@ -232,7 +317,7 @@ scenarios_2
 
 In the primary analysis II, all cohorts will be analysed with the model *ExNex adjusted* with a subsequent decision making.
 
-```{r, message=FALSE, warning=FALSE}
+```{r, eval=FALSE}
 analyses_2 <- performAnalyses(
   scenario_list     = scenarios_2,
   method_names      = "exnex_adj",
@@ -240,6 +325,24 @@ analyses_2 <- performAnalyses(
   target_rates      = orr_target_rates)
 
 analyses_2
+```
+
+```{r, echo=FALSE}
+if (file.exists("analyses_lists/complex_analysis_2.rds")) {
+  
+  analyses_2 <- readRDS("analyses_lists/complex_analysis_2.rds")
+  
+} else {
+  
+  analyses_2 <- performAnalyses(
+  scenario_list     = scenarios_2,
+  method_names      = "exnex_adj",
+  evidence_levels   = 0.75,
+  target_rates      = orr_target_rates)
+  
+  saveRDS(analyses_2, "analyses_lists/complex_analysis_2.rds")
+}
+
 ```
 
 #### Decision Making
@@ -323,18 +426,38 @@ getAverageNSubjects(scenarios_3)
 
 The primary analysis III is only based on Cohort 1.
 
-```{r, message=FALSE, warning=FALSE}
+
+```{r, eval=FALSE}
 analyses_3 <- performAnalyses(
   scenario_list         = scenarios_3,
-  method_names          = c("exnex_adj", "stratified"),
+  method_names          = c("exnex_adj"),
   target_rates          = orr_target_rates)
 
 analyses_3
 ```
 
+```{r, echo=FALSE}
+if (file.exists("analyses_lists/complex_analysis_3.rds")) {
+  
+  analyses_3 <- readRDS("analyses_lists/complex_analysis_3.rds")
+  
+} else {
+  
+  analyses_3 <- performAnalyses(
+  scenario_list         = scenarios_3,
+  method_names          = c("exnex_adj"),
+  target_rates          = orr_target_rates)
+  
+  saveRDS(analyses_3, "analyses_lists/complex_analysis_3.rds")
+}
+
+analyses_3
+```
+
+
+
 #### Decision Making
 
-The decision making of Analysis 3 is divided into a final analysis and a sensitivity analysis.
 The final decision rules for Cohort 1 are proposed by [Fisch et al. (2015)](https://link.springer.com/article/10.1177/2168479014533970), using the model *ExNex adjusted*.
 Further information on how to apply these rules proposed by Fisch et al. are available in the vignette [Getting started](...) of the package bhmbasket.
 The decision rules are based on relevance and significance, as follows:
@@ -342,40 +465,37 @@ The decision rules are based on relevance and significance, as follows:
 Relevance:    $P(p_1|\text{data} > 0.3) > 0.5$  
 Significance: $P(p_1|\text{data} > 0.15) > 0.95$
 
-The second part of the analysis is the sensitivity analyses, which is performed to make sure, which effect should be expected in the study.
-No borrowing is required between the cohorts, thus the model *stratified* is used.
-The decision rules for the sensitivity analysis looks as follows:
-
-Go:   $P(p_1|\text{data} > 0.25) > 0.9$  
-NoGo: $P(p_1|\text{data} > 0.15) > 0.9$ 
-
 ```{r}
 go_decisions_3  <- getGoDecisions(
   analyses_list   = analyses_3,
-  cohort_names    = c("p_1", "p_1", "p_1"),
-  evidence_levels = c(0.5, 0.9, 0.9),
-  boundary_rules  = list(quote(c(x[1] >= 0.305 & x[2] > 0.15, TRUE, TRUE, TRUE)),  # final analysis: exnex
-                         quote(c(x[3] >= 0.25,                TRUE, TRUE, TRUE)))) # sensitivity analysis: stratified
+  cohort_names    = c("p_1", "p_1"),
+  evidence_levels = c(0.5, 0.9),
+  boundary_rules  = quote(c(x[1] >= 0.305 & x[2] > 0.15, TRUE, TRUE, TRUE)))
 
 nogo_decisions_3  <- negateGoDecisions(
   getGoDecisions(
     analyses_list   = analyses_3,
-    cohort_names    = c("p_1", "p_1", "p_1"),
-    evidence_levels = c(0.5, 0.9, 0.9),
-    boundary_rules  = list(quote(c(x[1] >= 0.305 | x[2] > 0.15, TRUE, TRUE, TRUE)),   # final analysis: exnex
-                           quote(c(x[3] >= 0.15,                TRUE, TRUE, TRUE))))) # sensitivity analysis: stratified
+    cohort_names    = c("p_1", "p_1"),
+    evidence_levels = c(0.5, 0.9),
+    boundary_rules  = quote(c(x[1] >= 0.305 | x[2] > 0.15, TRUE, TRUE, TRUE))))
 
 final_probability_list <- getGoProbabilities(go_decisions_3, nogo_decisions_3)
+```
 
-scaleRoundList(final_probability_list, round_digits = 2)
+In this case, the other cohorts will not be analysed again. Therefore, the function `getGoProbabilities()` uses the previous calculated Go and NoGo decisions for Cohort 2, 3, and 4. To include the propability for a Consider decision as well, the final decisions list must be manipulated. The Go, NoGo and Consider decisions of the second decision making will be combined with the final decisions for Cohort 1.
+
+```{r}
+final_decisions <- final_probability_list
+
+ for(s in seq_along(orr_scenario_list)) {
+  final_decisions[[s]][[i]] <- 
+    cbind(final_probability_list[[s]][[i]][, c(1, 2)],
+         decision_2[[s]][[i]][, c(3, 4, 5)])
+}
+
+scaleRoundList(final_decisions, round_digits = 2)
 ```
 
 In case of the final analysis, the set of decision rules leads to an overall Go probability of 98% and individual Go probability of 71% in Cohort 1. 
 The probabilities of identifying the nugget cohorts are 70% and 69%.
 The overall Go probability in the negative scenario is 3%.
-
-The sensitivity analysis is adapted to the negative scenario of the final analysis. 
-Thus, the overall Go probability is 3%.
-However, the individual Go probability of Cohort 1 is xx%. 
-
-... Interpretation ...
