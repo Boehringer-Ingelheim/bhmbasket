@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "Complexe Trial Design"
 author: "Lisamaria Eble"
 date: '`r format(Sys.time(), "%B %d, %Y")`'
 output: rmarkdown::html_vignette
@@ -28,7 +28,7 @@ references:
     issued:
       year: 2016
   - id: berry2013
-    title: Bayesian hierarchical modeling of patient subpopulations: efficient designs of phase II oncology clinical trials
+    title: "Bayesian hierarchical modeling of patient subpopulations: efficient designs of phase II oncology clinical trials"
     author:
       - family: Berry
         given: Scott M.
@@ -70,8 +70,13 @@ references:
       year: 2015
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  eval     = TRUE,  # en- / disables R code evaluation globally
+  cache    = FALSE,  # en- / disables R code caching globally
+  collapse = TRUE,
+  comment  = "#>"
+)
 ```
 
 This guide describes how to implement a more complex trial design with two special features, the delayed start of a fourth cohort depending on the outcome of the first cohort and a SuperGo decision influencing the further recruitment of the first cohort.  
@@ -79,7 +84,6 @@ This guide describes how to implement a more complex trial design with two speci
 Further information about the functions of the package [bhmbasket](https://cran.r-project.org/web/packages/bhmbasket/index.html) and how to set up an instructive trial example, can be found in the vignette [Getting started](...).  
 
 ## Trial Design
-
 The example trial consists of four cohorts with a planned total of 70, 25, 25, and 25 subjects.
 The first cohort will be analysed in a futility analysis after 12 subjects.
 The second and third cohorts are assumed to have all 25 subjects recruited at that time.
@@ -92,13 +96,12 @@ Cohort 1 is then fully recruited and will have a final analysis.
 The trial design of this example study is depicted on Figure 1.
 
 <center>
-<img src="C:\Users\eblelisa\OneDrive - Boehringer Ingelheim\Documents\bhmbasketVignette\ComplexExample.png" width="85%" height="85%"/>  
-Figure 1: Example Trial Design
+<img src="pictures/ComplexExample.png" width="85%" height="85%"/>  
+Figure 1: Trial design
 </center>
 
 
 ## Prerequisites
-
 ```{r, message=FALSE, warning=FALSE}
 library(bhmbasket)
 set.seed(1705)
@@ -114,7 +117,6 @@ plan(multisession)
 ```
 
 ## First Simulations
-
 The setup of the trial design starts with the simulation of scenario data with the function `simulateScenarios()`.
 In this example there are four cohorts included, whereby the fourth one will start later and is filtered by taking out the fourth entry of the number of subjects and target rates.
 The cohorts will be simulated in four different scenarios, a positive scenario, a SuperGo scenario, a nugget scenario, and a negative scenario. 
@@ -143,10 +145,9 @@ scenarios_futility_1
 ```
 
 ### Analysis I
-
 The first analysis will be performed after Cohort 1 has 12 subjects recruited.
 The function `performAnalyses()` analyses all cohorts (except Cohort 4) with 10 000 MCMC iterations.
-In this case, the model *ExNex adjusted* is used, a combination of the Bayesian hierarchical models (BHM) proposed by [Berry et al. (2013)](https://journals.sagepub.com/doi/10.1177/1740774513497539) and *ExNex*, the BHM proposed by [Neuenschwander et al. (2016)](https://onlinelibrary.wiley.com/doi/10.1002/pst.1730)).
+In this case, the model *ExNex adjusted* is used, a combination of the Bayesian hierarchical models (BHM) proposed by @berry2013 and *ExNex*, the BHM proposed by @exnex2016.
 
 
 ```{r, eval=FALSE}
@@ -161,7 +162,8 @@ analyses_futility_1
 ```{r, echo=FALSE}
 if (file.exists("analyses_lists/complex_analysis_1.rds")) {
   
-  analyses_futility_1 <- readRDS("analyses_lists/complex_analysis_1.rds")
+    #analyses_futility_1 <- readRDS("analyses_lists/complex_analysis_1.rds")
+    analyses_futility_1 <- readRDS("analyses_lists/1complex_analysis_1.rds")
   
 } else {
   
@@ -170,17 +172,62 @@ if (file.exists("analyses_lists/complex_analysis_1.rds")) {
   method_names      = "exnex_adj",
   target_rates      = orr_target_rates[-4])
   
-  saveRDS(analyses_futility_1, "analyses_lists/complex_analysis_1.rds")
+  saveRDS(analyses_futility_1, "analyses_lists/1complex_analysis_1.rds")
 }
 
 analyses_futility_1
+```
+
+```{r, include = FALSE}
+## check for unnecessary data
+  
+  ## remove unnecessary data
+  
+  ## quantiles_list
+  # analyses_futility_1$scenario_1$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
+  #   x[-c(2:4, 6), -c(1:3)]
+  # })
+  # analyses_futility_1$scenario_2$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
+  #   x[-c(2:4, 6), -c(1:3)]
+  # })
+  # analyses_futility_1$scenario_3$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
+  #   x[-c(2:4, 6), -c(1:3)]
+  # })
+  # analyses_futility_1$scenario_4$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
+  #   x[-c(2:4, 6), -c(1:3)]
+  # })
+  # 
+  
+  ##subjects, responders, post_quantiles and prior_parameters
+  # analyses_futility_1$scenario_1$scenario_data$n_subjects <- NULL
+  # analyses_futility_1$scenario_2$scenario_data$n_subjects <- NULL
+  # analyses_futility_1$scenario_3$scenario_data$n_subjects <- NULL
+  # analyses_futility_1$scenario_4$scenario_data$n_subjects <- NULL
+  
+  # analyses_futility_1$scenario_1$scenario_data$n_responders <- NULL
+  # analyses_futility_1$scenario_2$scenario_data$n_responders <- NULL
+  # analyses_futility_1$scenario_3$scenario_data$n_responders <- NULL
+  # analyses_futility_1$scenario_4$scenario_data$n_responders <- NULL
+  
+  analyses_futility_1$scenario_1$scenario_data$previous_analyses$post_quantiles <- NULL
+  analyses_futility_1$scenario_2$scenario_data$previous_analyses$post_quantiles <- NULL
+  analyses_futility_1$scenario_3$scenario_data$previous_analyses$post_quantiles <- NULL
+  analyses_futility_1$scenario_4$scenario_data$previous_analyses$post_quantiles <- NULL
+  
+  #analyses_futility_1$scenario_1$analysis_parameters$prior_parameters_list <- NULL
+  #analyses_futility_1$scenario_2$analysis_parameters$prior_parameters_list <- NULL
+  #analyses_futility_1$scenario_3$analysis_parameters$prior_parameters_list <- NULL
+  #analyses_futility_1$scenario_4$analysis_parameters$prior_parameters_list <- NULL
+
+  # save modified analysis list  
+  saveRDS(analyses_futility_1, "analyses_lists/complex_analysis_1.rds", compress = "xz")
+
 ```
 
 
 One can get point estimates and credible intervals per cohorts, as well as estimated biases and mean squared errors of the point estimators using the function `getEstimates(analyses_futility_1)`.
 
 #### Decision Making
-
 The created analyses list will be used to make Go/NoGo decisions as part of the futility analysis.
 In this case, decisions for Cohort 2 and 3 are not of interest and therefore, the argument `boundary_rules` obtains `TRUE` at the second and third position.
 The decision rule for Cohort 1 is implemented as follows:
@@ -198,7 +245,6 @@ go_decisions_futility_1
 ```
 
 ##### SuperGo
-
 After the first Go/NoGo decision making, an additional SuperGo decision making will be performed, implementing different decision boundaries.
 In general, the SuperGo outcome can be used for a potential accelerated approval or to skip directly to the next Phase.
 In this case, Cohort 1 will have the next Phase directly after reaching a SuperGo in this futility analysis without a second analysis.
@@ -227,7 +273,6 @@ all(
 ```
 
 ### Add new Cohort
-
 After Cohort 1 passed the futility analysis, Cohort 4 will be included.
 Therefore, the decision list must be manipulated.
 This includes adding scenario data of another cohort as well as decisions, which are necessary for the subsequent continuation of recruitment. 
@@ -294,7 +339,6 @@ rm(s)
 ```
 
 ### Continue Recruitment
-
 The recruitment can be continued, once the futility analysis is performed and the decision list is adapted. 
 Cohort 1 will recruit additional 13 subjects and Cohort 4 will recruit 25 subjects.
 In both cases, only the trial outcomes that reached a Go in the previous futility analysis will recruit additional subjects and will be analysed afterwards.
@@ -314,7 +358,6 @@ scenarios_2
 ```
 
 ### Analysis II
-
 In the primary analysis II, all cohorts will be analysed with the model *ExNex adjusted* with a subsequent decision making.
 
 ```{r, eval=FALSE}
@@ -330,7 +373,8 @@ analyses_2
 ```{r, echo=FALSE}
 if (file.exists("analyses_lists/complex_analysis_2.rds")) {
   
-  analyses_2 <- readRDS("analyses_lists/complex_analysis_2.rds")
+  #analyses_2 <- readRDS("analyses_lists/complex_analysis_2.rds")
+  analyses_2 <- readRDS("analyses_lists/2complex_analysis_2.rds")
   
 } else {
   
@@ -340,13 +384,29 @@ if (file.exists("analyses_lists/complex_analysis_2.rds")) {
   evidence_levels   = 0.75,
   target_rates      = orr_target_rates)
   
-  saveRDS(analyses_2, "analyses_lists/complex_analysis_2.rds")
+  saveRDS(analyses_2, "analyses_lists/2complex_analysis_2.rds")
 }
+
+analyses_2
 
 ```
 
-#### Decision Making
+```{r, include = FALSE}
+## check for unnecessary data
+if (!is.null(analyses_2$scenario_1$scenario_data$previous_analyses$post_quantiles)) {
+  
+  ## remove unnecessary data
+  analyses_2$scenario_1$scenario_data$previous_analyses$post_quantiles <- NULL
+  analyses_2$scenario_2$scenario_data$previous_analyses$post_quantiles <- NULL
+  analyses_2$scenario_3$scenario_data$previous_analyses$post_quantiles <- NULL
+  analyses_2$scenario_4$scenario_data$previous_analyses$post_quantiles <- NULL
 
+  # save modified analysis list 
+  saveRDS(analyses_2, "analyses_lists/complex_analysis_2.rds", compress = "xz")
+}
+```
+
+#### Decision Making
 The second decision making is part of analysis II.
 The decision is based on all 4 cohorts applying different decision boundaries.
 It is the final decision making for Cohort 2, 3, and 4, and therefore, it is a three-way decision making with Go, Consider, and NoGo outcomes for these cohorts.
@@ -377,7 +437,6 @@ scaleRoundList(decision_2, round_digits = 2)
 ```
 
 ## Second Simulations
-
 In the next Phase, Cohort 1 will recruit additional 45 subjects.
 The precondition for this recruitment is a SuperGo in the futility analysis or a Go in analysis II.
 Due to this precondition, the decision list must be modified again:
@@ -419,13 +478,13 @@ scenarios_3
 If one is interested in the mean number of subjects per scenario, one can get an overview with function `getAverageNSubjects()`.
 ```{r}
 ## mean number of subjects per scenario in Phase 2
-getAverageNSubjects(scenarios_3)
+getAverageNSubjects(
+  scenario_list = scenarios_3
+)
 ```
 
 ### Analysis III
-
 The primary analysis III is only based on Cohort 1.
-
 
 ```{r, eval=FALSE}
 analyses_3 <- performAnalyses(
@@ -439,7 +498,8 @@ analyses_3
 ```{r, echo=FALSE}
 if (file.exists("analyses_lists/complex_analysis_3.rds")) {
   
-  analyses_3 <- readRDS("analyses_lists/complex_analysis_3.rds")
+  #analyses_3 <- readRDS("analyses_lists/complex_analysis_3.rds")
+  analyses_3 <- readRDS("analyses_lists/3complex_analysis_3.rds")
   
 } else {
   
@@ -448,18 +508,57 @@ if (file.exists("analyses_lists/complex_analysis_3.rds")) {
   method_names          = c("exnex_adj"),
   target_rates          = orr_target_rates)
   
-  saveRDS(analyses_3, "analyses_lists/complex_analysis_3.rds")
+  saveRDS(analyses_3, "analyses_lists/3complex_analysis_3.rds")
 }
 
 analyses_3
 ```
 
+```{r, include = FALSE}
+## check for unnecessary data
+if (!is.null(analyses_3$scenario_1$scenario_data$previous_analyses$post_quantiles)) {
+  
+  ## remove unnecessary data
+  
+  ## quantiles_list
+  # analyses_3$scenario_1$quantiles_list$exnex_adj <-   lapply(analyses_3$scenario_1$quantiles_list$exnex_adj, function   (x) {
+  #   x[-c(2, 4, 6), -c(1:4)]
+  # })
+  # analyses_3$scenario_2$quantiles_list$exnex_adj <-   lapply(analyses_3$scenario_1$quantiles_list$exnex_adj, function   (x) {
+  #   x[-c(2, 4, 6), -c(1:4)]
+  # })
+  # analyses_3$scenario_3$quantiles_list$exnex_adj <-   lapply(analyses_3$scenario_1$quantiles_list$exnex_adj, function   (x) {
+  #   x[-c(2, 4, 6), -c(1:4)]
+  # })
+  # analyses_3$scenario_4$quantiles_list$exnex_adj <-   lapply(analyses_3$scenario_1$quantiles_list$exnex_adj, function   (x) {
+  #   x[-c(2, 4, 6), -c(1:4)]
+  # })
+  
+  ## subjects, responders, post_quantiles and prior_parameters
+  analyses_3$scenario_1$scenario_data$n_subjects <- NULL
+  analyses_3$scenario_2$scenario_data$n_subjects <- NULL
+  analyses_3$scenario_3$scenario_data$n_subjects <- NULL
+  analyses_3$scenario_4$scenario_data$n_subjects <- NULL
+  
+  analyses_3$scenario_1$scenario_data$n_responders <- NULL
+  analyses_3$scenario_2$scenario_data$n_responders <- NULL
+  analyses_3$scenario_3$scenario_data$n_responders <- NULL
+  analyses_3$scenario_4$scenario_data$n_responders <- NULL
+  
+  analyses_3$scenario_1$scenario_data$previous_analyses$post_quantiles <- NULL
+  analyses_3$scenario_2$scenario_data$previous_analyses$post_quantiles <- NULL
+  analyses_3$scenario_3$scenario_data$previous_analyses$post_quantiles <- NULL
+  analyses_3$scenario_4$scenario_data$previous_analyses$post_quantiles <- NULL
+  
+  # save modified analysis list  
+  saveRDS(analyses_3, "analyses_lists/complex_analysis_3.rds", compress = "xz")
+}
+```
 
 
 #### Decision Making
-
-The final decision rules for Cohort 1 are proposed by [Fisch et al. (2015)](https://link.springer.com/article/10.1177/2168479014533970), using the model *ExNex adjusted*.
-Further information on how to apply these rules proposed by Fisch et al. are available in the vignette [Getting started](...) of the package bhmbasket.
+The final decision rules for Cohort 1 are proposed by @fisch2015, using the model *ExNex adjusted*.
+Further information on how to apply these rules proposed by @fisch2015 are available in the vignette [Getting started](...) of the package bhmbasket.
 The decision rules are based on relevance and significance, as follows:
 
 Relevance:    $P(p_1|\text{data} > 0.3) > 0.5$  
@@ -482,20 +581,22 @@ nogo_decisions_3  <- negateGoDecisions(
 final_probability_list <- getGoProbabilities(go_decisions_3, nogo_decisions_3)
 ```
 
-In this case, the other cohorts will not be analysed again. Therefore, the function `getGoProbabilities()` uses the previous calculated Go and NoGo decisions for Cohort 2, 3, and 4. To include the propability for a Consider decision as well, the final decisions list must be manipulated. The Go, NoGo and Consider decisions of the second decision making will be combined with the final decisions for Cohort 1.
+In this case, the other cohorts will not be analysed again. Therefore, the function `getGoProbabilities()` uses the previous calculated Go and NoGo decisions for Cohort 2, 3, and 4. To include the probability for a Consider decision as well, the final decisions list must be manipulated. The Go, NoGo and Consider decisions of the second decision making will be combined with the final decisions for Cohort 1.
 
 ```{r}
-final_decisions <- final_probability_list
+  final_decisions <- final_probability_list
 
  for(s in seq_along(orr_scenario_list)) {
-  final_decisions[[s]][[i]] <- 
-    cbind(final_probability_list[[s]][[i]][, c(1, 2)],
-         decision_2[[s]][[i]][, c(3, 4, 5)])
+  final_decisions[[1]][[s]] <- 
+    cbind(final_probability_list[[1]][[s]][, c(1, 2)],
+         decision_2[[1]][[s]][, c(3, 4, 5)])
 }
 
 scaleRoundList(final_decisions, round_digits = 2)
 ```
 
-In case of the final analysis, the set of decision rules leads to an overall Go probability of 98% and individual Go probability of 71% in Cohort 1. 
-The probabilities of identifying the nugget cohorts are 70% and 69%.
-The overall Go probability in the negative scenario is 3%.
+In case of the final analysis, the set of decision rules leads to an overall Go probability of 98% and individual Go probability of 73% in Cohort 1. 
+The probabilities of identifying the nugget cohorts are 72% and 70%.
+The overall Go probability in the negative scenario is 2%.
+
+## References
