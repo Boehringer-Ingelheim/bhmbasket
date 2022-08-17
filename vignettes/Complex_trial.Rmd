@@ -172,58 +172,31 @@ if (file.exists("analyses_lists/complex_analysis_1.rds")) {
   method_names      = "exnex_adj",
   target_rates      = orr_target_rates[-4])
   
-  saveRDS(analyses_futility_1, "analyses_lists/1complex_analysis_1.rds")
+  saveRDS(analyses_futility_1, "analyses_lists/complex_analysis_1.rds", compress = "xz")
 }
 
 analyses_futility_1
 ```
-
 ```{r, include = FALSE}
 ## check for unnecessary data
   
   ## remove unnecessary data
-  
+if (any(grepl("w_",
+              colnames(analyses_futility_1$scenario_1$quantiles_list$exnex[[1]])))) {   
   ## quantiles_list
-  # analyses_futility_1$scenario_1$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
-  #   x[-c(2:4, 6), -c(1:3)]
-  # })
-  # analyses_futility_1$scenario_2$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
-  #   x[-c(2:4, 6), -c(1:3)]
-  # })
-  # analyses_futility_1$scenario_3$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
-  #   x[-c(2:4, 6), -c(1:3)]
-  # })
-  # analyses_futility_1$scenario_4$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
-  #   x[-c(2:4, 6), -c(1:3)]
-  # })
-  # 
-  
-  ##subjects, responders, post_quantiles and prior_parameters
-  # analyses_futility_1$scenario_1$scenario_data$n_subjects <- NULL
-  # analyses_futility_1$scenario_2$scenario_data$n_subjects <- NULL
-  # analyses_futility_1$scenario_3$scenario_data$n_subjects <- NULL
-  # analyses_futility_1$scenario_4$scenario_data$n_subjects <- NULL
-  
-  # analyses_futility_1$scenario_1$scenario_data$n_responders <- NULL
-  # analyses_futility_1$scenario_2$scenario_data$n_responders <- NULL
-  # analyses_futility_1$scenario_3$scenario_data$n_responders <- NULL
-  # analyses_futility_1$scenario_4$scenario_data$n_responders <- NULL
-  
-  analyses_futility_1$scenario_1$scenario_data$previous_analyses$post_quantiles <- NULL
-  analyses_futility_1$scenario_2$scenario_data$previous_analyses$post_quantiles <- NULL
-  analyses_futility_1$scenario_3$scenario_data$previous_analyses$post_quantiles <- NULL
-  analyses_futility_1$scenario_4$scenario_data$previous_analyses$post_quantiles <- NULL
-  
-  #analyses_futility_1$scenario_1$analysis_parameters$prior_parameters_list <- NULL
-  #analyses_futility_1$scenario_2$analysis_parameters$prior_parameters_list <- NULL
-  #analyses_futility_1$scenario_3$analysis_parameters$prior_parameters_list <- NULL
-  #analyses_futility_1$scenario_4$analysis_parameters$prior_parameters_list <- NULL
 
-  # save modified analysis list  
-  saveRDS(analyses_futility_1, "analyses_lists/complex_analysis_1.rds", compress = "xz")
+  for(k in 1:1000) {
+    analyses_futility_1$scenario_1$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+    analyses_futility_1$scenario_2$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+    analyses_futility_1$scenario_3$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+    analyses_futility_1$scenario_4$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+  }
+  rm(k)
 
+ # save modified analysis list  
+ saveRDS(analyses_futility_1,"analyses_lists/complex_analysis_1.rds", compress = "xz")
+}
 ```
-
 
 One can get point estimates and credible intervals per cohorts, as well as estimated biases and mean squared errors of the point estimators using the function `getEstimates(analyses_futility_1)`.
 
@@ -384,18 +357,26 @@ if (file.exists("analyses_lists/complex_analysis_2.rds")) {
   evidence_levels   = 0.75,
   target_rates      = orr_target_rates)
   
-  saveRDS(analyses_2, "analyses_lists/2complex_analysis_2.rds")
+  saveRDS(analyses_2, "analyses_lists/complex_analysis_2.rds", compress = "xz")
 }
 
 analyses_2
-
 ```
 
 ```{r, include = FALSE}
 ## check for unnecessary data
-if (!is.null(analyses_2$scenario_1$scenario_data$previous_analyses$post_quantiles)) {
+if (any(grepl("w_",
+              colnames(analyses_2$scenario_1$quantiles_list$exnex[[1]])))) {   
+  ## remove unnecessary data  
+  ## quantiles_list
+  for(k in 1:1000) {
+    analyses_2$scenario_1$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1:4)]
+    analyses_2$scenario_2$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1:4)]
+    analyses_2$scenario_3$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1:4)]
+    analyses_2$scenario_4$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1:4)]
+  }
+  rm(k)
 
-  ## remove unnecessary data
   analyses_2$scenario_1$scenario_data$previous_analyses$post_quantiles <- NULL
   analyses_2$scenario_2$scenario_data$previous_analyses$post_quantiles <- NULL
   analyses_2$scenario_3$scenario_data$previous_analyses$post_quantiles <- NULL
@@ -405,7 +386,6 @@ if (!is.null(analyses_2$scenario_1$scenario_data$previous_analyses$post_quantile
   saveRDS(analyses_2, "analyses_lists/complex_analysis_2.rds", compress = "xz")
 }
 ```
-
 #### Decision Making
 The second decision making is part of analysis II.
 The decision is based on all 4 cohorts applying different decision boundaries.
@@ -508,7 +488,7 @@ if (file.exists("analyses_lists/complex_analysis_3.rds")) {
   method_names          = c("exnex_adj"),
   target_rates          = orr_target_rates)
   
-  saveRDS(analyses_3, "analyses_lists/3complex_analysis_3.rds")
+  saveRDS(analyses_3, "analyses_lists/3complex_analysis_3.rds", compress = "xz")
 }
 
 analyses_3
@@ -516,39 +496,26 @@ analyses_3
 
 ```{r, include = FALSE}
 ## check for unnecessary data
-if (!is.null(analyses_3$scenario_1$scenario_data$previous_analyses$post_quantiles)) {
-  
+if (any(grepl("w_",
+              colnames(analyses_3$scenario_1$quantiles_list$exnex[[1]])))) {  
   ## remove unnecessary data
-  
-  ## quantiles_list
-  # analyses_3$scenario_1$quantiles_list$exnex_adj <-   lapply(analyses_3$scenario_1$quantiles_list$exnex_adj, function   (x) {
-  #   x[-c(2, 4, 6), -c(1:4)]
-  # })
-  # analyses_3$scenario_2$quantiles_list$exnex_adj <-   lapply(analyses_3$scenario_1$quantiles_list$exnex_adj, function   (x) {
-  #   x[-c(2, 4, 6), -c(1:4)]
-  # })
-  # analyses_3$scenario_3$quantiles_list$exnex_adj <-   lapply(analyses_3$scenario_1$quantiles_list$exnex_adj, function   (x) {
-  #   x[-c(2, 4, 6), -c(1:4)]
-  # })
-  # analyses_3$scenario_4$quantiles_list$exnex_adj <-   lapply(analyses_3$scenario_1$quantiles_list$exnex_adj, function   (x) {
-  #   x[-c(2, 4, 6), -c(1:4)]
-  # })
-  
-  ## subjects, responders, post_quantiles and prior_parameters
-  analyses_3$scenario_1$scenario_data$n_subjects <- NULL
-  analyses_3$scenario_2$scenario_data$n_subjects <- NULL
-  analyses_3$scenario_3$scenario_data$n_subjects <- NULL
-  analyses_3$scenario_4$scenario_data$n_subjects <- NULL
-  
-  analyses_3$scenario_1$scenario_data$n_responders <- NULL
-  analyses_3$scenario_2$scenario_data$n_responders <- NULL
-  analyses_3$scenario_3$scenario_data$n_responders <- NULL
-  analyses_3$scenario_4$scenario_data$n_responders <- NULL
-  
-  analyses_3$scenario_1$scenario_data$previous_analyses$post_quantiles <- NULL
-  analyses_3$scenario_2$scenario_data$previous_analyses$post_quantiles <- NULL
-  analyses_3$scenario_3$scenario_data$previous_analyses$post_quantiles <- NULL
-  analyses_3$scenario_4$scenario_data$previous_analyses$post_quantiles <- NULL
+   
+ # quantiles_list
+  for(k in 1:1000) {
+    analyses_3$scenario_1$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1:4)]
+    analyses_3$scenario_2$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1:4)]
+    analyses_3$scenario_3$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1:4)]
+    analyses_3$scenario_4$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1:4)]
+  }
+  rm(k)
+
+  ##subjects, responders, post_quantiles and prior_parameters
+  for(s in seq_along(orr_scenario_list)) {
+    analyses_3[[s]]$scenario_data$n_subjects <- NULL
+    analyses_3[[s]]$scenario_data$n_responders <- NULL
+    analyses_3[[s]]$scenario_data$previous_analyses$post_quantiles <- NULL
+  }
+  rm(s)
   
   # save modified analysis list  
   saveRDS(analyses_3, "analyses_lists/complex_analysis_3.rds", compress = "xz")
@@ -605,7 +572,7 @@ for(s in seq_along(orr_scenario_list)) {
     }
   }
 }
-
+rm(i,s)
 
 
 final_decisions <- getGoProbabilities(

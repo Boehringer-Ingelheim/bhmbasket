@@ -186,7 +186,7 @@ if (file.exists("analyses_lists/gettingStarted_analysis_1.rds")) {
   target_rates     = c(0.2, 0.35, 0.3),
   calc_differences = c(2, 1))
   
-  saveRDS(analysis_list, "analyses_lists/gettingStarted_analysis_1.rds")
+  saveRDS(analysis_list, "analyses_lists/gettingStarted_analysis_1.rds", compress = "xz")
 }
 
 analysis_list
@@ -196,42 +196,21 @@ analysis_list
 ## check for unnecessary data
   
   ## remove unnecessary data
-  
+if (any(grepl("w_",
+              colnames(analysis_list$scenario_1$quantiles_list$exnex[[1]])))) {   
   ## quantiles_list
-#   analysis_list$scenario_1$quantiles_list$exnex_adj <-   lapply(analysis_list$scenario_1$quantiles_list$exnex_adj, function   (x) {
-#     x[,-c(1, 2, 3)]
-#   })
-#   analysis_list$scenario_2$quantiles_list$exnex_adj <-   lapply(analysis_list$scenario_1$quantiles_list$exnex_adj, function   (x) {
-#     x[,-c(1, 2, 3)]
-#   })
-#   analysis_list$scenario_3$quantiles_list$exnex_adj <-   lapply(analysis_list$scenario_1$quantiles_list$exnex_adj, function   (x) {
-#     x[,-c(1, 2, 3)]
-#   })
-#   analysis_list$scenario_4$quantiles_list$exnex_adj <-   lapply(analysis_list$scenario_1$quantiles_list$exnex_adj, function   (x) {
-#     x[,-c(1, 2, 3)]
-#   })
-# 
-# 
-# for(k in 1:10000) {
-#   analysis_list$scenario_1$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
-#   analysis_list$scenario_2$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
-#   analysis_list$scenario_3$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
-#   analysis_list$scenario_4$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
-# }
 
-  # if(!is.null(analysis_list$scenario_1$scenario_data$previous_analyses$post_quantiles)) {
-  # 
-  # analysis_list$scenario_1$scenario_data$previous_analyses$post_quantiles <- NULL
-  # analysis_list$scenario_2$scenario_data$previous_analyses$post_quantiles <- NULL
-  # analysis_list$scenario_3$scenario_data$previous_analyses$post_quantiles <- NULL
-  # analysis_list$scenario_4$scenario_data$previous_analyses$post_quantiles <- NULL
-  # 
-  # # save modified analysis list  
+  for(k in 1:10000) {
+    analysis_list$scenario_1$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+    analysis_list$scenario_2$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+    analysis_list$scenario_3$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+    analysis_list$scenario_4$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+  }
+  rm(k)
+
+ # save modified analysis list  
  saveRDS(analysis_list, "analyses_lists/gettingStarted_analysis_1.rds", compress = "xz")
-  # }
-  
-  
-
+}
 ```
 
 Available methods are the BHM proposed by @berry2013 (*berry*), the model proposed by @exnex2016 (*exnex*), and a BHM that combines both approaches called ExNex adjusted (*exnex_adj*), as well as two beta-binomial approaches called *pooled* and *stratified*.
@@ -399,7 +378,7 @@ if (file.exists("analyses_lists/gettingStarted_analysis_2.rds")) {
   calc_differences = c(2, 1),
   target_rates     = c(0.2, 0.35, 0.3))
   
-  saveRDS(final_analysis_list, "analyses_lists/2gettingStarted_analysis_2.rds")
+  saveRDS(final_analysis_list, "analyses_lists/gettingStarted_analysis_2.rds", compress = "xz")
 }
 
 final_analysis_list
@@ -407,43 +386,30 @@ final_analysis_list
 
 ```{r, include = FALSE}
 ## check for unnecessary data
-# if (!is.null(final_analysis_list$scenario_1$scenario_data$n_responders)) {  
-#   ## remove unnecessary data
-#   
-#   ## quantiles_list
-#   # final_analysis_list$scenario_1$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
-#   #   x[-c(2:4, 6), -c(1:3)]
-#   # })
-#   # final_analysis_list$scenario_2$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
-#   #   x[-c(2:4, 6), -c(1:3)]
-#   # })
-#   # final_analysis_list$scenario_3$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
-#   #   x[-c(2:4, 6), -c(1:3)]
-#   # })
-#   # final_analysis_list$scenario_4$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
-#   #   x[-c(2:4, 6), -c(1:3)]
-#   # })
-#   # 
-#   
-#   ##subjects, responders, post_quantiles and prior_parameters
-#   final_analysis_list$scenario_1$scenario_data$n_subjects <- NULL
-#   final_analysis_list$scenario_2$scenario_data$n_subjects <- NULL
-#   final_analysis_list$scenario_3$scenario_data$n_subjects <- NULL
-#   final_analysis_list$scenario_4$scenario_data$n_subjects <- NULL
-#   
-#   final_analysis_list$scenario_1$scenario_data$n_responders <- NULL
-#   final_analysis_list$scenario_2$scenario_data$n_responders <- NULL
-#   final_analysis_list$scenario_3$scenario_data$n_responders <- NULL
-#   final_analysis_list$scenario_4$scenario_data$n_responders <- NULL
-#   
-#   final_analysis_list$scenario_1$scenario_data$previous_analyses$post_quantiles <- NULL
-#   final_analysis_list$scenario_2$scenario_data$previous_analyses$post_quantiles <- NULL
-#   final_analysis_list$scenario_3$scenario_data$previous_analyses$post_quantiles <- NULL
-#   final_analysis_list$scenario_4$scenario_data$previous_analyses$post_quantiles <- NULL
-# 
-#   # save modified analysis list  
+if (any(grepl("w_",
+              colnames(final_analysis_list$scenario_1$quantiles_list$exnex[[1]])))) {  
+  ## remove unnecessary data
+   
+ # quantiles_list
+  for(k in 1:10000) {
+    final_analysis_list$scenario_1$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+    final_analysis_list$scenario_2$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+    final_analysis_list$scenario_3$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+    final_analysis_list$scenario_4$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+  }
+  rm(k)
+
+  ##subjects, responders, post_quantiles and prior_parameters
+  for(s in seq_along(scenarios_list)) {
+    #final_analysis_list[[s]]$scenario_data$n_subjects <- NULL
+    final_analysis_list[[s]]$scenario_data$n_responders <- NULL
+    final_analysis_list[[s]]$scenario_data$previous_analyses$post_quantiles <- NULL
+  }
+  rm(s)
+
+# save modified analysis list  
    saveRDS(final_analysis_list, "analyses_lists/gettingStarted_analysis_2.rds", compress = "xz")
-# }
+}
 ```
 
 Only the simulated trial outcomes with an overall Go decision will get additional subjects in the cohorts with cohort-wise Go decisions and only those trial outcomes will be analysed again in `performAnalyses()`.
