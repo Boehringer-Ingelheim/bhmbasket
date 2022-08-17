@@ -162,8 +162,8 @@ analyses_futility_1
 ```{r, echo=FALSE}
 if (file.exists("analyses_lists/complex_analysis_1.rds")) {
   
-    #analyses_futility_1 <- readRDS("analyses_lists/complex_analysis_1.rds")
-    analyses_futility_1 <- readRDS("analyses_lists/1complex_analysis_1.rds")
+    analyses_futility_1 <- readRDS("analyses_lists/complex_analysis_1.rds")
+    #analyses_futility_1 <- readRDS("analyses_lists/1complex_analysis_1.rds")
   
 } else {
   
@@ -373,8 +373,8 @@ analyses_2
 ```{r, echo=FALSE}
 if (file.exists("analyses_lists/complex_analysis_2.rds")) {
   
-  #analyses_2 <- readRDS("analyses_lists/complex_analysis_2.rds")
-  analyses_2 <- readRDS("analyses_lists/2complex_analysis_2.rds")
+  analyses_2 <- readRDS("analyses_lists/complex_analysis_2.rds")
+  #analyses_2 <- readRDS("analyses_lists/2complex_analysis_2.rds")
   
 } else {
   
@@ -394,7 +394,7 @@ analyses_2
 ```{r, include = FALSE}
 ## check for unnecessary data
 if (!is.null(analyses_2$scenario_1$scenario_data$previous_analyses$post_quantiles)) {
-  
+
   ## remove unnecessary data
   analyses_2$scenario_1$scenario_data$previous_analyses$post_quantiles <- NULL
   analyses_2$scenario_2$scenario_data$previous_analyses$post_quantiles <- NULL
@@ -498,8 +498,8 @@ analyses_3
 ```{r, echo=FALSE}
 if (file.exists("analyses_lists/complex_analysis_3.rds")) {
   
-  #analyses_3 <- readRDS("analyses_lists/complex_analysis_3.rds")
-  analyses_3 <- readRDS("analyses_lists/3complex_analysis_3.rds")
+  analyses_3 <- readRDS("analyses_lists/complex_analysis_3.rds")
+  #analyses_3 <- readRDS("analyses_lists/3complex_analysis_3.rds")
   
 } else {
   
@@ -584,13 +584,33 @@ final_probability_list <- getGoProbabilities(go_decisions_3, nogo_decisions_3)
 In this case, the other cohorts will not be analysed again. Therefore, the function `getGoProbabilities()` uses the previous calculated Go and NoGo decisions for Cohort 2, 3, and 4. To include the probability for a Consider decision as well, the final decisions list must be manipulated. The Go, NoGo and Consider decisions of the second decision making will be combined with the final decisions for Cohort 1.
 
 ```{r}
-  final_decisions <- final_probability_list
+final_go_decisions <- go_decisions_3
+final_nogo_decisions <- nogo_decisions_3
 
- for(s in seq_along(orr_scenario_list)) {
-  final_decisions[[1]][[s]] <- 
-    cbind(final_probability_list[[1]][[s]][, c(1, 2)],
-         decision_2[[1]][[s]][, c(3, 4, 5)])
+for(s in seq_along(orr_scenario_list)) {
+  final_go_decisions[[s]]$decisions_list[[1]] <- 
+    cbind(final_go_decisions[[s]]$decisions_list[[1]][,c(1,2)],
+         go_decisions_2[[s]]$decisions_list[[1]][, c(3, 4, 5)])
+  
+  final_nogo_decisions[[s]]$decisions_list[[1]] <- 
+    cbind(final_nogo_decisions[[s]]$decisions_list[[1]][,c(1,2)],
+         nogo_decisions_2[[s]]$decisions_list[[1]][, c(3, 4, 5)])
+  
+  for(i in 1000){
+    if(any(final_go_decisions[[s]]$decisions_list[[1]][i, c(2:5)])) {
+      final_go_decisions[[s]]$decisions_list[[1]][i, 1] <- TRUE
+    }
+    if(all(final_nogo_decisions[[s]]$decisions_list[[1]][i, c(2:5)])) {
+      final_nogo_decisions[[s]]$decisions_list[[1]][i, 1] <- TRUE
+    }
+  }
 }
+
+
+
+final_decisions <- getGoProbabilities(
+  go_decisions_list   = final_go_decisions,
+  nogo_decisions_list = final_nogo_decisions)
 
 scaleRoundList(final_decisions, round_digits = 2)
 ```
