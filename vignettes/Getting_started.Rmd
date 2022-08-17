@@ -74,7 +74,6 @@ references:
 knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
 ```
 
-
 This guide provides an overview of the R package [bhmbasket](https://cran.r-project.org/web/packages/bhmbasket/index.html) on how to use its functions to evaluate the operating characteristics of a basket trial with binary endpoints.
 An example trial will be used to guide through the functions.
 The design of the trial is depicted in Figure 1.
@@ -177,8 +176,8 @@ analysis_list
 ```{r, echo=FALSE}
 if (file.exists("analyses_lists/gettingStarted_analysis_1.rds")) {
   
-  analysis_list <- readRDS("analyses_lists/1gettingStarted_analysis_1.rds")
-  # analysis_list <- readRDS("analyses_lists/gettingStarted_analysis_1.rds")
+  #analysis_list <- readRDS("analyses_lists/1gettingStarted_analysis_1.rds")
+  analysis_list <- readRDS("analyses_lists/gettingStarted_analysis_1.rds")
 } else {
   
   analysis_list <- performAnalyses(
@@ -187,7 +186,7 @@ if (file.exists("analyses_lists/gettingStarted_analysis_1.rds")) {
   target_rates     = c(0.2, 0.35, 0.3),
   calc_differences = c(2, 1))
   
-  saveRDS(analysis_list, "analyses_lists/1gettingStarted_analysis_1.rds")
+  saveRDS(analysis_list, "analyses_lists/gettingStarted_analysis_1.rds")
 }
 
 analysis_list
@@ -199,38 +198,39 @@ analysis_list
   ## remove unnecessary data
   
   ## quantiles_list
-  # analyses_futility_1$scenario_1$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
-  #   x[-c(2:4, 6), -c(1:3)]
-  # })
-  # analyses_futility_1$scenario_2$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
-  #   x[-c(2:4, 6), -c(1:3)]
-  # })
-  # analyses_futility_1$scenario_3$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
-  #   x[-c(2:4, 6), -c(1:3)]
-  # })
-  # analyses_futility_1$scenario_4$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
-  #   x[-c(2:4, 6), -c(1:3)]
-  # })
-  # 
-  
-  ##subjects, responders, post_quantiles and prior_parameters
-  # analyses_futility_1$scenario_1$scenario_data$n_subjects <- NULL
-  # analyses_futility_1$scenario_2$scenario_data$n_subjects <- NULL
-  # analyses_futility_1$scenario_3$scenario_data$n_subjects <- NULL
-  # analyses_futility_1$scenario_4$scenario_data$n_subjects <- NULL
-  
-  # analyses_futility_1$scenario_1$scenario_data$n_responders <- NULL
-  # analyses_futility_1$scenario_2$scenario_data$n_responders <- NULL
-  # analyses_futility_1$scenario_3$scenario_data$n_responders <- NULL
-  # analyses_futility_1$scenario_4$scenario_data$n_responders <- NULL
-  
-  analysis_list$scenario_1$scenario_data$previous_analyses$post_quantiles <- NULL
-  analysis_list$scenario_2$scenario_data$previous_analyses$post_quantiles <- NULL
-  analysis_list$scenario_3$scenario_data$previous_analyses$post_quantiles <- NULL
-  analysis_list$scenario_4$scenario_data$previous_analyses$post_quantiles <- NULL
+#   analysis_list$scenario_1$quantiles_list$exnex_adj <-   lapply(analysis_list$scenario_1$quantiles_list$exnex_adj, function   (x) {
+#     x[,-c(1, 2, 3)]
+#   })
+#   analysis_list$scenario_2$quantiles_list$exnex_adj <-   lapply(analysis_list$scenario_1$quantiles_list$exnex_adj, function   (x) {
+#     x[,-c(1, 2, 3)]
+#   })
+#   analysis_list$scenario_3$quantiles_list$exnex_adj <-   lapply(analysis_list$scenario_1$quantiles_list$exnex_adj, function   (x) {
+#     x[,-c(1, 2, 3)]
+#   })
+#   analysis_list$scenario_4$quantiles_list$exnex_adj <-   lapply(analysis_list$scenario_1$quantiles_list$exnex_adj, function   (x) {
+#     x[,-c(1, 2, 3)]
+#   })
+# 
+# 
+# for(k in 1:10000) {
+#   analysis_list$scenario_1$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+#   analysis_list$scenario_2$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+#   analysis_list$scenario_3$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+#   analysis_list$scenario_4$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+# }
 
-  # save modified analysis list  
-  saveRDS(analysis_list, "analyses_lists/gettingStarted_analysis_1.rds", compress = "xz")
+  # if(!is.null(analysis_list$scenario_1$scenario_data$previous_analyses$post_quantiles)) {
+  # 
+  # analysis_list$scenario_1$scenario_data$previous_analyses$post_quantiles <- NULL
+  # analysis_list$scenario_2$scenario_data$previous_analyses$post_quantiles <- NULL
+  # analysis_list$scenario_3$scenario_data$previous_analyses$post_quantiles <- NULL
+  # analysis_list$scenario_4$scenario_data$previous_analyses$post_quantiles <- NULL
+  # 
+  # # save modified analysis list  
+ saveRDS(analysis_list, "analyses_lists/gettingStarted_analysis_1.rds", compress = "xz")
+  # }
+  
+  
 
 ```
 
@@ -388,8 +388,8 @@ final_analysis_list
 ```{r, echo=FALSE}
 if (file.exists("analyses_lists/gettingStarted_analysis_2.rds")) {
   
-  final_analysis_list <- readRDS("analyses_lists/2gettingStarted_analysis_2.rds")
-  #final_analysis_list <- readRDS("analyses_lists/gettingStarted_analysis_2.rds")
+  #final_analysis_list <- readRDS("analyses_lists/2gettingStarted_analysis_2.rds")
+  final_analysis_list <- readRDS("analyses_lists/gettingStarted_analysis_2.rds")
   
 } else {
   
@@ -407,43 +407,43 @@ final_analysis_list
 
 ```{r, include = FALSE}
 ## check for unnecessary data
-if (!is.null(final_analysis_list$scenario_1$scenario_data$n_responders)) {  
-  ## remove unnecessary data
-  
-  ## quantiles_list
-  # final_analysis_list$scenario_1$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
-  #   x[-c(2:4, 6), -c(1:3)]
-  # })
-  # final_analysis_list$scenario_2$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
-  #   x[-c(2:4, 6), -c(1:3)]
-  # })
-  # final_analysis_list$scenario_3$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
-  #   x[-c(2:4, 6), -c(1:3)]
-  # })
-  # final_analysis_list$scenario_4$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
-  #   x[-c(2:4, 6), -c(1:3)]
-  # })
-  # 
-  
-  ##subjects, responders, post_quantiles and prior_parameters
-  final_analysis_list$scenario_1$scenario_data$n_subjects <- NULL
-  final_analysis_list$scenario_2$scenario_data$n_subjects <- NULL
-  final_analysis_list$scenario_3$scenario_data$n_subjects <- NULL
-  final_analysis_list$scenario_4$scenario_data$n_subjects <- NULL
-  
-  final_analysis_list$scenario_1$scenario_data$n_responders <- NULL
-  final_analysis_list$scenario_2$scenario_data$n_responders <- NULL
-  final_analysis_list$scenario_3$scenario_data$n_responders <- NULL
-  final_analysis_list$scenario_4$scenario_data$n_responders <- NULL
-  
-  final_analysis_list$scenario_1$scenario_data$previous_analyses$post_quantiles <- NULL
-  final_analysis_list$scenario_2$scenario_data$previous_analyses$post_quantiles <- NULL
-  final_analysis_list$scenario_3$scenario_data$previous_analyses$post_quantiles <- NULL
-  final_analysis_list$scenario_4$scenario_data$previous_analyses$post_quantiles <- NULL
-
-  # save modified analysis list  
-  saveRDS(final_analysis_list, "analyses_lists/gettingStarted_analysis_2.rds", compress = "xz")
-}
+# if (!is.null(final_analysis_list$scenario_1$scenario_data$n_responders)) {  
+#   ## remove unnecessary data
+#   
+#   ## quantiles_list
+#   # final_analysis_list$scenario_1$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
+#   #   x[-c(2:4, 6), -c(1:3)]
+#   # })
+#   # final_analysis_list$scenario_2$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
+#   #   x[-c(2:4, 6), -c(1:3)]
+#   # })
+#   # final_analysis_list$scenario_3$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
+#   #   x[-c(2:4, 6), -c(1:3)]
+#   # })
+#   # final_analysis_list$scenario_4$quantiles_list$exnex_adj <-   lapply(analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function   (x) {
+#   #   x[-c(2:4, 6), -c(1:3)]
+#   # })
+#   # 
+#   
+#   ##subjects, responders, post_quantiles and prior_parameters
+#   final_analysis_list$scenario_1$scenario_data$n_subjects <- NULL
+#   final_analysis_list$scenario_2$scenario_data$n_subjects <- NULL
+#   final_analysis_list$scenario_3$scenario_data$n_subjects <- NULL
+#   final_analysis_list$scenario_4$scenario_data$n_subjects <- NULL
+#   
+#   final_analysis_list$scenario_1$scenario_data$n_responders <- NULL
+#   final_analysis_list$scenario_2$scenario_data$n_responders <- NULL
+#   final_analysis_list$scenario_3$scenario_data$n_responders <- NULL
+#   final_analysis_list$scenario_4$scenario_data$n_responders <- NULL
+#   
+#   final_analysis_list$scenario_1$scenario_data$previous_analyses$post_quantiles <- NULL
+#   final_analysis_list$scenario_2$scenario_data$previous_analyses$post_quantiles <- NULL
+#   final_analysis_list$scenario_3$scenario_data$previous_analyses$post_quantiles <- NULL
+#   final_analysis_list$scenario_4$scenario_data$previous_analyses$post_quantiles <- NULL
+# 
+#   # save modified analysis list  
+   saveRDS(final_analysis_list, "analyses_lists/gettingStarted_analysis_2.rds", compress = "xz")
+# }
 ```
 
 Only the simulated trial outcomes with an overall Go decision will get additional subjects in the cohorts with cohort-wise Go decisions and only those trial outcomes will be analysed again in `performAnalyses()`.
@@ -491,9 +491,9 @@ nogo_boundary_rules = quote(c(x[1] > 0.8 | x[3] > 0.4,
 ```
 
 #### Final Analysis of the Example Trial
-For the final analysis of this example, the decision rules for Cohort 1 for relevance and significance are $P(p_1|\text{data} > 0.147) > 0.5 $ and $P(p_1|\text{data} > 0.05) > 0.8$, respectively.
-For Cohort 2, the relevance criterion $P(p_2|\text{data} > 0.28) > 0.5$ ∧ $P(p_2-p_1|\text{data} > 0) > 0.5 $ is a combination of rules for the point estimate and for the difference between Cohort 2 and Cohort 1.
-The rule for significance for Cohohrt 2 is $P(p_2|\text{data} > 0.15) > 0.8$.
+For the final analysis of this example, the decision rules for Cohort 1 for relevance and significance are $P(p_1|\text{data} > 0.147) > 0.5$ and $P(p_1|\text{data} > 0.05) > 0.8$, respectively.
+For Cohort 2, the relevance criterion $P(p_2|\text{data} > 0.28) > 0.5$ ∧ $P(p_2-p_1|\text{data} > 0) > 0.5$ is a combination of rules for the point estimate and for the difference between Cohort 2 and Cohort 1.
+The rule for significance for Cohort 2 is $P(p_2|\text{data} > 0.15) > 0.8$.
 The third cohort should not get a decision as in the futility analysis.
 
 ```{r}
@@ -503,7 +503,7 @@ final_decision_list <- getGoDecisions(
                       "p_1", "p_2"),
   evidence_levels = c(0.5, 0.5, 0.5,
                       0.8, 0.8),
-  boundary_rules  = quote(c(x[1] > 0.147           & x[4] > 0.05,
+  boundary_rules  = quote(c(x[1] > 0.147            & x[4] > 0.05,
                             x[2] > 0.28  & x[3] > 0 & x[5] > 0.15, 
                             TRUE)),
   overall_min_gos = 2)
