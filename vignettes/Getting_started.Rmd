@@ -135,6 +135,7 @@ scenarios_list <- list(
   rr_nugget2  = c(0.05, 0.35, 5),
   rr_negative = c(0.05, 0.15, 5))
 
+
 scenario_list <- simulateScenarios(
   n_subjects_list     = c(15, 10, 15),
   response_rates_list = scenarios_list)
@@ -193,13 +194,12 @@ analysis_list
 ```
 
 ```{r, include = FALSE}
-## check for unnecessary data
-  
-  ## remove unnecessary data
+# check for unnecessary data
 if (any(grepl("w_",
               colnames(analysis_list$scenario_1$quantiles_list$exnex[[1]])))) {   
-  ## quantiles_list
-
+  
+  # remove unnecessary data  
+  ## weights from quantiles_list
   for(k in 1:10000) {
     analysis_list$scenario_1$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
     analysis_list$scenario_2$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
@@ -231,6 +231,7 @@ The list of shown parameters can be expanded by additional model parameters usin
 estimates <- getEstimates(
   analyses_list  = analysis_list,
   add_parameters = c("mu", "tau"))
+
 round(estimates$exnex_adj$scenario_3, digits = 2)
 ```
   
@@ -320,12 +321,6 @@ decision_list_adj <- getGoDecisions(
                                  TRUE))),     #stratified
   overall_min_gos = 2)
 
-
-#go_probabilities <- getGoProbabilities(
-#  go_decisions_list = decision_list_adj)
-#
-#scaleRoundList(go_probabilities, round_digits = 2)
-
 decision_list_adj
 ```
 In the negative scenario, the false Go probabilities of the method Stratified are comparatively high with an overall Go probability of 55%, and 16% and 46% cohort-wise false go probability in Cohorts 1 and 2, respectively.
@@ -346,6 +341,7 @@ In this case, ExNex adjusted will be used to continue the recruitment.
 
 ```{r, message=FALSE, warning=FALSE}
 set.seed(677643)
+
 final_scenario_list <- continueRecruitment(
   n_subjects_add_list = c(15, 15),
   decisions_list      = futility_decision_list,
@@ -385,12 +381,12 @@ final_analysis_list
 ```
 
 ```{r, include = FALSE}
-## check for unnecessary data
+# check for unnecessary data
 if (any(grepl("w_",
               colnames(final_analysis_list$scenario_1$quantiles_list$exnex[[1]])))) {  
-  ## remove unnecessary data
+  # remove unnecessary data
    
- # quantiles_list
+  ## weights from quantiles_list
   for(k in 1:10000) {
     final_analysis_list$scenario_1$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
     final_analysis_list$scenario_2$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
@@ -399,7 +395,7 @@ if (any(grepl("w_",
   }
   rm(k)
 
-  ##subjects, responders, post_quantiles and prior_parameters
+  ##subjects, responders and post_quantiles
   for(s in seq_along(scenarios_list)) {
     #final_analysis_list[[s]]$scenario_data$n_subjects <- NULL
     final_analysis_list[[s]]$scenario_data$n_responders <- NULL
@@ -487,6 +483,7 @@ final_nogo_decision_list <- negateGoDecisions(
                               TRUE)),
     overall_min_gos = 2),
   overall_min_nogos = 2)
+
 
 final_probability_list <- getGoProbabilities(
   go_decisions_list = final_decision_list,
