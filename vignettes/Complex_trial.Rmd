@@ -79,21 +79,22 @@ knitr::opts_chunk$set(
 )
 ```
 
-This guide describes how to implement a more complex trial design with two special features, the delayed start of a fourth cohort depending on the outcome of the first cohort and a SuperGo decision influencing the further recruitment of the first cohort.  
+This guide describes the implementation of a more complex basket trial design with a Bayesian hierarchical model (BHM) for analysis.
+The design has two special features: the delayed start of a cohort depending on the outcome of a previous cohort and a SuperGo decision influencing the further recruitment of a cohort.  
 
-Further information about the functions of the package [bhmbasket](https://cran.r-project.org/web/packages/bhmbasket/index.html) and how to set up an instructive trial example, can be found in the vignette [Getting started](...).  
+A guide for a more simple BHM design implementation with the package [bhmbasket](https://cran.r-project.org/web/packages/bhmbasket/index.html) can be found in the vignette [Getting started](...).  
 
 ## Trial Design
 The example trial consists of four cohorts with a planned total of 70, 25, 25, and 25 subjects.
-The first cohort will be analysed in a futility analysis after 12 subjects.
-The second and third cohorts are assumed to have all 25 subjects recruited at that time.
-Recruitment of the fourth cohort is depended on Cohort 1 passing its futility analysis and by the time of the 2nd analysis of Cohort 1, Cohort 4 is expected to be fully recruited.
-Before all cohorts will be analysed in a primary analysis, Cohort 1 will have a SuperGo decision as additional decision outcome. 
-Does Cohort 1 achieves a SuperGo, 58 subjects will be recruited immediately.
-Does Cohort 1 not reach a SuperGo, but a Go, only 13 additional subjects will be recruited and the primary analysis will be performed.
-After passing this analysis, Cohort 1 will recruit further 45 subjects.
-Cohort 1 is then fully recruited and will have a final analysis.
-The trial design of this example study is depicted on Figure 1.
+Its design is depicted on Figure 1.
+The first cohort will be analysed (Analysis I) after 12 subjects become evaluable for analysis.
+The second and third cohorts are assumed to be fully evaluable at the time of Analysis I.
+The start of recruitment of the fourth cohort depends on Cohort 1 passing this analysis.
+By the time of the 2nd analysis of Cohort 1, Cohort 4 is expected to be fully evaluable.
+The subsquent recruitment of Cohort 1 depends on the outcome of Analysis I.
+If a SuperGo is observed in Cohort 1, 58 additional subjects will be recruited, skipping Analysis II for Cohort 1.
+In case of a Go, but not a SuperGo, 13 additional subjects will be recruited and the Analysis II be performed for Cohort 1.
+After passing this analysis, Cohort 1 will recruit further 45 subjects after which its final analysis (Analysis III) will be performed.
 
 <center>
 <img src="pictures/ComplexExample.png" width="85%" height="85%"/>  
@@ -116,10 +117,11 @@ registerDoFuture()
 plan(multisession)
 ```
 
-## First Simulations
+## Simulation for Analysis I
 The setup of the trial design starts with the simulation of scenario data with the function `simulateScenarios()`.
-In this example there are four cohorts included, whereby the fourth one will start later and is filtered by taking out the fourth entry of the number of subjects and target rates.
-The cohorts will be simulated in four different scenarios, a positive scenario, a SuperGo scenario, a nugget scenario, and a negative scenario. 
+The cohorts will be simulated in four different scenarios: a positive scenario, a SuperGo scenario, a nugget scenario, and a negative scenario. 
+The first analysis will be performed after 12 subjects become evaluable in Cohort 1.
+Cohort 4 is removed from the simulations as the recruitment of that cohort starts depending on the the analysis outcome of Cohort 1 in Analysis I.
 
 ```{r}
 ## scenarios
@@ -137,16 +139,14 @@ n_subjects <- c(12, 25, 25, 0)
 
 ## simulation
 scenarios_futility_1 <- simulateScenarios(
-  n_subjects_list     = n_subjects[-4],
-  response_rates_list = lapply(orr_scenario_list, function (x) x[-4]),
-  n_trials = 1000)
+  n_subjects_list     = n_subjects_Ph1[-4],
+  response_rates_list = lapply(orr_scenario_list, function (x) x[-4]))
 
 scenarios_futility_1
 ```
 
 ### Analysis I
-The first analysis will be performed after Cohort 1 has 12 subjects recruited.
-The function `performAnalyses()` analyses all cohorts (except Cohort 4) with 10 000 MCMC iterations.
+The function `performAnalyses()` analyzes the simulated trial outcomes with 10 000 MCMC iterations.
 In this case, the model *ExNex adjusted* is used, a combination of the Bayesian hierarchical models (BHM) proposed by @berry2013 and *ExNex*, the BHM proposed by @exnex2016.
 
 
@@ -201,7 +201,7 @@ One can get point estimates and credible intervals per cohorts, as well as estim
 
 #### Decision Making
 The created analyses list will be used to make Go/NoGo decisions as part of the futility analysis.
-In this case, decisions for Cohort 2 and 3 are not of interest and therefore, the argument `boundary_rules` obtains `TRUE` at the second and third position.
+In this case, decisions for Cohorts 2 and 3 are not of interest and therefore, the argument `boundary_rules` obtains `TRUE` at the second and third position.
 The decision rule for Cohort 1 is implemented as follows:
 
 $P(p_1|\text{data} > 0.2) > 0.5$
