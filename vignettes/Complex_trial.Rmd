@@ -133,11 +133,11 @@ orr_scenario_list <- list(
 orr_target_rates <- c(0.35, 0.3, 0.2, 0.2)
 
 ## N subjects
-n_subjects_Ph1 <- c(12, 25, 25, 0)
+n_subjects <- c(12, 25, 25, 0)
 
 ## simulation
 scenarios_futility_1 <- simulateScenarios(
-  n_subjects_list     = n_subjects_Ph1[-4],
+  n_subjects_list     = n_subjects[-4],
   response_rates_list = lapply(orr_scenario_list, function (x) x[-4]),
   n_trials = 1000)
 
@@ -179,12 +179,11 @@ analyses_futility_1
 ```
 ```{r, include = FALSE}
 ## check for unnecessary data
-  
-  ## remove unnecessary data
 if (any(grepl("w_",
               colnames(analyses_futility_1$scenario_1$quantiles_list$exnex[[1]])))) {   
-  ## quantiles_list
-
+  # remove unnecessary data
+  
+  ## weights from quantiles_list
   for(k in 1:1000) {
     analyses_futility_1$scenario_1$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
     analyses_futility_1$scenario_2$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
@@ -239,7 +238,7 @@ The Go probabilities of this SuperGo decision is lower than the probabilities of
 To make sure that there are not more SuperGo decisions than Go decisions in this two decision lists, a sanity check is performed.
 
 ```{r}
-## sanity check: go probability in PoCP always greater than or equal to SuperGo probability
+## sanity check: go probability in Analysis 1 always greater than or equal to SuperGo probability
 all(
   sapply(seq_along(scenarios_futility_1), function (i) getGoProbabilities(go_decisions_futility_1)[[1]][[i]])[1, ] >=
     sapply(seq_along(scenarios_futility_1), function (i) getGoProbabilities(go_decisions_SuperGo)[[1]][[i]])[1, ])
@@ -284,22 +283,23 @@ The entire implementation of the manipulation of the decision list is implemente
  
 ```{r}
 go_decisions_1 <- go_decisions_futility_1
+
 for (s in seq_along(orr_scenario_list)) {
   
-  ## add go decisions
+  ## add additional go decisions
   go_decisions_1[[s]]$decisions_list$exnex_adj <-
-    cbind(go_decisions_1[[1]]$decisions_list$exnex_adj[, c(1, 2, 3, 4)],
-          "decision_4" = go_decisions_futility_1[[1]]$decisions_list$exnex_adj[, 2])
+    cbind(go_decisions_1[[s]]$decisions_list$exnex_adj[ , c(1, 2, 3, 4)],
+          "decision_4" = go_decisions_futility_1[[s]]$decisions_list$exnex_adj[ , 2])
   
   ## add additional cohort in scenarios
   ### subjects
   go_decisions_1[[s]]$scenario_data$n_subjects <- 
-    cbind(go_decisions_futility_1[[1]]$scenario_data$n_subjects[, c(1, 2, 3)],
+    cbind(go_decisions_futility_1[[s]]$scenario_data$n_subjects[ , c(1, 2, 3)],
           "n_4" = 0)
   
   ### responders
   go_decisions_1[[s]]$scenario_data$n_responders <- 
-    cbind(go_decisions_futility_1[[s]]$scenario_data$n_responders[, c(1, 2, 3)],
+    cbind(go_decisions_futility_1[[s]]$scenario_data$n_responders[ , c(1, 2, 3)],
           "r_4" = 0)
   
   ### response rates
@@ -368,7 +368,8 @@ analyses_2
 if (any(grepl("w_",
               colnames(analyses_2$scenario_1$quantiles_list$exnex[[1]])))) {   
   ## remove unnecessary data  
-  ## quantiles_list
+  
+  ## weights from quantiles_list
   for(k in 1:1000) {
     analyses_2$scenario_1$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1:4)]
     analyses_2$scenario_2$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1:4)]
@@ -377,6 +378,7 @@ if (any(grepl("w_",
   }
   rm(k)
 
+  ## post_quantiles
   analyses_2$scenario_1$scenario_data$previous_analyses$post_quantiles <- NULL
   analyses_2$scenario_2$scenario_data$previous_analyses$post_quantiles <- NULL
   analyses_2$scenario_3$scenario_data$previous_analyses$post_quantiles <- NULL
@@ -409,10 +411,13 @@ nogo_decisions_2 <- getGoDecisions(
                                x[2] >= 0.1,
                                x[3] >= 0.05,
                                x[4] >= 0.05)))
-
 nogo_decisions_2 <- negateGoDecisions(nogo_decisions_2)
 
-decision_2 <- getGoProbabilities(go_decisions_2, nogo_decisions_2)
+
+decision_2 <- getGoProbabilities(
+  go_decisions_list   = go_decisions_2, 
+  nogo_decisions_list =  nogo_decisions_2)
+
 scaleRoundList(decision_2, round_digits = 2)
 ```
 
@@ -430,7 +435,7 @@ for (s in seq_along(orr_scenario_list)) {
     go_decisions_2[[s]]$decisions_list$exnex_adj[, 2] + 
     go_decisions_SuperGo[[s]]$decisions_list$exnex_adj[, 2] > 0
   
-  ## for overall Go as well:
+  ## update overall Go
   go_decisions_for_analysis_3[[s]]$decisions_list$exnex_adj[, 1] <-
     go_decisions_2[[s]]$decisions_list$exnex_adj[, 1] + 
     go_decisions_SuperGo[[s]]$decisions_list$exnex_adj[, 1] > 0
@@ -457,10 +462,8 @@ scenarios_3
 **Include?**  
 If one is interested in the mean number of subjects per scenario, one can get an overview with function `getAverageNSubjects()`.
 ```{r}
-## mean number of subjects per scenario in Phase 2
 getAverageNSubjects(
-  scenario_list = scenarios_3
-)
+  scenario_list = scenarios_3)
 ```
 
 ### Analysis III
@@ -500,7 +503,7 @@ if (any(grepl("w_",
               colnames(analyses_3$scenario_1$quantiles_list$exnex[[1]])))) {  
   ## remove unnecessary data
    
- # quantiles_list
+  ## weights from quantiles_list
   for(k in 1:1000) {
     analyses_3$scenario_1$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1:4)]
     analyses_3$scenario_2$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1:4)]
@@ -509,7 +512,7 @@ if (any(grepl("w_",
   }
   rm(k)
 
-  ##subjects, responders, post_quantiles and prior_parameters
+  ## subjects, responders and post_quantiles
   for(s in seq_along(orr_scenario_list)) {
     analyses_3[[s]]$scenario_data$n_subjects <- NULL
     analyses_3[[s]]$scenario_data$n_responders <- NULL
@@ -521,7 +524,6 @@ if (any(grepl("w_",
   saveRDS(analyses_3, "analyses_lists/complex_analysis_3.rds", compress = "xz")
 }
 ```
-
 
 #### Decision Making
 The final decision rules for Cohort 1 are proposed by @fisch2015, using the model *ExNex adjusted*.
@@ -544,8 +546,6 @@ nogo_decisions_3  <- negateGoDecisions(
     cohort_names    = c("p_1", "p_1"),
     evidence_levels = c(0.5, 0.9),
     boundary_rules  = quote(c(x[1] >= 0.305 | x[2] > 0.15, TRUE, TRUE, TRUE))))
-
-final_probability_list <- getGoProbabilities(go_decisions_3, nogo_decisions_3)
 ```
 
 In this case, the other cohorts will not be analysed again. Therefore, the function `getGoProbabilities()` uses the previous calculated Go and NoGo decisions for Cohort 2, 3, and 4. To include the probability for a Consider decision as well, the final decisions list must be manipulated. The Go, NoGo and Consider decisions of the second decision making will be combined with the final decisions for Cohort 1.
@@ -555,6 +555,8 @@ final_go_decisions <- go_decisions_3
 final_nogo_decisions <- nogo_decisions_3
 
 for(s in seq_along(orr_scenario_list)) {
+  
+  # combine Go and NoGo decisions
   final_go_decisions[[s]]$decisions_list[[1]] <- 
     cbind(final_go_decisions[[s]]$decisions_list[[1]][,c(1,2)],
          go_decisions_2[[s]]$decisions_list[[1]][, c(3, 4, 5)])
@@ -563,6 +565,7 @@ for(s in seq_along(orr_scenario_list)) {
     cbind(final_nogo_decisions[[s]]$decisions_list[[1]][,c(1,2)],
          nogo_decisions_2[[s]]$decisions_list[[1]][, c(3, 4, 5)])
   
+  # update overall Go
   for(i in 1000){
     if(any(final_go_decisions[[s]]$decisions_list[[1]][i, c(2:5)])) {
       final_go_decisions[[s]]$decisions_list[[1]][i, 1] <- TRUE
@@ -573,8 +576,9 @@ for(s in seq_along(orr_scenario_list)) {
   }
 }
 rm(i,s)
+```
 
-
+```{r}
 final_decisions <- getGoProbabilities(
   go_decisions_list   = final_go_decisions,
   nogo_decisions_list = final_nogo_decisions)
@@ -582,8 +586,8 @@ final_decisions <- getGoProbabilities(
 scaleRoundList(final_decisions, round_digits = 2)
 ```
 
-In case of the final analysis, the set of decision rules leads to an overall Go probability of 98% and individual Go probability of 73% in Cohort 1. 
-The probabilities of identifying the nugget cohorts are 72% and 70%.
-The overall Go probability in the negative scenario is 2%.
+In case of the final analysis, the set of decision rules leads to an overall Go probability of 98% and individual Go probability of 73% in Cohort 1.
+The probabilities of identifying the nugget cohorts are 71% and 70%.
+The overall Go probability in the negative scenario is 3%.
 
 ## References
