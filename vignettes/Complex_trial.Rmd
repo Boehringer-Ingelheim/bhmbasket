@@ -202,6 +202,7 @@ One can get point estimates and credible intervals per cohorts, as well as estim
 #### Decision Making
 The created analyses list will be used to make Go/NoGo decisions as part of the futility analysis.
 In this case, decisions for Cohorts 2 and 3 are not of interest and therefore, the argument `boundary_rules` obtains `TRUE` at the second and third position.
+To assess the overall operating characteristics, the required number of cohort-wise Go decisions for an overall Go is increased to three.
 The decision rule for Cohort 1 is implemented as follows:
 
 $P(p_1|\text{data} > 0.2) > 0.5$
@@ -211,7 +212,8 @@ go_decisions_futility_1 <- getGoDecisions(
   analyses_list   = analyses_futility_1,
   cohort_names    = "p_1",
   evidence_levels = 0.5,
-  boundary_rules  = quote(c(x[1] >= 0.2, TRUE, TRUE)))
+  boundary_rules  = quote(c(x[1] >= 0.2, TRUE, TRUE)),
+  overall_min_gos = 3)
 
 go_decisions_futility_1
 ```
@@ -366,7 +368,7 @@ if (any(grepl("w_",
   ## remove unnecessary data  
   
   ## weights from quantiles_list
-  for(k in 1:(analyses_2[[1]]$scenario_data$n_trials)) {
+  for(k in 1:10000) {
     analyses_2$scenario_1$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
     analyses_2$scenario_2$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
     analyses_2$scenario_3$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
