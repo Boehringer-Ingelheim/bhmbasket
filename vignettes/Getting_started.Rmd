@@ -123,13 +123,13 @@ The function `simulateScenarios()` is used to simulate data according to scenari
 For each scenario, one must provide the number of subjects and the true response rates per cohort.
 Also observed, historical data can be included in the simulated trial outcomes.
 
-This example consists of four scenarios and three cohorts, whereby the third cohort is historical with an observed number of five responders out of 15 subjects.
+This example consists of four scenarios and three cohorts, with the third cohort being historical with an observed number of five responders out of 15 subjects.
 The trial design will be investigated with a positive scenario, two nugget scenarios, and a negative scenario.
 The positive and negative scenarios cover the true highest and lowest response rates that lead to a continuation or stop of the development of the drug, respectively.
 In the nugget scenarios, only one of the cohorts assumes the response rate of the positive scenario, whereas the other cohorts assume the response rates of the negative scenario. 
 
 ```{r}
-scenarios_list <- list(
+scenarios <- list(
   rr_positive = c(0.2, 0.35, 5),
   rr_nugget1  = c(0.2, 0.15, 5),
   rr_nugget2  = c(0.05, 0.35, 5),
@@ -138,7 +138,7 @@ scenarios_list <- list(
 
 scenario_list <- simulateScenarios(
   n_subjects_list     = c(15, 10, 15),
-  response_rates_list = scenarios_list)
+  response_rates_list = scenarios)
 
 scenario_list
 ```
@@ -208,7 +208,7 @@ if (any(grepl("w_",
   }
   rm(k)
 
- # save modified analysis list  
+ # save modified analysis list
  saveRDS(analysis_list, "analyses_lists/gettingStarted_analysis_1.rds", compress = "xz")
 }
 ```
@@ -238,7 +238,7 @@ round(estimates$exnex_adj$scenario_3, digits = 2)
 ## Decision Making  
 Go/NoGo decision rules can be implemented with [`getGoDecisions()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoDecisions.html).
 The function calculates Go decisions for each cohort of a trial outcome based on decision rules.
-The resulting decision list can be used to calculate the cohort-wise and overall decision probabilities using the functions [`getGoProbabilities()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoProbabilities.html) and [`negateGoDecisions()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/negateGoDecisions.html).
+The resulting decision list can be used to calculate the cohort-wise and overall decision probabilities using the functions [`negateGoDecisions()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/negateGoDecisions.html) and [`getGoProbabilities()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoProbabilities.html).
 
 ### Implementation of Decision Rules in General
 
@@ -266,7 +266,7 @@ boundary_rules  = quote(c(x[1] > 0.1), x[2] > 0.2)
 The first evidence level `0.5` and the first cohort name `p_1` are addressed by `x[1]`.
 Accordingly, the evidence level `0.9` and the second cohort name `p_2` are addressed by `x[2]`.
 Inside the quote for the boundary rule, `x[1]` and `x[2]` can be used in any order or repeated as often as required, and the rules can be nested, or conditioned.
-This makes this approach very flexible for implementing many different and potentially comlex decision rules.
+This makes this approach very flexible for implementing many different and potentially complex decision rules.
 
 
 #### Futility Analysis
@@ -293,7 +293,7 @@ futility_decision_list <- getGoDecisions(
 ```
 
 The function `getGoProbability()` calculates the cohort-wise Go probabilities based on the previously created decisions list.
-Optionally providing a NoGo decision list, `getGoProbability()` calculates also Consider and NoGo decision probabilities.
+Optionally providing a NoGo decisions list, `getGoProbability()` calculates also Consider and NoGo decision probabilities.
 
 ```{r}
 futility_go_probabilities <- getGoProbabilities(
@@ -323,9 +323,9 @@ decision_list_adj <- getGoDecisions(
 
 decision_list_adj
 ```
-In the negative scenario, the false Go probabilities of the method Stratified are comparatively high with an overall Go probability of 55%, and 16% and 46% cohort-wise false go probability in Cohorts 1 and 2, respectively.
-Using the model ExNex adjusted leads to false Go probabilities of 16% in Cohort 1 and 23% in Cohort 2.
-The false Go probability of Cohort 1, using the model proposed by @berry2013, is 6 percentage points lower compared to the probability when using the model ExNex adjusted.
+In the negative scenario, the false Go probabilities of the method Stratified are comparatively high with an overall Go probability of 55%, and 18% and 46% cohort-wise false go probability in Cohorts 1 and 2, respectively.
+Using the model ExNex adjusted leads to false Go probabilities of 18% in Cohort 1 and 23% in Cohort 2.
+The false Go probability of Cohort 1, using the model proposed by @berry2013, is 7 percentage points lower compared to the probability when using the model ExNex adjusted.
 
 The differences between the models can be attributed to the different amounts of borrowing of information between the cohorts.
 The more borrowing, the smaller the false Go probability in the negative scenario.
@@ -395,7 +395,6 @@ if (any(grepl("w_",
 
   ##subjects, responders and post_quantiles
   for(s in seq_along(scenarios_list)) {
-    final_analysis_list[[s]]$scenario_data$n_subjects <- final_analysis_list[[s]]$scenario_data$n_subjects[1,] #[1,] necessary for diff_21
     final_analysis_list[[s]]$scenario_data$n_responders <- NULL
     final_analysis_list[[s]]$scenario_data$previous_analyses$post_quantiles <- NULL
     final_analysis_list[[s]]$scenario_data$n_trials <- NULL
@@ -423,7 +422,7 @@ Due to the different numbers of subjects in the trials, the decision rules can b
 ```{r}
 getAverageNSubjects(
   scenario_list = final_scenario_list
-)
+  )
 ```
 
 ### Final Decision Making
@@ -463,7 +462,7 @@ nogo_boundary_rules = quote(c(x[1] > 0.8 | x[3] > 0.4,
 
 #### Final Analysis of the Example Trial
 For the final analysis of this example, the decision rules for Cohort 1 for relevance and significance are $P(p_1|\text{data} > 0.167) > 0.5$ and $P(p_1|\text{data} > 0.05) > 0.8$, respectively.
-For Cohort 2, the relevance criterion $P(p_2|\text{data} > 0.29) > 0.5$ ∧ $P(p_2-p_1|\text{data} > 0) > 0.5$ is a combination of rules for the point estimate and for the difference between Cohort 2 and Cohort 1.
+For Cohort 2, the relevance criterion $P(p_2|\text{data} > 0.29) > 0.5$ ∧ $P(p_2-p_1|\text{data} > 0) > 0.5$ is a combination of rules for the point estimate and for the difference between Cohorts 2 and 1.
 The rule for significance for Cohort 2 is $P(p_2|\text{data} > 0.15) > 0.8$.
 The third cohort should not get a decision as in the futility analysis.
 
@@ -500,9 +499,9 @@ final_probability_list <- getGoProbabilities(
 
 scaleRoundList(final_probability_list, round_digits = 2)
 ```
-In this case, the specified decision rules lead to an overall Go probability of 88% and individual Go probabilities of 68% in Cohort 1 and 70% in Cohort 2 in the positive scenario. 
-The probabilities of identifying the nugget cohorts are 60% and 65%, respectively.
-In the negative scenario, the overall false Go probability is 11%.
+In this case, the specified decision rules lead to an overall Go probability of 84% and individual Go probabilities of 65% in Cohort 1 and 72% in Cohort 2 in the positive scenario. 
+The probabilities of identifying the nugget cohorts are 55% and 60%, respectively.
+In the negative scenario, the overall false Go probability is 2%.
 Note that there is a trade-off between targeted decision probabilities and sample size.
 
 ## References
