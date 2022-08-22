@@ -139,7 +139,7 @@ n_subjects <- c(12, 25, 25, 0)
 
 ## simulation
 scenarios_futility_1 <- simulateScenarios(
-  n_subjects_list     = n_subjects_Ph1[-4],
+  n_subjects_list     = n_subjects[-4],
   response_rates_list = lapply(orr_scenario_list, function (x) x[-4]))
 
 scenarios_futility_1
@@ -162,8 +162,8 @@ analyses_futility_1
 ```{r, echo=FALSE}
 if (file.exists("analyses_lists/complex_analysis_1.rds")) {
   
-    analyses_futility_1 <- readRDS("analyses_lists/complex_analysis_1.rds")
-    #analyses_futility_1 <- readRDS("analyses_lists/1complex_analysis_1.rds")
+  analyses_futility_1 <- readRDS("analyses_lists/complex_analysis_1.rds")
+  #analyses_futility_1 <- readRDS("analyses_lists/1complex_analysis_1.rds")
   
 } else {
   
@@ -172,7 +172,7 @@ if (file.exists("analyses_lists/complex_analysis_1.rds")) {
   method_names      = "exnex_adj",
   target_rates      = orr_target_rates[-4])
   
-  saveRDS(analyses_futility_1, "analyses_lists/complex_analysis_1.rds", compress = "xz")
+  saveRDS(analyses_futility_1, "analyses_lists/complex_analysis_1.rds")
 }
 
 analyses_futility_1
@@ -184,11 +184,11 @@ if (any(grepl("w_",
   # remove unnecessary data
   
   ## weights from quantiles_list
-  for(k in 1:1000) {
-    analyses_futility_1$scenario_1$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
-    analyses_futility_1$scenario_2$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
-    analyses_futility_1$scenario_3$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
-    analyses_futility_1$scenario_4$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
+  for(k in 1:10000) {
+    analyses_futility_1$scenario_1$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1:4, 8)]
+    analyses_futility_1$scenario_2$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1:4, 8)]
+    analyses_futility_1$scenario_3$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1:4, 8)]
+    analyses_futility_1$scenario_4$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1:4, 8)]
   }
   rm(k)
 
@@ -316,10 +316,6 @@ The recruitment can be continued, once the futility analysis is performed and th
 Cohort 1 will recruit additional 13 subjects and Cohort 4 will recruit 25 subjects.
 In both cases, only the trial outcomes that reached a Go in the previous futility analysis will recruit additional subjects and will be analysed afterwards.
 
-```{r, include = FALSE}
-set.seed(1705)
-```
-
 ```{r}
 ## add 13 subjects for Cohort 1 and 25 subjects for Cohort 4
 scenarios_2 <- continueRecruitment(
@@ -333,7 +329,7 @@ scenarios_2
 ### Analysis II
 In the primary analysis II, all cohorts will be analysed with the model *ExNex adjusted* with a subsequent decision making.
 
-```{r, eval=FALSE}
+```{r, eval = FALSE}
 analyses_2 <- performAnalyses(
   scenario_list     = scenarios_2,
   method_names      = "exnex_adj",
@@ -357,7 +353,7 @@ if (file.exists("analyses_lists/complex_analysis_2.rds")) {
   evidence_levels   = 0.75,
   target_rates      = orr_target_rates)
   
-  saveRDS(analyses_2, "analyses_lists/complex_analysis_2.rds", compress = "xz")
+  saveRDS(analyses_2, "analyses_lists/complex_analysis_2.rds")
 }
 
 analyses_2
@@ -370,11 +366,11 @@ if (any(grepl("w_",
   ## remove unnecessary data  
   
   ## weights from quantiles_list
-  for(k in 1:1000) {
-    analyses_2$scenario_1$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1:4)]
-    analyses_2$scenario_2$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1:4)]
-    analyses_2$scenario_3$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1:4)]
-    analyses_2$scenario_4$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1:4)]
+  for(k in 1:(analyses_2[[1]]$scenario_data$n_trials)) {
+    analyses_2$scenario_1$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
+    analyses_2$scenario_2$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
+    analyses_2$scenario_3$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
+    analyses_2$scenario_4$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
   }
   rm(k)
 
@@ -446,10 +442,6 @@ rm(s)
 
 The modified decision list can be used for the continuation of recruitment fulfilling the aforementioned precondition.
 
-```{r, include = FALSE}
-set.seed(1705)
-```
-
 ```{r}
 scenarios_3 <- continueRecruitment(
   n_subjects_add_list = c(45, 0, 0, 0),
@@ -472,7 +464,7 @@ The primary analysis III is only based on Cohort 1.
 ```{r, eval=FALSE}
 analyses_3 <- performAnalyses(
   scenario_list         = scenarios_3,
-  method_names          = c("exnex_adj"),
+  method_names          = "exnex_adj",
   target_rates          = orr_target_rates)
 
 analyses_3
@@ -482,16 +474,16 @@ analyses_3
 if (file.exists("analyses_lists/complex_analysis_3.rds")) {
   
   analyses_3 <- readRDS("analyses_lists/complex_analysis_3.rds")
-  #analyses_3 <- readRDS("analyses_lists/3complex_analysis_3.rds")
+  #analyses_3 <- readRDS("analyses_lists/3complex_analysis_3new.rds")
   
 } else {
   
   analyses_3 <- performAnalyses(
   scenario_list         = scenarios_3,
-  method_names          = c("exnex_adj"),
+  method_names          = "exnex_adj",
   target_rates          = orr_target_rates)
   
-  saveRDS(analyses_3, "analyses_lists/complex_analysis_3.rds", compress = "xz")
+  saveRDS(analyses_3, "analyses_lists/3complex_analysis_3.rds")
 }
 
 analyses_3
@@ -504,11 +496,11 @@ if (any(grepl("w_",
   ## remove unnecessary data
    
   ## weights from quantiles_list
-  for(k in 1:1000) {
-    analyses_3$scenario_1$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1:4)]
-    analyses_3$scenario_2$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1:4)]
-    analyses_3$scenario_3$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1:4)]
-    analyses_3$scenario_4$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1:4)]
+  for(k in 1:10000) {
+    analyses_3$scenario_1$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
+    analyses_3$scenario_2$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
+    analyses_3$scenario_3$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
+    analyses_3$scenario_4$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
   }
   rm(k)
 
@@ -516,9 +508,15 @@ if (any(grepl("w_",
   for(s in seq_along(orr_scenario_list)) {
     analyses_3[[s]]$scenario_data$n_subjects <- NULL
     analyses_3[[s]]$scenario_data$n_responders <- NULL
+    analyses_3[[s]]$scenario_data$n_trials <- NULL
     analyses_3[[s]]$scenario_data$previous_analyses$post_quantiles <- NULL
   }
   rm(s)
+  
+  # analyses_3$scenario_4$quantiles_list$exnex_adj <-   lapply(analyses_3$scenario_4$quantiles_list$exnex_adj, function   (x) {
+  #   x[ , -c(1:5, 10)]
+  # })
+  
   
   # save modified analysis list  
   saveRDS(analyses_3, "analyses_lists/complex_analysis_3.rds", compress = "xz")
@@ -565,17 +563,18 @@ for(s in seq_along(orr_scenario_list)) {
     cbind(final_nogo_decisions[[s]]$decisions_list[[1]][,c(1,2)],
          nogo_decisions_2[[s]]$decisions_list[[1]][, c(3, 4, 5)])
   
-  # update overall Go
-  for(i in 1000){
-    if(any(final_go_decisions[[s]]$decisions_list[[1]][i, c(2:5)])) {
-      final_go_decisions[[s]]$decisions_list[[1]][i, 1] <- TRUE
-    }
-    if(all(final_nogo_decisions[[s]]$decisions_list[[1]][i, c(2:5)])) {
-      final_nogo_decisions[[s]]$decisions_list[[1]][i, 1] <- TRUE
-    }
-  }
+  # update overall Go  
+  final_go_decisions[[s]]$decisions_list[[1]][,1] <-
+    apply(final_go_decisions[[s]]$decisions_list[[1]], 1, function (x) {
+    any(x[2:5])
+  })
+  
+  final_nogo_decisions[[s]]$decisions_list[[1]][,1] <-
+    apply(final_nogo_decisions[[s]]$decisions_list[[1]], 1, function (x) {
+    all(x[2:5])
+  })
 }
-rm(i,s)
+rm(s)
 ```
 
 ```{r}
@@ -586,8 +585,8 @@ final_decisions <- getGoProbabilities(
 scaleRoundList(final_decisions, round_digits = 2)
 ```
 
-In case of the final analysis, the set of decision rules leads to an overall Go probability of 98% and individual Go probability of 73% in Cohort 1.
-The probabilities of identifying the nugget cohorts are 71% and 70%.
+In case of the final analysis, the set of decision rules leads to an overall Go probability of 98% and individual Go probability of 74% in Cohort 1.
+The probabilities of identifying the nugget cohorts are 66% and 69%.
 The overall Go probability in the negative scenario is 3%.
 
 ## References
