@@ -264,7 +264,8 @@ go_decisions_1[[1]]$decisions_list$exnex_adj <-
     cbind(go_decisions_1[[1]]$decisions_list$exnex_adj[, c(1, 2, 3, 4)],
           "decision_4" = go_decisions_futility_1[[1]]$decisions_list$exnex_adj[, 2])
 
-head(go_decisions_1[[1]]$decisions_list$exnex_adj)
+#head(go_decisions_1[[1]]$decisions_list$exnex_adj)
+go_decisions_1[[1]]$decisions_list$exnex_adj[10:14, ]
 ```
 
 The second step is to adapt the scenario data.
@@ -386,6 +387,7 @@ if (any(grepl("w_",
   saveRDS(analyses_2, "analyses_lists/complex_analysis_2.rds", compress = "xz")
 }
 ```
+
 #### Decision Making
 The second decision making is part of analysis II.
 The decision is based on all 4 cohorts applying different decision boundaries.
@@ -422,7 +424,7 @@ scaleRoundList(decision_2, round_digits = 2)
 ## Second Simulations
 In the next Phase, Cohort 1 will recruit additional 45 subjects.
 The precondition for this recruitment is a SuperGo in the futility analysis or a Go in analysis II.
-Due to this precondition, the decision list must be modified again:
+Due to this precondition, the decision lists `go_decisions_2` and `go_decisions_SuperGo` must be combined:
 
 ```{r}
 go_decisions_for_analysis_3 <- go_decisions_2
@@ -461,7 +463,7 @@ getAverageNSubjects(
 ```
 
 ### Analysis III
-The primary analysis III is only based on Cohort 1.
+The primary analysis III is only based on Cohort 1 using the model *exnex adjusted*.
 
 ```{r, eval=FALSE}
 analyses_3 <- performAnalyses(
@@ -586,7 +588,6 @@ final_decisions <- getGoProbabilities(
 
 scaleRoundList(final_decisions, round_digits = 2)
 ```
-
 In case of the final analysis, the set of decision rules leads to an overall Go probability of 98% and individual Go probability of 74% in Cohort 1.
 The probabilities of identifying the nugget cohorts are 66% and 69%.
 The overall Go probability in the negative scenario is 3%.
