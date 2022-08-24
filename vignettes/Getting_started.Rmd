@@ -443,7 +443,7 @@ For each cohort, the Go and NoGo decision rules are a combination of the relevan
 * else Consider
 
 To implement the NoGo rule $-(R ∨ S)$, the function `negateGoDecisions()` can be used in conjunction with `getGoDecisions()`.
-As an example, decision rules applying the relevance rule $P(p_1|\text{data} > 0.8) > 0.5$ and the significance rule $P(p_1|\text{data} > 0.4) > 0.95$ can be implemented as follows:
+As an example, decision rules applying the relevance rule $P(p_1|\text{data} > 0.4) > 0.5$ and the significance rule $P(p_1|\text{data} > 0.2) > 0.95$ can be implemented as follows:
 ```{r, eval=FALSE}
 cohort_names    = c('p_1', 'p_2',
                     'p_1', 'p_2')
@@ -452,12 +452,12 @@ evidence_levels = c(0.5,  0.5,
                     0.95, 0.95)
 
 # argument for first call of getGoDecisions()
-go_boundary_rules   = quote(c(x[1] > 0.8 & x[3] > 0.4, 
-                              x[2] > 0.8 & x[4] > 0.4)
+go_boundary_rules   = quote(c(x[1] > 0.4 & x[3] > 0.2, 
+                              x[2] > 0.4 & x[4] > 0.2)
 
 # argument for second call of getGoDecisions() with negateGoDecisions()
-nogo_boundary_rules = quote(c(x[1] > 0.8 | x[3] > 0.4, 
-                              x[2] > 0.8 | x[4] > 0.4)
+nogo_boundary_rules = quote(c(x[1] > 0.4 | x[3] > 0.2, 
+                              x[2] > 0.4 | x[4] > 0.2)
 ```
 
 #### Final Analysis of the Example Trial
