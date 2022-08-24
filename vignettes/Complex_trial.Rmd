@@ -82,7 +82,7 @@ knitr::opts_chunk$set(
 This guide describes the implementation of a more complex basket trial design with a Bayesian hierarchical model (BHM) for analysis.
 The design has two special features: the delayed start of a cohort depending on the outcome of a previous cohort and a SuperGo decision influencing the further recruitment of a cohort.  
 
-A guide for a more simple BHM design implementation with the package [bhmbasket](https://cran.r-project.org/web/packages/bhmbasket/index.html) can be found in the vignette [Getting started](...).  
+A guide for a more simple BHM design implementation with the package [bhmbasket](https://cran.r-project.org/web/packages/bhmbasket/index.html) can be found in the vignette *bhmbasket - Getting Started*.  
 
 ## Trial Design
 The example trial consists of four cohorts with a planned total of 70, 25, 25, and 25 subjects.
@@ -119,9 +119,9 @@ plan(multisession)
 
 ## Simulation for Analysis I
 The setup of the trial design starts with the simulation of scenario data with the function `simulateScenarios()`.
-The cohorts will be simulated in four different scenarios: a positive scenario, a SuperGo scenario, a nugget scenario, and a negative scenario. 
+The cohorts will be simulated in four different scenarios: a positive scenario, a SuperGo scenario, a nugget scenario, and a negative scenario.
 The first analysis will be performed after 12 subjects become evaluable in Cohort 1.
-Cohort 4 is removed from the simulations as the recruitment of that cohort starts depending on the the analysis outcome of Cohort 1 in Analysis I.
+Cohort 4 is removed from the simulation as the recruitment of that cohort starts depending on the the analysis outcome of Cohort 1 in Analysis I.
 
 ```{r}
 ## scenarios
