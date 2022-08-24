@@ -24,7 +24,7 @@ references:
     DOI: 10.1002/pst.1730
     issue: 2
     page: 123-134
-    type: 
+    type: article-journal
     issued:
       year: 2016
   - id: berry2013
