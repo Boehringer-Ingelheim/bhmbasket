@@ -178,7 +178,6 @@ analysis_list
 if (file.exists("analyses_lists/gettingStarted_analysis_1.rds")) {
   
   analysis_list <- readRDS("analyses_lists/gettingStarted_analysis_1.rds")
-
 } else {
   
   analysis_list <- performAnalyses(
