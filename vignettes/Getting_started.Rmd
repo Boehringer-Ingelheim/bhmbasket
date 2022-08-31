@@ -177,8 +177,8 @@ analysis_list
 ```{r, echo=FALSE}
 if (file.exists("analyses_lists/gettingStarted_analysis_1.rds")) {
   
-  #analysis_list <- readRDS("analyses_lists/1gettingStarted_analysis_1.rds")
   analysis_list <- readRDS("analyses_lists/gettingStarted_analysis_1.rds")
+
 } else {
   
   analysis_list <- performAnalyses(
@@ -199,14 +199,18 @@ if (any(grepl("w_",
               colnames(analysis_list$scenario_1$quantiles_list$exnex[[1]])))) {   
   
   # remove unnecessary data  
-  ## weights from quantiles_list
-  for(k in 1:10000) {
-    analysis_list$scenario_1$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1:3)]
-    analysis_list$scenario_2$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1:3)]
-    analysis_list$scenario_3$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1:3)]
-    analysis_list$scenario_4$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1:3)]
-  }
-  rm(k)
+  analysis_list$scenario_1$quantiles_list$exnex_adj <-   lapply(analysis_list$scenario_1$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:4, 8)]
+  })  
+  analysis_list$scenario_2$quantiles_list$exnex_adj <-   lapply(analysis_list$scenario_2$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:4, 8)]
+  })  
+  analysis_list$scenario_3$quantiles_list$exnex_adj <-   lapply(analysis_list$scenario_3$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:4, 8)]
+  })
+  analysis_list$scenario_4$quantiles_list$exnex_adj <-   lapply(analysis_list$scenario_4$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:4, 8)]
+  })
 
  # save modified analysis list
  saveRDS(analysis_list, "analyses_lists/gettingStarted_analysis_1.rds", compress = "xz")
@@ -338,7 +342,6 @@ The function [`continueRecruitment()`](https://search.r-project.org/CRAN/refmans
 `continueRecruitment()` only allows to add subjects according to one method.
 In this case, ExNex adjusted will be used to continue the recruitment.
 
-
 ```{r, message=FALSE, warning=FALSE}
 final_scenario_list <- continueRecruitment(
   n_subjects_add_list = c(15, 15),
@@ -361,7 +364,6 @@ final_analysis_list
 ```{r, echo=FALSE}
 if (file.exists("analyses_lists/gettingStarted_analysis_2.rds")) {
   
-  #final_analysis_list <- readRDS("analyses_lists/2gettingStarted_analysis_2.rds")
   final_analysis_list <- readRDS("analyses_lists/gettingStarted_analysis_2.rds")
   
 } else {
@@ -383,16 +385,19 @@ final_analysis_list
 if (any(grepl("w_",
               colnames(final_analysis_list$scenario_1$quantiles_list$exnex[[1]])))) {  
   # remove unnecessary data
-   
-  ## weights from quantiles_list
-  for(k in 1:10000) {
-    final_analysis_list$scenario_1$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1:4, 8)]
-    final_analysis_list$scenario_2$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1:4, 8)]
-    final_analysis_list$scenario_3$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1:4, 8)]
-    final_analysis_list$scenario_4$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1:4, 8)]
-  }
-  rm(k)
-
+  final_analysis_list$scenario_1$quantiles_list$exnex_adj <-   lapply(final_analysis_list$scenario_1$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:4, 8)]
+  })
+  final_analysis_list$scenario_2$quantiles_list$exnex_adj <-   lapply(final_analysis_list$scenario_2$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:4, 8)]
+  })
+  final_analysis_list$scenario_3$quantiles_list$exnex_adj <-   lapply(final_analysis_list$scenario_3$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:4, 8)]
+  })
+  final_analysis_list$scenario_4$quantiles_list$exnex_adj <-   lapply(final_analysis_list$scenario_4$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:4, 8)]
+  })
+  
   ##subjects, responders and post_quantiles
   for(s in seq_along(scenarios_list)) {
     final_analysis_list[[s]]$scenario_data$n_responders <- NULL
@@ -400,17 +405,7 @@ if (any(grepl("w_",
     final_analysis_list[[s]]$scenario_data$n_trials <- NULL
   }
   rm(s)
-  
-  # for(k in 1:10000) {
-  # final_analysis_list$scenario_1$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_1$quantiles_list$exnex_adj[[k]][-c(1, 3, 7),]
-  # final_analysis_list$scenario_2$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_1$quantiles_list$exnex_adj[[k]][-c(1, 3, 7),]
-  # final_analysis_list$scenario_3$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_1$quantiles_list$exnex_adj[[k]][-c(1, 3, 7),]
-  # final_analysis_list$scenario_4$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_1$quantiles_list$exnex_adj[[k]][-c(1, 3, 7),]
-  # }
-  # final_analysis_list[[1]]$analysis_parameters$quantiles <- c(0.050, 0.200, 0.500, 0.950)
-  # final_analysis_list[[2]]$analysis_parameters$quantiles <- c(0.050, 0.200, 0.500, 0.950)
-  # final_analysis_list[[3]]$analysis_parameters$quantiles <- c(0.050, 0.200, 0.500, 0.950)
-  # final_analysis_list[[4]]$analysis_parameters$quantiles <- c(0.050, 0.200, 0.500, 0.950)
+
 # save modified analysis list  
    saveRDS(final_analysis_list, "analyses_lists/gettingStarted_analysis_2.rds", compress = "xz")
 }
