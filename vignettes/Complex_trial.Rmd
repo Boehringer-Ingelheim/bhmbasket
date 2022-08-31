@@ -1,10 +1,10 @@
 ---
-title: "Complexe Trial Design"
+title: "Seamless Trial Design with bhmbasket"
 author: "Lisamaria Eble"
 date: '`r format(Sys.time(), "%B %d, %Y")`'
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Complexe Trial Design}
+  %\VignetteIndexEntry{Seamless Trial Design with bhmbasket}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 references:
@@ -163,7 +163,6 @@ analyses_futility_1
 if (file.exists("analyses_lists/complex_analysis_1.rds")) {
   
   analyses_futility_1 <- readRDS("analyses_lists/complex_analysis_1.rds")
-  #analyses_futility_1 <- readRDS("analyses_lists/1complex_analysis_1.rds")
   
 } else {
   
@@ -177,20 +176,25 @@ if (file.exists("analyses_lists/complex_analysis_1.rds")) {
 
 analyses_futility_1
 ```
+
 ```{r, include = FALSE}
 ## check for unnecessary data
 if (any(grepl("w_",
               colnames(analyses_futility_1$scenario_1$quantiles_list$exnex[[1]])))) {   
-  # remove unnecessary data
   
-  ## weights from quantiles_list
-  for(k in 1:10000) {
-    analyses_futility_1$scenario_1$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1:4, 8)]
-    analyses_futility_1$scenario_2$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1:4, 8)]
-    analyses_futility_1$scenario_3$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1:4, 8)]
-    analyses_futility_1$scenario_4$quantiles_list$exnex_adj[[k]] <- analyses_futility_1$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1:4, 8)]
-  }
-  rm(k)
+  # remove unnecessary data
+  analyses_futility_1$scenario_1$quantiles_list$exnex_adj <-   lapply( analyses_futility_1$scenario_1$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:4, 8)]
+  })
+  analyses_futility_1$scenario_2$quantiles_list$exnex_adj <-   lapply( analyses_futility_1$scenario_2$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:4, 8)]
+  })
+  analyses_futility_1$scenario_3$quantiles_list$exnex_adj <-   lapply( analyses_futility_1$scenario_3$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:4, 8)]
+  })
+  analyses_futility_1$scenario_4$quantiles_list$exnex_adj <-   lapply( analyses_futility_1$scenario_4$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:4, 8)]
+  })
 
  # save modified analysis list  
  saveRDS(analyses_futility_1,"analyses_lists/complex_analysis_1.rds", compress = "xz")
@@ -260,12 +264,11 @@ The first step is to combine the already existing decisions of the futility anal
 Cohort 4 is taking over the decisions of Cohort 1, due to the prerequisite that the start of Cohort 4 depends on Cohort 1 passing its futility analysis.
 
 ```{r}
-go_decisions_1[[1]]$decisions_list$exnex_adj <-
-    cbind(go_decisions_1[[1]]$decisions_list$exnex_adj[, c(1, 2, 3, 4)],
-          "decision_4" = go_decisions_futility_1[[1]]$decisions_list$exnex_adj[, 2])
+go_decisions_1[[3]]$decisions_list$exnex_adj <-
+    cbind(go_decisions_1[[3]]$decisions_list$exnex_adj[, c(1, 2, 3, 4)],
+          "decision_4" = go_decisions_futility_1[[3]]$decisions_list$exnex_adj[, 2])
 
-#head(go_decisions_1[[1]]$decisions_list$exnex_adj)
-go_decisions_1[[1]]$decisions_list$exnex_adj[10:14, ]
+head(go_decisions_1[[3]]$decisions_list$exnex_adj)
 ```
 
 The second step is to adapt the scenario data.
@@ -346,7 +349,6 @@ analyses_2
 if (file.exists("analyses_lists/complex_analysis_2.rds")) {
   
   analyses_2 <- readRDS("analyses_lists/complex_analysis_2.rds")
-  #analyses_2 <- readRDS("analyses_lists/2complex_analysis_2.rds")
   
 } else {
   
@@ -366,16 +368,20 @@ analyses_2
 ## check for unnecessary data
 if (any(grepl("w_",
               colnames(analyses_2$scenario_1$quantiles_list$exnex[[1]])))) {   
-  ## remove unnecessary data  
   
-  ## weights from quantiles_list
-  for(k in 1:10000) {
-    analyses_2$scenario_1$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
-    analyses_2$scenario_2$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
-    analyses_2$scenario_3$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
-    analyses_2$scenario_4$quantiles_list$exnex_adj[[k]] <- analyses_2$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
-  }
-  rm(k)
+  ## remove unnecessary data  
+  analyses_2$scenario_1$quantiles_list$exnex_adj <-   lapply(analyses_2$scenario_1$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:5, 10)]
+  })
+  analyses_2$scenario_2$quantiles_list$exnex_adj <-   lapply(analyses_2$scenario_2$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:5, 10)]
+  })
+  analyses_2$scenario_3$quantiles_list$exnex_adj <-   lapply(analyses_2$scenario_3$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:5, 10)]
+  })
+  analyses_2$scenario_4$quantiles_list$exnex_adj <-   lapply(analyses_2$scenario_4$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:5, 10)]
+  })
 
   ## post_quantiles
   analyses_2$scenario_1$scenario_data$previous_analyses$post_quantiles <- NULL
@@ -478,7 +484,6 @@ analyses_3
 if (file.exists("analyses_lists/complex_analysis_3.rds")) {
   
   analyses_3 <- readRDS("analyses_lists/complex_analysis_3.rds")
-  #analyses_3 <- readRDS("analyses_lists/3complex_analysis_3new.rds")
   
 } else {
   
@@ -487,7 +492,7 @@ if (file.exists("analyses_lists/complex_analysis_3.rds")) {
   method_names          = "exnex_adj",
   target_rates          = orr_target_rates)
   
-  saveRDS(analyses_3, "analyses_lists/3complex_analysis_3.rds")
+  saveRDS(analyses_3, "analyses_lists/complex_analysis_3.rds")
 }
 
 analyses_3
@@ -498,16 +503,19 @@ analyses_3
 if (any(grepl("w_",
               colnames(analyses_3$scenario_1$quantiles_list$exnex[[1]])))) {  
   ## remove unnecessary data
-   
-  ## weights from quantiles_list
-  for(k in 1:10000) {
-    analyses_3$scenario_1$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
-    analyses_3$scenario_2$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
-    analyses_3$scenario_3$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
-    analyses_3$scenario_4$quantiles_list$exnex_adj[[k]] <- analyses_3$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1:5, 10)]
-  }
-  rm(k)
-
+  analyses_3$scenario_1$quantiles_list$exnex_adj <-   lapply(analyses_3$scenario_1$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:5, 10)]
+  })
+  analyses_3$scenario_2$quantiles_list$exnex_adj <-   lapply(analyses_3$scenario_2$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:5, 10)]
+  })
+  analyses_3$scenario_3$quantiles_list$exnex_adj <-   lapply(analyses_3$scenario_3$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:5, 10)]
+  })
+  analyses_3$scenario_4$quantiles_list$exnex_adj <-   lapply(analyses_3$scenario_4$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:5, 10)]
+  })
+  
   ## subjects, responders and post_quantiles
   for(s in seq_along(orr_scenario_list)) {
     analyses_3[[s]]$scenario_data$n_subjects <- NULL
@@ -516,12 +524,7 @@ if (any(grepl("w_",
     analyses_3[[s]]$scenario_data$previous_analyses$post_quantiles <- NULL
   }
   rm(s)
-  
-  # analyses_3$scenario_4$quantiles_list$exnex_adj <-   lapply(analyses_3$scenario_4$quantiles_list$exnex_adj, function   (x) {
-  #   x[ , -c(1:5, 10)]
-  # })
-  
-  
+
   # save modified analysis list  
   saveRDS(analyses_3, "analyses_lists/complex_analysis_3.rds", compress = "xz")
 }
