@@ -119,10 +119,7 @@ if (file.exists("analyses_lists/chugh_analysis.rds")) {
   scenario_list         = chugh_trial,
   method_names          = "exnex",
   prior_parameters_list = chugh_prior_parameters,
-  seed                  = rng_seed,
-  n_mcmc_iterations     = 5e4,
-  n_cores               = 2L,
-  verbose               = FALSE)
+  n_mcmc_iterations     = 5e4)
   
   saveRDS(chugh_analysis, "analyses_lists/chugh_analysis.rds")
   
@@ -166,7 +163,26 @@ The analysis of each simulated basket trial is performed with the function `perf
 @exnex2016 use the posterior means of the cohorts' response rates to calculate the biases and mean squared errors, as well as to derive cohort-wise decisions.
 Setting the argument `post_mean` to `TRUE` will save the posterior means along with the posterior probability thresholds, which are required for the decision making laid out below.
 The prior parameters for the ExNex model are taken from Section 3.1 and Appendix 5.1.2 of @exnex2016.
-```{r performAnalyses}
+
+```{r, eval = FALSE}
+prior_parameters <- setPriorParametersExNex(
+  mu_mean   = c(logit(0.1), logit(0.3)),
+  mu_sd     = c(3.18, 1.94),
+  tau_scale = 1,
+  mu_j      = rep(logit(0.2), 4),
+  tau_j     = rep(2.5, 4),
+  w_j       = c(0.25, 0.25, 0.5))
+
+analyses_list <- performAnalyses(
+    scenario_list         = scenarios_list,
+    method_names          = "exnex",
+    prior_parameters_list = prior_parameters,
+    n_mcmc_iterations     = 5e4)
+  
+  saveRDS(analyses_list, "analyses_lists/1analyses_list.rds")
+```
+
+```{r performAnalyses, include = FALSE}
 prior_parameters <- setPriorParametersExNex(
   mu_mean   = c(logit(0.1), logit(0.3)),
   mu_sd     = c(3.18, 1.94),
@@ -185,9 +201,7 @@ if (file.exists("analyses_lists/analyses_list.rds")) {
     scenario_list         = scenarios_list,
     method_names          = "exnex",
     prior_parameters_list = prior_parameters,
-    seed                  = rng_seed,
-    n_mcmc_iterations     = 5e4,
-    n_cores               = 2L)
+    n_mcmc_iterations     = 5e4)
   
   saveRDS(analyses_list, "analyses_lists/analyses_list.rds")
   
