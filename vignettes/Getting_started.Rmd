@@ -123,21 +123,22 @@ The function `simulateScenarios()` is used to simulate data according to scenari
 For each scenario, one must provide the number of subjects and the true response rates per cohort.
 Also observed, historical data can be included in the simulated trial outcomes.
 
-This example consists of four scenarios and three cohorts, whereby the third cohort is historical with an observed number of five responders out of 15 subjects.
+This example consists of four scenarios and three cohorts, with the third cohort being historical with an observed number of five responders out of 15 subjects.
 The trial design will be investigated with a positive scenario, two nugget scenarios, and a negative scenario.
 The positive and negative scenarios cover the true highest and lowest response rates that lead to a continuation or stop of the development of the drug, respectively.
 In the nugget scenarios, only one of the cohorts assumes the response rate of the positive scenario, whereas the other cohorts assume the response rates of the negative scenario. 
 
 ```{r}
-scenarios_list <- list(
+scenarios <- list(
   rr_positive = c(0.2, 0.35, 5),
   rr_nugget1  = c(0.2, 0.15, 5),
   rr_nugget2  = c(0.05, 0.35, 5),
   rr_negative = c(0.05, 0.15, 5))
 
+
 scenario_list <- simulateScenarios(
   n_subjects_list     = c(15, 10, 15),
-  response_rates_list = scenarios_list)
+  response_rates_list = scenarios)
 
 scenario_list
 ```
@@ -176,7 +177,6 @@ analysis_list
 ```{r, echo=FALSE}
 if (file.exists("analyses_lists/gettingStarted_analysis_1.rds")) {
   
-  #analysis_list <- readRDS("analyses_lists/1gettingStarted_analysis_1.rds")
   analysis_list <- readRDS("analyses_lists/gettingStarted_analysis_1.rds")
 } else {
   
@@ -186,29 +186,32 @@ if (file.exists("analyses_lists/gettingStarted_analysis_1.rds")) {
   target_rates     = c(0.2, 0.35, 0.3),
   calc_differences = c(2, 1))
   
-  saveRDS(analysis_list, "analyses_lists/gettingStarted_analysis_1.rds", compress = "xz")
+  saveRDS(analysis_list, "analyses_lists/gettingStarted_analysis_1.rds")
 }
 
 analysis_list
 ```
 
 ```{r, include = FALSE}
-## check for unnecessary data
-  
-  ## remove unnecessary data
+# check for unnecessary data
 if (any(grepl("w_",
               colnames(analysis_list$scenario_1$quantiles_list$exnex[[1]])))) {   
-  ## quantiles_list
+  
+  # remove unnecessary data  
+  analysis_list$scenario_1$quantiles_list$exnex_adj <-   lapply(analysis_list$scenario_1$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:3)]
+  })  
+  analysis_list$scenario_2$quantiles_list$exnex_adj <-   lapply(analysis_list$scenario_2$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:3)]
+  })  
+  analysis_list$scenario_3$quantiles_list$exnex_adj <-   lapply(analysis_list$scenario_3$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:3)]
+  })
+  analysis_list$scenario_4$quantiles_list$exnex_adj <-   lapply(analysis_list$scenario_4$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:3)]
+  })
 
-  for(k in 1:10000) {
-    analysis_list$scenario_1$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
-    analysis_list$scenario_2$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
-    analysis_list$scenario_3$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
-    analysis_list$scenario_4$quantiles_list$exnex_adj[[k]] <- analysis_list$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
-  }
-  rm(k)
-
- # save modified analysis list  
+ # save modified analysis list
  saveRDS(analysis_list, "analyses_lists/gettingStarted_analysis_1.rds", compress = "xz")
 }
 ```
@@ -231,13 +234,14 @@ The list of shown parameters can be expanded by additional model parameters usin
 estimates <- getEstimates(
   analyses_list  = analysis_list,
   add_parameters = c("mu", "tau"))
+
 round(estimates$exnex_adj$scenario_3, digits = 2)
 ```
   
 ## Decision Making  
 Go/NoGo decision rules can be implemented with [`getGoDecisions()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoDecisions.html).
 The function calculates Go decisions for each cohort of a trial outcome based on decision rules.
-The resulting decision list can be used to calculate the cohort-wise and overall decision probabilities using the functions [`getGoProbabilities()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoProbabilities.html) and [`negateGoDecisions()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/negateGoDecisions.html).
+The resulting decision list can be used to calculate the cohort-wise and overall decision probabilities using the functions [`negateGoDecisions()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/negateGoDecisions.html) and [`getGoProbabilities()`](https://search.r-project.org/CRAN/refmans/bhmbasket/html/getGoProbabilities.html).
 
 ### Implementation of Decision Rules in General
 
@@ -265,7 +269,7 @@ boundary_rules  = quote(c(x[1] > 0.1), x[2] > 0.2)
 The first evidence level `0.5` and the first cohort name `p_1` are addressed by `x[1]`.
 Accordingly, the evidence level `0.9` and the second cohort name `p_2` are addressed by `x[2]`.
 Inside the quote for the boundary rule, `x[1]` and `x[2]` can be used in any order or repeated as often as required, and the rules can be nested, or conditioned.
-This makes this approach very flexible for implementing many different and potentially comlex decision rules.
+This makes this approach very flexible for implementing many different and potentially complex decision rules.
 
 
 #### Futility Analysis
@@ -292,7 +296,7 @@ futility_decision_list <- getGoDecisions(
 ```
 
 The function `getGoProbability()` calculates the cohort-wise Go probabilities based on the previously created decisions list.
-Optionally providing a NoGo decision list, `getGoProbability()` calculates also Consider and NoGo decision probabilities.
+Optionally providing a NoGo decisions list, `getGoProbability()` calculates also Consider and NoGo decision probabilities.
 
 ```{r}
 futility_go_probabilities <- getGoProbabilities(
@@ -320,17 +324,11 @@ decision_list_adj <- getGoDecisions(
                                  TRUE))),     #stratified
   overall_min_gos = 2)
 
-
-#go_probabilities <- getGoProbabilities(
-#  go_decisions_list = decision_list_adj)
-#
-#scaleRoundList(go_probabilities, round_digits = 2)
-
 decision_list_adj
 ```
-In the negative scenario, the false Go probabilities of the method Stratified are comparatively high with an overall Go probability of 55%, and 16% and 46% cohort-wise false go probability in Cohorts 1 and 2, respectively.
-Using the model ExNex adjusted leads to false Go probabilities of 16% in Cohort 1 and 23% in Cohort 2.
-The false Go probability of Cohort 1, using the model proposed by @berry2013, is 6 percentage points lower compared to the probability when using the model ExNex adjusted.
+In the negative scenario, the false Go probabilities of the method Stratified are comparatively high with an overall Go probability of 55%, and 18% and 46% cohort-wise false go probability in Cohorts 1 and 2, respectively.
+Using the model ExNex adjusted leads to false Go probabilities of 18% in Cohort 1 and 23% in Cohort 2.
+The false Go probability of Cohort 1, using the model proposed by @berry2013, is 7 percentage points lower compared to the probability when using the model ExNex adjusted.
 
 The differences between the models can be attributed to the different amounts of borrowing of information between the cohorts.
 The more borrowing, the smaller the false Go probability in the negative scenario.
@@ -343,9 +341,7 @@ The function [`continueRecruitment()`](https://search.r-project.org/CRAN/refmans
 `continueRecruitment()` only allows to add subjects according to one method.
 In this case, ExNex adjusted will be used to continue the recruitment.
 
-
 ```{r, message=FALSE, warning=FALSE}
-set.seed(677643)
 final_scenario_list <- continueRecruitment(
   n_subjects_add_list = c(15, 15),
   decisions_list      = futility_decision_list,
@@ -367,7 +363,6 @@ final_analysis_list
 ```{r, echo=FALSE}
 if (file.exists("analyses_lists/gettingStarted_analysis_2.rds")) {
   
-  #final_analysis_list <- readRDS("analyses_lists/2gettingStarted_analysis_2.rds")
   final_analysis_list <- readRDS("analyses_lists/gettingStarted_analysis_2.rds")
   
 } else {
@@ -378,32 +373,35 @@ if (file.exists("analyses_lists/gettingStarted_analysis_2.rds")) {
   calc_differences = c(2, 1),
   target_rates     = c(0.2, 0.35, 0.3))
   
-  saveRDS(final_analysis_list, "analyses_lists/gettingStarted_analysis_2.rds", compress = "xz")
+  saveRDS(final_analysis_list, "analyses_lists/2gettingStarted_analysis_2.rds")
 }
 
 final_analysis_list
 ```
 
 ```{r, include = FALSE}
-## check for unnecessary data
+# check for unnecessary data
 if (any(grepl("w_",
               colnames(final_analysis_list$scenario_1$quantiles_list$exnex[[1]])))) {  
-  ## remove unnecessary data
-   
- # quantiles_list
-  for(k in 1:10000) {
-    final_analysis_list$scenario_1$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_1$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
-    final_analysis_list$scenario_2$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_2$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
-    final_analysis_list$scenario_3$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_3$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
-    final_analysis_list$scenario_4$quantiles_list$exnex_adj[[k]] <- final_analysis_list$scenario_4$quantiles_list$exnex_adj[[k]][,-c(1, 2, 3)]
-  }
-  rm(k)
-
-  ##subjects, responders, post_quantiles and prior_parameters
+  # remove unnecessary data
+  final_analysis_list$scenario_1$quantiles_list$exnex_adj <-   lapply(final_analysis_list$scenario_1$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:4, 8)]
+  })
+  final_analysis_list$scenario_2$quantiles_list$exnex_adj <-   lapply(final_analysis_list$scenario_2$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:4, 8)]
+  })
+  final_analysis_list$scenario_3$quantiles_list$exnex_adj <-   lapply(final_analysis_list$scenario_3$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:4, 8)]
+  })
+  final_analysis_list$scenario_4$quantiles_list$exnex_adj <-   lapply(final_analysis_list$scenario_4$quantiles_list$exnex_adj, function (x) {
+    x[ , -c(1:4, 8)]
+  })
+  
+  ##subjects, responders and post_quantiles
   for(s in seq_along(scenarios_list)) {
-    #final_analysis_list[[s]]$scenario_data$n_subjects <- NULL
     final_analysis_list[[s]]$scenario_data$n_responders <- NULL
     final_analysis_list[[s]]$scenario_data$previous_analyses$post_quantiles <- NULL
+    final_analysis_list[[s]]$scenario_data$n_trials <- NULL
   }
   rm(s)
 
@@ -418,7 +416,7 @@ Due to the different numbers of subjects in the trials, the decision rules can b
 ```{r}
 getAverageNSubjects(
   scenario_list = final_scenario_list
-)
+  )
 ```
 
 ### Final Decision Making
@@ -439,7 +437,7 @@ For each cohort, the Go and NoGo decision rules are a combination of the relevan
 * else Consider
 
 To implement the NoGo rule $-(R ∨ S)$, the function `negateGoDecisions()` can be used in conjunction with `getGoDecisions()`.
-As an example, decision rules applying the relevance rule $P(p_1|\text{data} > 0.8) > 0.5$ and the significance rule $P(p_1|\text{data} > 0.4) > 0.95$ can be implemented as follows:
+As an example, decision rules applying the relevance rule $P(p_1|\text{data} > 0.4) > 0.5$ and the significance rule $P(p_1|\text{data} > 0.2) > 0.95$ can be implemented as follows:
 ```{r, eval=FALSE}
 cohort_names    = c('p_1', 'p_2',
                     'p_1', 'p_2')
@@ -448,17 +446,17 @@ evidence_levels = c(0.5,  0.5,
                     0.95, 0.95)
 
 # argument for first call of getGoDecisions()
-go_boundary_rules   = quote(c(x[1] > 0.8 & x[3] > 0.4, 
-                              x[2] > 0.8 & x[4] > 0.4)
+go_boundary_rules   = quote(c(x[1] > 0.4 & x[3] > 0.2, 
+                              x[2] > 0.4 & x[4] > 0.2)
 
 # argument for second call of getGoDecisions() with negateGoDecisions()
-nogo_boundary_rules = quote(c(x[1] > 0.8 | x[3] > 0.4, 
-                              x[2] > 0.8 | x[4] > 0.4)
+nogo_boundary_rules = quote(c(x[1] > 0.4 | x[3] > 0.2, 
+                              x[2] > 0.4 | x[4] > 0.2)
 ```
 
 #### Final Analysis of the Example Trial
-For the final analysis of this example, the decision rules for Cohort 1 for relevance and significance are $P(p_1|\text{data} > 0.147) > 0.5$ and $P(p_1|\text{data} > 0.05) > 0.8$, respectively.
-For Cohort 2, the relevance criterion $P(p_2|\text{data} > 0.28) > 0.5$ ∧ $P(p_2-p_1|\text{data} > 0) > 0.5$ is a combination of rules for the point estimate and for the difference between Cohort 2 and Cohort 1.
+For the final analysis of this example, the decision rules for Cohort 1 for relevance and significance are $P(p_1|\text{data} > 0.167) > 0.5$ and $P(p_1|\text{data} > 0.05) > 0.8$, respectively.
+For Cohort 2, the relevance criterion $P(p_2|\text{data} > 0.29) > 0.5$ ∧ $P(p_2-p_1|\text{data} > 0) > 0.5$ is a combination of rules for the point estimate and for the difference between Cohorts 2 and 1.
 The rule for significance for Cohort 2 is $P(p_2|\text{data} > 0.15) > 0.8$.
 The third cohort should not get a decision as in the futility analysis.
 
@@ -469,8 +467,8 @@ final_decision_list <- getGoDecisions(
                       "p_1", "p_2"),
   evidence_levels = c(0.5, 0.5, 0.5,
                       0.8, 0.8),
-  boundary_rules  = quote(c(x[1] > 0.147            & x[4] > 0.05,
-                            x[2] > 0.28  & x[3] > 0 & x[5] > 0.15, 
+  boundary_rules  = quote(c(x[1] > 0.167            & x[4] > 0.05,
+                            x[2] > 0.29  & x[3] > 0 & x[5] > 0.15, 
                             TRUE)),
   overall_min_gos = 2)
 
@@ -482,11 +480,12 @@ final_nogo_decision_list <- negateGoDecisions(
                         "p_1", "p_2"),
     evidence_levels = c(0.5, 0.5, 0.5,
                         0.8, 0.8), 
-    boundary_rules  = quote(c(x[1] > 0.147            | x[4] > 0.05,
-                              x[2] > 0.28  & x[3] > 0 | x[5] > 0.15,
+    boundary_rules  = quote(c(x[1] > 0.167            | x[4] > 0.05,
+                              x[2] > 0.29  & x[3] > 0 | x[5] > 0.15,
                               TRUE)),
     overall_min_gos = 2),
   overall_min_nogos = 2)
+
 
 final_probability_list <- getGoProbabilities(
   go_decisions_list = final_decision_list,
@@ -494,9 +493,9 @@ final_probability_list <- getGoProbabilities(
 
 scaleRoundList(final_probability_list, round_digits = 2)
 ```
-In this case, the specified decision rules lead to an overall Go probability of 88% and individual Go probabilities of 68% in Cohort 1 and 70% in Cohort 2 in the positive scenario. 
-The probabilities of identifying the nugget cohorts are 60% and 65%, respectively.
-In the negative scenario, the overall false Go probability is 11%.
+In this case, the specified decision rules lead to an overall Go probability of 84% and individual Go probabilities of 65% in Cohort 1 and 72% in Cohort 2 in the positive scenario. 
+The probabilities of identifying the nugget cohorts are 55% and 60%, respectively.
+In the negative scenario, the overall false Go probability is 2%.
 Note that there is a trade-off between targeted decision probabilities and sample size.
 
 ## References
