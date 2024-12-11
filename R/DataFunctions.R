@@ -62,7 +62,7 @@ continueRecruitment <- function (
     "Please provide an object of class decision_list for the argument 'decisions_list'")
   error_method_name <- simpleError(paste(
     "Please provide a string naming an analysis method for the argument 'method_name'",
-    "Must be one of 'berry', 'exnex', 'exnex_adj', 'pooled', 'stratified'"))
+    "Must be one of 'berry', 'exnex', 'exnex_adj', 'pooled', 'stratified', 'custom"))
   
   if (missing(n_subjects_add_list))            stop (error_n_subjects_add_list)
   if (missing(decisions_list))                 stop (error_decisions_list)
@@ -89,7 +89,7 @@ continueRecruitment <- function (
       
       match.arg(
         method_name,
-        choices    = c('berry', 'exnex', 'exnex_adj', 'pooled', 'stratified'),
+        choices    = c('berry', 'exnex', 'exnex_adj', 'pooled', 'stratified', 'custom'),
         several.ok = FALSE)
       
     }, error = function (e) e)

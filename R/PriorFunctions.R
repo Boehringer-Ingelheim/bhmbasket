@@ -6,7 +6,7 @@
 #' @description This function provides default prior parameters for the analysis methods
 #' that can be used in \code{\link[bhmbasket]{performAnalyses}}.
 #' @param method_names A vector of strings for the names of the methods to be used.
-#' Available methods: `c("berry", "exnex", "exnex_adj", "pooled", "stratified")`
+#' Available methods: `c("berry", "exnex", "exnex_adj", "pooled", "stratified", "custom")`
 #' @param target_rates A vector of numerics in `(0, 1)` for the
 #' target rate of each cohort
 #' @param n_worth An integer for the number of subjects the variability of the prior should reflect
@@ -60,7 +60,7 @@
 #' @author Stephan Wojciekowski
 #' @examples
 #' prior_parameters_list <- getPriorParameters(
-#'   method_names = c("berry", "exnex", "exnex_adj", "pooled", "stratified"),
+#'   method_names = c("berry", "exnex", "exnex_adj", "pooled", "stratified", "custom"),
 #'   target_rates = c(0.1, 0.2, 0.3))
 #' @rdname getPriorParameters
 #' @seealso
@@ -70,6 +70,7 @@
 #'  \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 #'  \code{\link[bhmbasket]{setPriorParametersPooled}}
 #'  \code{\link[bhmbasket]{setPriorParametersStratified}}
+#'  \code{\link[bhmbasket]{setPriorParametersCustom}}
 #'  \code{\link[bhmbasket]{combinePriorParameters}}
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @references Berry, Scott M., et al. "Bayesian hierarchical modeling of patient subpopulations:
@@ -91,28 +92,28 @@ getPriorParameters <- function (
 
   error_method_names <- simpleError(
     paste("Please provide a (vector of) strings for the argument 'method_names'\n",
-          "Must be one of 'berry', 'exnex', 'exnex_adj', 'pooled', 'stratified'"))
-  error_target_rates <- simpleError(
-    "Please provide a vector of numerics in (0, 1) for the argument 'target_rates'")
+          "Must be one of 'berry', 'exnex', 'exnex_adj', 'pooled', 'stratified', 'custom'"))
+  # error_target_rates <- simpleError(
+  #   "Please provide a vector of numerics in (0, 1) for the argument 'target_rates'")
   error_tau_scale    <- simpleError(
     "Please provide a positive numeric for the argument 'tau_scale'")
   error_n_worth      <- simpleError("Please provide a positive integer for the argument 'n_worth'")
   error_w_j          <- simpleError("Please provide a numeric in (0, 1) for the argument 'w_j'")
 
   if (missing(method_names)) stop (error_method_names)
-  if (missing(target_rates)) stop (error_target_rates)
+  # if (missing(target_rates)) stop (error_target_rates)
 
   method_names <- tryCatch({
 
     match.arg(
       method_names,
-      choices    = c('berry', 'exnex', 'exnex_adj', 'pooled', 'stratified'),
+      choices    = c('berry', 'exnex', 'exnex_adj', 'pooled', 'stratified', 'custom', 'MEM'),
       several.ok = TRUE)
 
   }, error = function (e) e)
 
   if (inherits(method_names, "error"))          stop (error_method_names)
-  if (!is.numeric.in.zero.one(target_rates))    stop (error_target_rates)
+  # if (!is.numeric.in.zero.one(target_rates))    stop (error_target_rates)
   if (!is.single.positive.numeric(tau_scale))   stop (error_tau_scale)
   if (!is.single.positive.wholenumber(n_worth)) stop (error_n_worth)
   # if (!is.single.numeric.in.zero.one(w_j))      stop (error_w_j)
@@ -161,7 +162,20 @@ getPriorParameters <- function (
         target_rates = target_rates,
         n_worth      = n_worth)[[1]]
 
+    } else if (method_name == "custom") {
+      
+      getPriorParametersCustom( #to change############
+        target_rates = target_rates,
+        n_worth      = n_worth,
+        tau_scale    = tau_scale,
+        w_j          = w_j)[[1]] #to change
+      
+    } else if (method_name == "MEM") {
+      
+      getPriorParametersMEM()[[1]]
+      
     }
+    
 
   })
 
@@ -183,8 +197,11 @@ getPriorParameters <- function (
 #' \code{\link[bhmbasket]{setPriorParametersBerry}},
 #' \code{\link[bhmbasket]{setPriorParametersExNex}},
 #' \code{\link[bhmbasket]{setPriorParametersExNexAdj}},
-#' \code{\link[bhmbasket]{setPriorParametersPooled}}, or
-#' \code{\link[bhmbasket]{setPriorParametersStratified}},
+#' \code{\link[bhmbasket]{setPriorParametersPooled}},
+#' \code{\link[bhmbasket]{setPriorParametersMEM}}
+#' \code{\link[bhmbasket]{setPriorParametersStratified}}, or
+#' \code{\link[bhmbasket]{setPriorParametersCustom}}
+#' 
 #' in case more than one analysis method should be applied with
 #' \code{\link[bhmbasket]{performAnalyses}}.
 #' @author Stephan Wojciekowski
@@ -204,6 +221,7 @@ getPriorParameters <- function (
 #'  \code{\link[bhmbasket]{setPriorParametersPooled}}
 #'  \code{\link[bhmbasket]{setPriorParametersStratified}}
 #'  \code{\link[bhmbasket]{getPriorParameters}}
+#'  \code{\link[bhmbasket]{MEM}}
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @export
 combinePriorParameters <- function (
@@ -377,6 +395,7 @@ getPriorParametersBerry <- function (
 #'  \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 #'  \code{\link[bhmbasket]{setPriorParametersPooled}}
 #'  \code{\link[bhmbasket]{setPriorParametersStratified}}
+#'  \code{\link[bhmbasket]{setPriorParametersCustom}}
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @references Berry, Scott M., et al. "Bayesian hierarchical modeling of patient subpopulations:
 #' efficient designs of phase II oncology clinical trials."
@@ -501,6 +520,7 @@ getPriorParametersExNex <- function (
 #'  \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 #'  \code{\link[bhmbasket]{setPriorParametersPooled}}
 #'  \code{\link[bhmbasket]{setPriorParametersStratified}}
+#'  \code{\link[bhmbasket]{setPriorParametersCustom}}
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @references Neuenschwander, Beat, et al. "Robust exchangeability designs
 #' for early phase clinical trials with multiple strata."
@@ -645,6 +665,7 @@ getPriorParametersExNexAdj <- function (
 #'  \code{\link[bhmbasket]{setPriorParametersExNex}}
 #'  \code{\link[bhmbasket]{setPriorParametersPooled}}
 #'  \code{\link[bhmbasket]{setPriorParametersStratified}}
+#'  \code{\link[bhmbasket]{setPriorParametersCustom}}
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @export
 setPriorParametersExNexAdj <- function (
@@ -766,6 +787,7 @@ getPriorParametersPooled <- function (
 #'  \code{\link[bhmbasket]{setPriorParametersExNex}}
 #'  \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 #'  \code{\link[bhmbasket]{setPriorParametersStratified}}
+#'  \code{\link[bhmbasket]{setPriorParametersCustom}}
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @export
 setPriorParametersPooled <- function (
@@ -852,6 +874,7 @@ getPriorParametersStratified <- function (
 #'  \code{\link[bhmbasket]{setPriorParametersExNex}}
 #'  \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 #'  \code{\link[bhmbasket]{setPriorParametersPooled}}
+#'  \code{\link[bhmbasket]{setPriorParametersCustom}}
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @export
 setPriorParametersStratified <- function (
@@ -886,4 +909,203 @@ setPriorParametersStratified <- function (
 
 }
 
+## custom #### 
 
+getPriorParametersCustom <- function (
+    
+  target_rates,
+  tau_scale = 1,
+  n_worth   = 1,
+  
+  w_j       = 0.5
+  
+) {
+  
+  error_target_rates <- simpleError(
+    paste("Please provide a vector of numerics in (0, 1) for the argument 'target_rates'"))
+  error_tau_scale    <- simpleError("Please provide a positive numeric for the argument 'tau_scale'")
+  error_n_worth      <- simpleError("Please provide a positive integer for the argument 'n_worth'")
+  error_w_j          <- simpleError("Please provide a numeric in (0, 1) for the argument 'w_j'")
+  
+  if (missing(target_rates)) stop (error_target_rates)
+  
+  if (!is.numeric.in.zero.one(target_rates))    stop (error_target_rates)
+  if (!is.single.positive.numeric(tau_scale))   stop (error_tau_scale)
+  if (!is.single.positive.wholenumber(n_worth)) stop (error_n_worth)
+  if (!is.single.numeric(w_j) ||
+      any(w_j < 0) ||
+      any(w_j > 1))                             stop (error_w_j)
+  
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  
+  prior_parameters <- getPriorParametersCostum(target_rates, tau_scale, n_worth, w_j)[[1]]
+  
+  prior_parameters$mu_mean <- 0
+  prior_parameters$mu_j    <- rep(0, length(target_rates))
+  
+  prior_parameters_list <- list (exnex_adj = prior_parameters)
+  class(prior_parameters_list) <- "prior_parameters_list"
+  
+  return (prior_parameters_list)
+  
+}
+
+#' @title setPriorParametersCustom
+#' @md
+#' @description This function sets prior parameters for the analysis method `"custom"`
+#' for use in \code{\link[bhmbasket]{performAnalyses}}.
+#' @param mu_mean A numeric for the mean of \eqn{\mu}
+#' @param mu_sd A positive numeric for the standard deviation of \eqn{\mu}
+#' @param tau_scale A positive numeric for the scale parameter of \eqn{\tau}
+#' @param mu_j A vector of numerics for the means \eqn{\mu_j}
+#' @param tau_j A vector of positive numerics for the standard deviations \eqn{\tau_j}
+#' @param w_j A numeric in `(0, 1)` for the weight of the Ex component
+#' @return A list with prior parameters of class `prior_parameters_list`
+#' @details
+#' Custom
+#' @author Stephan Wojciekowski
+#' @examples
+#'  prior_parameters_exnex_adj <- setPriorParametersCustom(0, 1, 2, c(4, 5), c(6, 7), 0.8)
+#' @rdname setPriorParametersCustom
+#' @seealso
+#'  \code{\link[bhmbasket]{performAnalyses}}
+#'  \code{\link[bhmbasket]{getPriorParameters}}
+#'  \code{\link[bhmbasket]{combinePriorParameters}}
+#'  \code{\link[bhmbasket]{setPriorParametersBerry}}
+#'  \code{\link[bhmbasket]{setPriorParametersExNex}}
+#'  \code{\link[bhmbasket]{setPriorParametersPooled}}
+#'  \code{\link[bhmbasket]{setPriorParametersStratified}}
+#'  #'  \code{\link[bhmbasket]{setPriorParametersCustom}}
+#'  \code{\link[bhmbasket]{getMuVar}}
+#' @export
+setPriorParametersCustom <- function (
+    
+  mu_mean,
+  mu_sd,
+  tau_scale,
+  
+  mu_j,
+  tau_j,
+  
+  w_j
+  
+) {
+  
+  error_mu_mean   <- simpleError("Please provide a numeric for the argument 'mu_mean'")
+  error_mu_sd     <- simpleError("Please provide a positive numeric for the argument 'mu_sd'")
+  error_tau_scale <- simpleError("Please provide a positive numeric for the argument 'tau_scale'")
+  error_mu_j      <- simpleError("Please provide a (vector of) numeric(s) for the argument 'mu_j'")
+  error_tau_j     <- simpleError(
+    "Please provide a (vector of) positive numeric(s) for the argument 'tau_j'")
+  error_w_j   <- simpleError("Please provide a numeric in (0, 1) for the argument 'w_j'")
+  
+  if (missing(mu_mean))   stop (error_mu_mean)
+  if (missing(mu_sd))     stop (error_mu_sd)
+  if (missing(tau_scale)) stop (error_tau_scale)
+  if (missing(mu_j))      stop (error_mu_j)
+  if (missing(tau_j))     stop (error_tau_j)
+  if (missing(w_j))       stop (error_w_j)
+  
+  if (!is.numeric(mu_mean))                    stop (error_mu_mean)
+  if (!is.positive.numeric(mu_sd))             stop (error_mu_sd)
+  if (!is.single.positive.numeric(tau_scale))  stop (error_tau_scale)
+  if (!is.numeric(mu_j))                       stop (error_mu_j)
+  if (!is.positive.numeric(tau_j))             stop (error_tau_j)
+  if (!is.single.numeric(w_j) ||
+      any(w_j < 0) ||
+      any(w_j > 1))                             stop (error_w_j)
+  
+  if (!identical(length(mu_mean), length(mu_sd))) stop (simpleError(
+    "'mu_mean' and 'mu_sd' must have save length"))
+  
+  if (!identical(length(mu_mean), 1L)) {
+    if (!identical(length(w_j), length(mu_mean) + 1L)) stop (simpleError(
+      "'w_j' must have length equal to length(mu_mean) + 1 if length(mu_mean) > 1"))
+  }
+  
+  if (!identical(length(w_j), 1L)) {
+    if (!identical(length(w_j), length(mu_mean) + 1L)) stop (simpleError(
+      "'w_j' must have length 1 or 2, if length(mu_mean) = 1"))
+  }
+  
+  if (!identical(length(mu_j), length(tau_j)))
+    stop (simpleError("mu_j and tau_j must have the same length"))
+  
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  
+  prior_parameters_list <- setPriorParametersCustom(mu_mean, mu_sd, tau_scale, mu_j, tau_j, w_j)
+  names(prior_parameters_list) <- "custom"
+  
+  return (prior_parameters_list)
+  
+}
+
+## MEM ####
+## until now it is not possible to adjust the prior MEM matrix (could be added)
+getPriorParametersMEM <- function (
+    
+  target_rates,
+  n_worth = 1
+  
+) {
+
+  prior_parameters <- list(shape1 = 0.5, shape2 = 0.5)
+  
+  prior_parameters_list        <- list(MEM = prior_parameters)
+  class(prior_parameters_list) <- "prior_parameters_list"
+  
+  return (prior_parameters_list)
+  
+}
+
+#' @title setPriorParametersMEM
+#' @md
+#' @description This function sets prior parameters for the analysis method `"MEM"`
+#' for use in \code{\link[bhmbasket]{performAnalyses}}.
+#' @param a A positive numeric for \eqn{\alpha}
+#' @param b A positive numeric for \eqn{\beta}
+#' @return A list with prior parameters of class `prior_parameters_list`
+#' @details
+#' The method `"MEM"` is a beta-binomial model that pools all cohorts.
+#' The prior parameters are the scale parameters of the beta prior distribution.
+#' @author Stephan Wojciekowski
+#' @examples
+#'  prior_parameters_pooled <- setPriorParametersPooled(1, 2)
+#' @rdname setPriorParametersMEM
+#' @seealso
+#'  \code{\link[bhmbasket]{performAnalyses}}
+#'  \code{\link[bhmbasket]{getPriorParameters}}
+#'  \code{\link[bhmbasket]{combinePriorParameters}}
+#'  \code{\link[bhmbasket]{setPriorParametersBerry}}
+#'  \code{\link[bhmbasket]{setPriorParametersExNex}}
+#'  \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
+#'  \code{\link[bhmbasket]{setPriorParametersStratified}}
+#'  \code{\link[bhmbasket]{setPriorParametersCustom}}
+#'  \code{\link[bhmbasket]{getMuVar}}
+#' @export
+setPriorParametersMEM <- function (
+    shape1 = 0.5,
+    shape2 = 0.5
+
+  
+) {
+  
+  error_shape1 <- simpleError(
+    "Please provide a positive numeric for the argument 'shape1'")
+  error_b <- simpleError(
+    "Please provide a positive numeric for the argument 'shape2'")
+
+  
+  if (!is.single.positive.numeric(shape1)) stop (error_shape1)
+  if (!is.single.positive.numeric(shape2)) stop (error_shape2)
+  
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  
+  prior_parameters <- list(shape1 = shape1, shape2 = shape2)
+  
+  prior_parameters_list        <- list(MEM = prior_parameters)
+  class(prior_parameters_list) <- "prior_parameters_list"
+  
+  return (prior_parameters_list)
+  
+}

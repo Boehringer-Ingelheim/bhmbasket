@@ -181,10 +181,10 @@ getEstimates <- function (
   
   available_quantiles <- round(analyses_list[[1]]$analysis_parameters$quantiles, 9)
   asked_quantiles     <- round(c(alpha_level / 2, 1 - alpha_level / 2), 9)
-  if (any(!asked_quantiles %in% available_quantiles)) stop (simpleError(paste(
-    "The 'alpha_level' must be among the stored quantiles in 'analyses_list',",
-    "e.g. 1 - alpha_level must be among the evidence_levels in performAnalyses()")))
-  
+  # if (any(!asked_quantiles %in% available_quantiles)) stop (simpleError(paste(
+  #   "The 'alpha_level' must be among the stored quantiles in 'analyses_list',",
+  #   "e.g. 1 - alpha_level must be among the evidence_levels in performAnalyses()")))
+  # 
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
   
   cohort_names <- getAllCohortNames(analyses_list)
@@ -733,7 +733,7 @@ getGoDecisions <- function (
           method_name              = method_names[n],
           gamma_levels             = gamma_levels[[n]],
           quantiles                = analysis_data$analysis_parameters$quantiles,
-          posterior_quantiles_list = analysis_data$quantiles_list,
+          posterior_quantiles_list = analysis_data$quantiles_list, #[[n]],#changed
           cohort_names             = cohort_names),
         decision_rule   = boundary_rules[[n]])
       
@@ -925,24 +925,24 @@ getNumericGammaIndex <- function (
 
 ) {
 
-  if (is.numeric.in.zero.one(g_numeric)) {
-
+#   if (is.numeric.in.zero.one(g_numeric)) {
+# 
     gamma_index <- which(round(1 - quantiles, 5) == round(g_numeric, 5))
-
-    if (!(is.numeric(gamma_index) && length(gamma_index) > 0)) {
-
-      stop (simpleError(paste0(
-        "gamma must be one of ",
-        paste(round(1 - quantiles, 5), collapse = ", "))))
-
-    }
-
-  } else {
-
-    stop (simpleError(
-      "gamma_levels must consist of posterior quantiles, 'mean' or 'sd'"))
-
-  }
+# 
+#     if (!(is.numeric(gamma_index) && length(gamma_index) > 0)) {
+# 
+#       stop (simpleError(paste0(
+#         "gamma must be one of ",
+#         paste(round(1 - quantiles, 5), collapse = ", "))))
+# 
+#     }
+# 
+#   } else {
+# 
+#     stop (simpleError(
+#       "gamma_levels must consist of posterior quantiles, 'mean' or 'sd'"))
+# 
+#   }
 
   return (gamma_index)
 
@@ -965,7 +965,8 @@ getPosteriorGammaQuantiles <- function (
     posterior_quantiles_list[[gsub("_mu", "", method_name)]]
 
   cohort_indices <- sapply(cohort_names, function (n) {
-    grep(n, colnames(posterior_quantiles[[1]]), fixed = TRUE)[1]
+    grep(n, colnames(posterior_quantiles[[1]]), fixed = TRUE)[1] 
+    #why one here
   })
 
   if (length(gamma_indices) != length(cohort_indices)) {
@@ -978,6 +979,7 @@ getPosteriorGammaQuantiles <- function (
   u_gamma_indices  <- unique(gamma_indices)
   u_cohort_indices <- unique(cohort_indices)
 
+  
   posterior_gamma_quantiles <- lapply(posterior_quantiles, function (x) {
     as.vector(t(x[u_gamma_indices, u_cohort_indices]))
   })
