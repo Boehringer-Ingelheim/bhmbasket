@@ -1,0 +1,7 @@
+model{
+
+ for(k in 1:J){
+  r[k] ~ dbin(p[k],n[k])
+  p[k] ~ dbeta(a, b)
+ }
+}

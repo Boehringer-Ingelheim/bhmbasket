@@ -1,0 +1,26 @@
+model
+{
+	for (i in 1:J)
+	{
+		r[i] ~ dbin(p[i],n[i])
+		logit(p[i]) <- eta[i]
+		eta[i] ~ dnorm(gamma[ind[i]], tau1)		
+		ind[i] <- step(theta[i]) + 1		
+	}
+
+
+#	gamma[1] ~ dnorm(mu1, tau3) 
+#	gamma[2] ~ dnorm(mu2, tau3)
+
+        for (i in 1:numGroups)
+	{
+	theta[i] ~ dnorm(0, tau2)
+        }
+
+	#mu1<-logit(phi1)
+	#mu2<-logit(phi2)
+
+
+	gamma[1] <-logit(phi1)
+	gamma[2] <-logit(phi2)
+}

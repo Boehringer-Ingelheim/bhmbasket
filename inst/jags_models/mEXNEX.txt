@@ -1,0 +1,14 @@
+model{
+ mue ~ dnorm(mean_mue,precision_mue)
+ sigmae2 ~ dnorm(0,precision_sigmae2)I(0,)
+ for(k in 1:J){
+ Theta[1,k] ~ dnorm(mue,1/sigmae2)
+ Theta[2,k] ~ dnorm(nexmu[k],1/nexsigma[k])
+ weight[k] ~ dcat(prob[k,1:2])
+ theta[k] <- Theta[weight[k],k]
+ }
+ for(i in 1:J){
+ y[i] ~ dbinom(p[i],n[i])
+ p[i] <- exp(theta[i])/(1+exp(theta[i]))
+ }
+}

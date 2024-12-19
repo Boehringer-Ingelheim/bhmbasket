@@ -1,0 +1,11 @@
+model{
+ mu ~ dnorm(mean_mu,precision_mu)
+ sigma ~ dt(0,precision_tau,1)T(0,)
+
+ for(j in 1:J){
+ r[j] ~ dbin(p[j],n[j])
+ p[j] <- exp(theta[j])/(1+exp(theta[j]))
+ theta[j] ~ dnorm(mu,1/(sigma)^2)
+ }
+
+}

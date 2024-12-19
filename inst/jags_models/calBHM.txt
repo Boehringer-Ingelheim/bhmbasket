@@ -1,0 +1,12 @@
+  model {
+    for (j in 1:ntype) {                #J=4, the number of arms
+      y[j] ~ dbin(p[j], n[j])
+      logit(p[j]) <- theta[j]
+    }
+    
+    for (j in 1:ntype) {
+      theta[j] ~ dnorm(mu, tau)      #hierarchical model for theta
+    }
+    
+    #mu ~ dnorm(mu.par, 0.01)         #prior on mu
+  }

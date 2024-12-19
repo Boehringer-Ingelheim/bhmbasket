@@ -1,0 +1,14 @@
+model
+{
+	for (i in 1:J)
+	{
+		r[i] ~ dbin(p[i],n[i]);
+		logit(p[i]) <- eta[i];
+		eta[i] ~ dnorm(mu,tau4)
+		pg[i] <- step(p[i] - targetResp)
+		# Probability that the response rate for each group is greater than targetResp	which is xed response probability *
+	}
+	#Priors
+	mu ~ dnorm(mu0, tau5)
+	tau4 ~ dgamma(alpha, beta)
+}
