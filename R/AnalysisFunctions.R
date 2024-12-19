@@ -186,36 +186,7 @@ getPostQuantiles <- function (## The method to be applied to the likelihood and 
     save_trial <- sample(seq_len(n_analyses), size = 1)
   }
   
-  # if(method_name=="MEM"){#####################################################
-  #   posterior_quantiles_list <- suppressMessages(
-  #     foreach::foreach(
-  #       k = seq_len(n_analyses),
-  #       .combine  = c,
-  #       .verbose  = FALSE,
-  #       .options.future = list(seed = TRUE)
-  #     ) %dofuture% {
-  #       lapply(k, function (j) {
-  #         getPostQuantilesOfTrial(
-  #           n_responders      = as.numeric(scenario_data$n_responders[j,]),
-  #           n_subjects        = as.numeric(scenario_data$n_subjects[j,]),
-  #           j_data            = j_data,
-  #           j_parameters      = j_parameters,
-  #           j_model_file      = j_model_file,
-  #           method_name       = method_name,
-  #           quantiles         = quantiles,
-  #           calc_differences  = calc_differences,
-  #           n_mcmc_iterations = n_mcmc_iterations,
-  #           save_path         = save_path,
-  #           save_trial        = save_trial
-  #         )
-  #         
-  #       })
-  #       
-  #       
-  #     }
-  #   )
-  #   
-  # }
+ 
   posterior_quantiles_list <- suppressMessages(
     foreach::foreach(
       k = seq_len(n_analyses),
@@ -236,7 +207,7 @@ getPostQuantiles <- function (## The method to be applied to the likelihood and 
           n_mcmc_iterations = n_mcmc_iterations,
           save_path         = save_path,
           save_trial        = save_trial
-        )#[[2]]
+        )
         
       })
 
@@ -244,35 +215,7 @@ getPostQuantiles <- function (## The method to be applied to the likelihood and 
     }
   )
   
-  # posterior_samples_list <- suppressMessages(
-  #   foreach::foreach(
-  #     k = seq_len(n_analyses),
-  #     .combine  = c,
-  #     .verbose  = FALSE,
-  #     .options.future = list(seed = TRUE)
-  #   ) %dofuture% {
-  #     lapply(k, function (j) {
-  #       getPostQuantilesOfTrial(
-  #         n_responders      = as.numeric(scenario_data$n_responders[j,]),
-  #         n_subjects        = as.numeric(scenario_data$n_subjects[j,]),
-  #         j_data            = j_data,
-  #         j_parameters      = j_parameters,
-  #         j_model_file      = j_model_file,
-  #         method_name       = method_name,
-  #         quantiles         = quantiles,
-  #         calc_differences  = calc_differences,
-  #         n_mcmc_iterations = n_mcmc_iterations,
-  #         save_path         = save_path,
-  #         save_trial        = save_trial
-  #       )[[1]]
-  #       
-  #     })
-      
-      
-  #   }
-  # )
   
- # return (list(posterior_samples_list, posterior_quantiles_list))
 return ( posterior_quantiles_list)
 }
 
@@ -308,8 +251,7 @@ getPostQuantilesOfTrial <- function (
       calc_differences  = calc_differences,
       n_mcmc_iterations = n_mcmc_iterations)
     
-   # posterior_quantiles<-posteriors[[2]] 
-   # posterior_samples<-posteriors[[1]]
+
 
   } else if (method_name == "pooled") {
 
@@ -360,7 +302,7 @@ getPostQuantilesOfTrial <- function (
 
   }
 
-  #return (list(posterior_samples, posterior_quantiles))
+
   return (posterior_quantiles)
 }
 
@@ -371,15 +313,6 @@ getPostQuantilesMEM <- function(
   calc_differences
 
 ) {
-
-# #Using the package basket()
-# model_MEM <- basket(responses = j_data$r,
-#                 size = j_data$n, shape1=j_data$shape1, shape2= j_data$shape2)
-# 
-# 
-# posterior_quantiles <- apply(model_MEM$basket[["samples"]], 2, function(x) quantile(x, quantiles))
-# posterior_mean      <- model_MEM$basket[["mean_est"]]
-# posterior_sd        <- apply(model_MEM[["basket"]][["samples"]], 2, sd)
 
 
   model_MEM <- mem_mcmc_samples(responses = j_data$r,
@@ -993,7 +926,7 @@ print("hello world!")
 
   }
 
-  ## check if we have a custom model ####
+  ## check if we have a custom model 
   custom_available<- FALSE
   if ('custom' %in% method_names) {
     method_names <- method_names[-which(method_names == 'custom')]
@@ -1002,7 +935,7 @@ print("hello world!")
 
   ## get default prior parameters if needed
 
-  ## beginning here have to cut out the standard model ####
+  ## beginning here have to cut out the standard model 
   if((is.null(prior_parameters_list))&(length(method_names!=0))) {
 
     prior_parameters_list <- getPriorParameters(
@@ -1055,18 +988,6 @@ print("hello world!")
       save_path         = NULL,
       save_trial        = NULL)#[[2]]
     
-    # method_samples_list[[method_names[n]]] <- getPostQuantiles(
-    #   method_name       = method_names[n],
-    #   quantiles         = quantiles,
-    #   scenario_data     = list(n_subjects   = n_subjects,
-    #                            n_responders = n_responders),
-    #   calc_differences  = calc_differences,
-    #   j_parameters      = prepare_analysis$j_parameters,
-    #   j_model_file      = prepare_analysis$j_model_file,
-    #   j_data            = prepare_analysis$j_data,
-    #   n_mcmc_iterations = n_mcmc_iterations,
-    #   save_path         = NULL,
-    #   save_trial        = NULL)[[1]]
 
     ## message to user
     if (verbose) {
@@ -1077,7 +998,7 @@ print("hello world!")
 
   }
 
-  ## custom methods ###############
+  ## custom methods 
   if((!is.null(custom_methods))&(custom_available==TRUE)){
   for (n in seq_along(custom_methods)) {
 
@@ -1094,7 +1015,7 @@ print("hello world!")
       method_name       = names(custom_methods)[n],
       custom_method    = custom_methods[[n]],
       target_rates      = target_rates,
-      prior_parameters  = NULL)#custom_methods[[n]]$prior_parameters_list)
+      prior_parameters  = NULL)
 
     ## run analysis
     method_quantiles_list[[names(custom_methods)[n]]] <- getPostQuantiles(
@@ -1108,21 +1029,8 @@ print("hello world!")
       j_data            = prepare_analysis$j_data,
       n_mcmc_iterations = n_mcmc_iterations,
       save_path         = NULL,
-      save_trial        = NULL)#[[2]]
-
-    # method_samples_list[[names(custom_methods)[n]]] <- getPostQuantiles(
-    #   method_name       = names(custom_methods)[n],
-    #   quantiles         = quantiles,
-    #   scenario_data     = list(n_subjects   = n_subjects,
-    #                            n_responders = n_responders),
-    #   calc_differences  = calc_differences,
-    #   j_parameters      = prepare_analysis$j_parameters,
-    #   j_model_file      = prepare_analysis$j_model_file,
-    #   j_data            = prepare_analysis$j_data,
-    #   n_mcmc_iterations = n_mcmc_iterations,
-    #   save_path         = NULL,
-    #   save_trial        = NULL)[[1]]
-    ## eventually to adapt ####
+      save_trial        = NULL)
+    
     prior_parameters_list[[names(custom_methods)[n]]]<-prepare_analysis$j_data[-which(names((prepare_analysis$j_data)) %in% c("p_t", "J"))]
 
    ## message to user
@@ -1264,13 +1172,12 @@ prepareAnalysis <- function (
 
 ) {
   if(! is.null(custom_method)){
-    #for (m in seq_along(eval(custom_models))){
-      #j_data<-custom_method$
+
       j_data <- custom_method$j_data
       j_data$J <- ifelse( is.vector(target_rates),length(target_rates),length(target_rates[[1]]))
       j_model_file <- system.file(package = "bhmbasket", "jags_models", custom_method$j_model_file, mustWork = TRUE)
       j_parameters <- custom_method$j_parameters
-    #}
+  
 
   } else if (method_name == "berry") {
 
