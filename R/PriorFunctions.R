@@ -164,11 +164,11 @@ getPriorParameters <- function (
 
     } else if (method_name == "custom") {
       
-      getPriorParametersCustom( #to change############
+      getPriorParametersCustom( 
         target_rates = target_rates,
         n_worth      = n_worth,
         tau_scale    = tau_scale,
-        w_j          = w_j)[[1]] #to change
+        w_j          = w_j)[[1]] 
       
     } else if (method_name == "MEM") {
       
