@@ -180,7 +180,7 @@ prior_matrix <- function(responses, size){
   result2<-result
   threshold<-max(result)/2
   result2[result<threshold]<-0.99
-  result2[result>threshold]<-0.01
+  result2[result>=threshold]<-0.01
   #diag(result)<-0
   # Modify non-diagonal elements
   # result[lower.tri(result)] <- ifelse(result[lower.tri(result)] == 1, 0.99, result[lower.tri(result)])
