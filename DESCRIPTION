@@ -24,7 +24,8 @@ Description: Provides functions for the evaluation of basket
     For simulated trial data, bias and mean squared errors of posterior
     point estimates for response rates can be provided.
 License: GPL-3
-URL: https://CRAN.R-project.org/package=bhmbasket
+URL: https://CRAN.R-project.org/package=bhmbasket, https://github.com/Boehringer-Ingelheim/bhmbasket
+BugReports: https://github.com/Boehringer-Ingelheim/bhmbasket/issues
 Depends: 
     R (>= 3.5.0)
 Imports: 
