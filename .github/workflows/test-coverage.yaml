@@ -33,7 +33,7 @@ jobs:
         with:
           extra-packages: covr
       
-      - name: Install BayesianMCPMod
+      - name: Install bhmbasket
         shell: bash
         run: R CMD INSTALL --preclean .
         
