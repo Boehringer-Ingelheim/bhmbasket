@@ -40,6 +40,8 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           Invoke-WebRequest -Uri "https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/4.3.1/JAGS-4.3.1.exe/download" -OutFile "JAGS-4.3.1.exe"
+          Start-Process -FilePath "JAGS-4.3.1.exe" -ArgumentList "/S" -Wait
+          Remove-Item "JAGS-4.3.1.exe"
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:

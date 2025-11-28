@@ -45,10 +45,9 @@ jobs:
       - name: Configure JAGS library path
         if: runner.os == 'macOS'
         run: |
-          echo "export PKG_CONFIG_PATH=/opt/homebrew/lib/pkgconfig" >> $GITHUB_ENV
-          echo "export LD_LIBRARY_PATH=/opt/homebrew/lib" >> $GITHUB_ENV
-          echo "export DYLD_LIBRARY_PATH=/opt/homebrew/lib" >> $GITHUB_ENV
-
+          brew install jags
+          sudo mkdir -p /usr/local/lib
+          sudo ln -s /opt/homebrew/lib/libjags*.dylib /usr/local/lib/
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
