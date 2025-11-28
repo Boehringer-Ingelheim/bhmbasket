@@ -38,9 +38,9 @@ jobs:
           use-public-rspm: true
           
       - name: Install JAGS on macOS
-              if: runner.os == 'macOS'
-              run: |
-                jags    
+        if: runner.os == 'macOS'
+        run: |
+          brew install jags
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
