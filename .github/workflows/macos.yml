@@ -45,8 +45,10 @@ jobs:
       - name: Configure JAGS library path
         if: runner.os == 'macOS'
         run: |
+          
           brew install jags
-          sudo mkdir -p /usr/local/lib
+          sudo mkdir -p /usr/local/lib/JAGS
+          sudo ln -s /opt/homebrew/lib/JAGS/modules-4 /usr/local/lib/JAGS/modules-4
           sudo ln -s /opt/homebrew/lib/libjags*.dylib /usr/local/lib/
 
       - uses: r-lib/actions/setup-r-dependencies@v2
