@@ -37,11 +37,19 @@ jobs:
       
       - name: Install JAGS on Windows
         if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          curl.exe -L -o jags.exe ^
-            https://deac-fra.dl.sourceforge.net/project/mcmc-jags/JAGS/4.x/Windows/JAGS-4.3.1.exe
-          jags.exe /S
-          del jags.exe
+          $url     = "https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/JAGS-4.3.1.exe/download"
+          $outFile = "$env:RUNNER_TEMP\JAGS-4.3.1.exe"
+
+          Write-Host "Downloading JAGS from $url to $outFile"
+          Invoke-WebRequest -Uri $url -OutFile $outFile
+
+          Write-Host "Running JAGS installer silently..."
+          Start-Process -FilePath $outFile -ArgumentList "/S" -Wait
+
+          Write-Host "Cleaning up installer"
+          Remove-Item $outFile
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
