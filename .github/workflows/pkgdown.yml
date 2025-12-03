@@ -11,14 +11,17 @@ on:
 
 name: pkgdown
 
+permissions:
+  contents: write
+  pages: write
+
 jobs:
   pkgdown:
     runs-on: ubuntu-latest
-    # Only restrict concurrency for non-PR jobs
     concurrency:
       group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
     env:
-      GITHUB_PAT: ${{ secrets.GH_PAT }}
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: quarto-dev/quarto-actions/setup@v2
       
@@ -51,7 +54,5 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
-          token: ${{ secrets.GH_PAT }}
-          clean: false
           branch: gh-pages
           folder: docs
