@@ -39,8 +39,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $url     = "https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/JAGS-4.3.1.exe/download"
-          $outFile = "$env:RUNNER_TEMP\JAGS-4.3.1.exe"
+          $url     = "https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/JAGS-4.3.2.exe/download"
+          $outFile = "$env:RUNNER_TEMP\JAGS-4.3.2.exe"
 
           Write-Host "Downloading JAGS from $url to $outFile"
           Invoke-WebRequest -Uri $url -OutFile $outFile
