@@ -35,6 +35,7 @@ jobs:
       - uses: r-lib/actions/setup-r@v2
         with:
           use-public-rspm: true
+          rtools-version: '42'
 
       - name: Install JAGS
         run: |

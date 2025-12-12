@@ -28,6 +28,7 @@ jobs:
         with:
           r-version: 'latest'
           use-public-rspm: true
+          rtools-version: '42'
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
