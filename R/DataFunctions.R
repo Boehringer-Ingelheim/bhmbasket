@@ -70,8 +70,6 @@ continueRecruitment <- function (
   
   checkmate::assert_class(decisions_list, "decision_list", .var.name = error_decisions_list)
   
-  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-  
   if (is.null(method_name)) {
     
     n_methods <- length(decisions_list$scenario_1$decisions_list)
@@ -132,9 +130,7 @@ continueRecruitment <- function (
   )
   
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-  ## Note: also some checks hereafter
-  
-  ## get scenario numbers
+
   scenario_numbers <- as.numeric(sub("scenario_", "", names(decisions_list)))
   
   scenario_list <- vector(mode = "list", length = length(decisions_list))
@@ -147,8 +143,6 @@ continueRecruitment <- function (
       stop (simpleError("Selected method_name not analyzed"))
       
     }
-    
-    ## get new data, i.e. get new responders and new number of subjects per trial
     
     n_subjects_add <- n_subjects_add_list[[s]]
     response_rates <- decisions_list[[s]]$scenario_data$response_rates
@@ -184,9 +178,6 @@ continueRecruitment <- function (
       cohort_names   = cohort_names_new,
       n_trials       = n_trials)
     
-    ## Combine with existing data
-    
-    ## get previous decisions
     go_decisions <- decisions_list[[s]]$decisions_list[[method_name]]
     previous_gos <- go_decisions
     
@@ -201,23 +192,18 @@ continueRecruitment <- function (
         "There must be a decision for each recruiting cohort in the 'decisions_list'"))
     }
     
-    ## pick only cohorts that need updating
     go_decisions <- go_decisions[overall_gos, index_new]
     
-    ## additional subjects and responders, only those that have overall go
     n_responders_add <- add_scenario$n_responders[overall_gos, ] * go_decisions
     n_subjects_add   <- add_scenario$n_subjects[overall_gos, ] * go_decisions
     
-    ## existing cohorts that need updating
     n_responders <- decisions_list[[s]]$scenario_data$n_responders
     n_subjects   <- decisions_list[[s]]$scenario_data$n_subjects
     
-    ## combine, only for cohorts that have overall go and need updating
     n_responders[overall_gos, index_new] <- n_responders[overall_gos, index_new] + n_responders_add
     n_subjects[overall_gos, index_new]   <- n_subjects[overall_gos, index_new] + n_subjects_add
     
-    ## Saving Scenario
-    
+
     scenario_list[[s]] <- list(
       n_subjects        = n_subjects,
       n_responders      = n_responders,
@@ -237,7 +223,6 @@ continueRecruitment <- function (
   return (scenario_list)
   
 }
-
 
 #' @title createTrial
 #' @description This function creates an object of class `scenario_list`
@@ -293,7 +278,6 @@ createTrial <- function (
   return (trial)
   
 }
-
 
 getNSubjects <- function (
 
