@@ -99,8 +99,10 @@ scenario should be created, Default: <code><a href="https://rdrr.io/r/base/tempf
 <span class="r-in"><span>    n_trials            <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="va">save_info</span>      <span class="op">&lt;-</span> <span class="fu">saveScenarios</span><span class="op">(</span><span class="va">scenarios_list</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in checkmate::check_class(scenario_list, "scenario_list", .var.name = "Please provide an object of class scenario_list for the argument 'scenario_list'"):</span> unused argument (.var.name = "Please provide an object of class scenario_list for the argument 'scenario_list'")</span>
 <span class="r-in"><span>  <span class="va">scenarios_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="loadScenarios.html">loadScenarios</a></span><span class="op">(</span>scenario_numbers <span class="op">=</span> <span class="va">save_info</span><span class="op">$</span><span class="va">scenario_numbers</span>,</span></span>
 <span class="r-in"><span>                                  load_path        <span class="op">=</span> <span class="va">save_info</span><span class="op">$</span><span class="va">path</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'save_info' not found</span>
 </code></pre></div>
     </div>
   </div>
