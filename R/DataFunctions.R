@@ -624,19 +624,10 @@ saveScenarios <- function (
 ) {
   
   checkmate::assert(
-    
-    checkmate::check_class(
-      scenario_list, "scenario_list", 
-      .var.name = "Please provide an object of class scenario_list for the argument 'scenario_list'"
-      ),
-    
-    checkmate::check_character(
-      save_path, len = 1, 
-      .var.name = "Please provide a string for the argument 'save_path'"
-      ),
-    
-    combine = "and"
-    
+    checkmate::check_class(scenario_list, "scenario_list"),
+    checkmate::check_character(save_path, len = 1),
+    combine = "and",
+    .var.name = "Please provide an object of class scenario_list for the argument 'scenario_list'"
   )
   
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
