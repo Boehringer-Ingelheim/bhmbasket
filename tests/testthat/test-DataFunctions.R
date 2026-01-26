@@ -211,6 +211,8 @@ test_that("simulateScenarios has no mismatch and gives appropriate error message
 })
 
 #  Tests for saveScenarios -----------------------------------------------------
+#  TODO Read in the file, the rds file, have a test what should be in the file is 
+# indeed in the file.
 
 test_that("saveScenarios saves files correctly", {
   # Create mock scenario_list
@@ -236,7 +238,7 @@ test_that("saveScenarios saves files correctly", {
   expect_equal(result$scenario_numbers, c(1, 2))
   expect_equal(result$path, temp_dir)
   
-  # Clean up
+  # Clean up 
   unlink(temp_dir, recursive = TRUE)
 })
 
@@ -256,7 +258,8 @@ test_that("saveScenarios creates directory when save_path does not exist", {
 })  
 
 #  Tests for print.scenario_list -----------------------------------------------
-
+# TODO try to ensure the value contained in the objects are indeed the objects 
+# being printed.
 
 test_that("print.scenario_list header is correct and shows cohort count", {
   n_subjects <- c(5, 6)
