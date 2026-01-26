@@ -36,9 +36,11 @@ Suggests:
     doFuture,
     future,
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat (>= 3.0.0)
 VignetteBuilder: 
     knitr
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 SystemRequirements: JAGS 4.x.y (http://mcmc-jags.sourceforge.net)
+Config/testthat/edition: 3
