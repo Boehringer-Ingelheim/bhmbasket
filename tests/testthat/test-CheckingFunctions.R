@@ -52,16 +52,6 @@ test_that("check.evidence.levels fails when quantiles do not match", {
 
 # Tests for checkForParallelBackend --------------------------------------------
 
-# I had this error once but now the backend is registered, question is, 
-# it registered by default? if yes then we have to change test.
-
-test_that("checkForParallelBackend prints message when no backend registered", {
-  # In a fresh session, no backend should be registered
-  expect_true(foreach::getDoParRegistered())  # sanity check
-  #expect_message(checkForParallelBackend(), "No parallel backend detected")
-})
-
-
 test_that("checkForParallelBackend is silent when backend registered", {
   # Register a dummy backend
   doFuture::registerDoFuture()

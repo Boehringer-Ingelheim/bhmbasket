@@ -345,10 +345,10 @@ test_that("length consistency check works", {
 test_that("valid input returns a prior_parameters_list with correct names and class", {
   result <- getPriorParameters(
     method_names = c("berry", "pooled", "stratified", "exnex", "exnex_adj"),
-    #target_rates = c(0.2, 0.1, 0.3, 0.2, 0.4, 0.6),
-    #n_worth = 2,
-    #tau_scale = 1,
-    #w_j = 0.5
+    target_rates = c(0.2, 0.1, 0.3, 0.2, 0.4, 0.6),
+    n_worth = 2,
+    tau_scale = 1,
+    w_j = 0.5
   )
   expect_s3_class(result, "prior_parameters_list")
   expect_named(result, c("berry", "exnex", "exnex_adj", "pooled", "stratified"))

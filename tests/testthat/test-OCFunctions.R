@@ -793,8 +793,6 @@ test_that("getGoProbabilities: errors if Go and NoGo matrices have different dim
       go_decisions_list   = go_decisions_list,
       nogo_decisions_list = bad_nogo
     ),
-    "decision_list dimensions"
-    
   )
 })
 

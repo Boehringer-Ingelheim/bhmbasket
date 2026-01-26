@@ -1,3 +1,44 @@
+## 1. Helper scenario_list and analysis_list for decision tests
+## ------------------------------------------------------------------
+
+# Simple 2-cohort basket, small n, one scenario
+helper_n_subjects <- c(10, 10)
+helper_rr         <- c(0.5, 0.5)  # true response rates
+
+helper_scenarios <- simulateScenarios(
+  n_subjects_list     = list(helper_n_subjects),
+  response_rates_list = list(helper_rr),
+  scenario_numbers    = 1L,
+  n_trials            = 5L
+)
+
+helper_analyses <- performAnalyses(
+  scenario_list     = helper_scenarios,
+  target_rates      = c(0.5, 0.5),   # same as p_beta for simplicity
+  method_names      = "berry",
+  n_mcmc_iterations = 100,
+  verbose           = FALSE
+)
+
+## ------------------------------------------------------------------
+## 2. Global decision_list objects used in continueRecruitment tests
+## ------------------------------------------------------------------
+
+# Basic decision_list for one scenario / one method
+decisions <- getGoDecisions(
+  analyses_list   = helper_analyses,
+  cohort_names    = c("p_1", "p_2"),
+  evidence_levels = c(0.5, 0.5),
+  # Simple always-true rule: just to get a valid structure
+  boundary_rules  = quote(c(TRUE, TRUE)),
+  overall_min_gos = 1L
+)
+
+# A second reference used in the "length mismatch" test:
+# n_subjects_add_list has length 2, this has length 1 -> error expected
+decisions_list <- decisions
+
+
 # Tests for simulateScenarios --------------------------------------------------
 
 test_that("simulateScenarios has correct structure", {
