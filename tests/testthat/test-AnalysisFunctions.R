@@ -1065,6 +1065,136 @@ test_that("mapUniqueTrials: with previous trials, only GO trials are updated fro
   expect_identical(scen1$berry[[2]], old_q_list[[2]])
 })
 
+## Test: mapUniqueTrials with pooled backend preserves naive per-trial quantiles
+## Input:
+##   - One scenario with several trials and 2 cohorts (generated via getScenario()).
+##   - trials_unique_calc derived from getUniqueTrials(), with
+##     applicable_previous_trials = FALSE so that all unique patterns are treated
+##     as newly analysed.
+##   - method_quantiles_list for method "pooled" containing posterior quantile
+##     matrices computed only for the unique trial patterns using getPostQuantiles().
+##
+## Naive reference:
+##   - For each original trial i (row i of n_responders, n_subjects), we call
+##     getPostQuantiles(method_name = "pooled", ...) directly and store the
+##     resulting single-trial quantile matrix in naive_list[[i]].
+##
+## Expected output:
+##   - mapUniqueTrials returns a list with one element named "scenario_1".
+##   - scenario_1$pooled is a list of length equal to the original number of trials.
+##   - For each trial i, scenario_1$pooled[[i]] is exactly equal to
+##     naive_list[[i]] (the per-trial quantile matrix from the naive analysis).
+##
+## Why this test:
+##   - For the pooled design, getPostQuantiles() is deterministic given
+##     (n_responders, n_subjects) and j_data.
+##   - mapUniqueTrials must use hashing + unique trial patterns to avoid
+##     redundant computations, but still reproduce the same per-trial quantiles
+##     as the naive approach that analyses each trial separately.
+
+test_that("mapUniqueTrials: pooled backend preserves naive per-trial Beta quantiles", {
+  skip_if_not_installed("foreach")
+  foreach::registerDoSEQ()
+  set.seed(123)
+  
+  scene <- getScenario(
+    n_subjects     = c(10, 20),
+    response_rates = c(0.4, 0.6),
+    n_trials       = 10
+  )
+  
+  if (is.null(scene$scenario_number)) {
+    scene$scenario_number <- 1L
+  }
+  
+  scenario_list <- list(scenario_1 = scene)
+  class(scenario_list) <- "scenario_list"
+  
+  n_subj   <- scene$n_subjects
+  n_resp   <- scene$n_responders
+  n_trials <- nrow(n_subj)
+  n_coh    <- ncol(n_subj)
+  
+  trials_unique <- getUniqueTrials(scenario_list)
+  n_coh_u       <- (ncol(trials_unique) - 1L) / 2L
+  expect_equal(n_coh_u, n_coh)
+  
+  applicable_previous_trials <- FALSE
+  
+  calc_trial_indices <- rep(TRUE, nrow(trials_unique))
+  trials_unique_calc <- trials_unique[calc_trial_indices, -ncol(trials_unique), drop = FALSE]
+  
+  n_resp_unique <- trials_unique_calc[, seq_len(n_coh),         drop = FALSE]
+  n_subj_unique <- trials_unique_calc[, seq_len(n_coh) + n_coh, drop = FALSE]
+  
+  j_data    <- list(a = 1, b = 1)
+  quantiles <- c(0.025, 0.5, 0.975)
+  
+  unique_quantiles <- getPostQuantiles(
+    method_name       = "pooled",
+    quantiles         = quantiles,
+    scenario_data     = list(
+      n_subjects   = n_subj_unique,
+      n_responders = n_resp_unique
+    ),
+    calc_differences  = NULL,
+    j_parameters      = NULL,
+    j_model_file      = NULL,
+    j_data            = j_data,
+    n_mcmc_iterations = 1000,
+    save_path         = NULL,
+    save_trial        = NULL
+  )
+  
+  naive_list <- vector("list", length = n_trials)
+  for (i in seq_len(n_trials)) {
+    n_subj_i <- n_subj[i, , drop = FALSE]
+    n_resp_i <- n_resp[i, , drop = FALSE]
+    
+    naive_list[[i]] <- getPostQuantiles(
+      method_name       = "pooled",
+      quantiles         = quantiles,
+      scenario_data     = list(
+        n_subjects   = n_subj_i,
+        n_responders = n_resp_i
+      ),
+      calc_differences  = NULL,
+      j_parameters      = NULL,
+      j_model_file      = NULL,
+      j_data            = j_data,
+      n_mcmc_iterations = 1000,
+      save_path         = NULL,
+      save_trial        = NULL
+    )[[1]]
+  }
+  
+  method_quantiles_list <- list(
+    pooled = unique_quantiles
+  )
+  
+  out <- mapUniqueTrials(
+    scenario_list              = scenario_list,
+    method_quantiles_list      = method_quantiles_list,
+    trials_unique_calc         = trials_unique_calc,
+    applicable_previous_trials = applicable_previous_trials
+  )
+  
+  expect_type(out, "list")
+  expect_identical(names(out), "scenario_1")
+  
+  scen1_out <- out[["scenario_1"]]
+  expect_true(is.list(scen1_out))
+  expect_true("pooled" %in% names(scen1_out))
+  expect_equal(length(scen1_out$pooled), n_trials)
+  
+  for (i in seq_len(n_trials)) {
+    expect_equal(
+      scen1_out$pooled[[i]],
+      naive_list[[i]],
+      tolerance = 1e-12
+    )
+  }
+})
 
 # Tests for posteriors2Quantiles ----------------------------------------------
 
