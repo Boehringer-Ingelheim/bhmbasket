@@ -44,7 +44,8 @@ jobs:
         shell: Rscript {0}
         run: |
           cov <- covr::package_coverage()
-          cat(covr::to_cobertura(cov), file = "coverage.xml")
+          xml <- covr::to_cobertura(cov)
+          cat(as.character(xml), file = "coverage.xml")
 
       - name: Upload to Codecov via OIDC (no secret)
         uses: codecov/codecov-action@v5
