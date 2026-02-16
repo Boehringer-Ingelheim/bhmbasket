@@ -686,45 +686,6 @@ saveScenarios <- function (
 #'                                rr_positive))
 #' @export
 #' @md
-
-#' @title simulateScenarios
-#' @description This function creates scenarios for the analysis with
-#' \code{\link[bhmbasket]{performAnalyses}}.
-#' @param n_subjects_list A list that contains for each scenario a vector for
-#' the number of subjects per cohort.
-#' A single vector can be provided if all scenarios should have the same number of subjects.
-#' @param response_rates_list A list that contains for each scenario a vector for
-#' the response rates per cohort.
-#' @param scenario_numbers A vector of positive integers naming the scenarios,
-#' Default: `seq_along(response_rates_list)`
-#' @param n_trials An integer indicating the number of trial simulations per response rates,
-#' Default: `10000`. If `n_trials` is present in `.GlobalEnv` and `missing(n_trials)`,
-#' the globally available value will be used.
-#' @return An object of class `scenario_list` with the scenario data for each specified scenario.
-#' @details The function simulates trials with binary outcome for each scenario.
-#' Integer values for the response rates will be treated as observed outcomes.
-#' @author Stephan Wojciekowski
-#' @seealso
-#'  \code{\link[bhmbasket]{saveScenarios}}
-#'  \code{\link[bhmbasket]{createTrial}}
-#'  \code{\link[bhmbasket]{performAnalyses}}
-#' @rdname simulateScenarios
-#' @examples
-#'   n_subjects     <- c(10, 20, 30)
-#'
-#'   rr_negative    <- rep(0.1, 3)
-#'   rr_nugget      <- c(0.9, 0.1, 0.1)
-#'   rr_positive    <- rep(0.9, 3)
-#'
-#'   scenarios_list <- simulateScenarios(
-#'     n_subjects_list     = list(n_subjects,
-#'                                n_subjects,
-#'                                n_subjects),
-#'     response_rates_list = list(rr_negative,
-#'                                rr_nugget,
-#'                                rr_positive))
-#' @export
-#' @md
 simulateScenarios <- function (
     n_subjects_list,
     response_rates_list,
@@ -808,9 +769,11 @@ simulateScenarios <- function (
   )
   
   for (rates in response_rates_list) {
+    
+    is_whole <- abs(rates - round(rates)) < .Machine$double.eps^0.5
 
     ok <- (rates > 0 & rates < 1) |
-      (is.wholenumber(rates) & (rates == 0 | rates >= 1))
+      (is_whole & (rates == 0 | rates >= 1))
     
     checkmate::assert_true(
       all(ok),

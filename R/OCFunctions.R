@@ -26,9 +26,9 @@ getAllCohortNames <- function (
 #' @param scenario_list An object of class `scenario_list`,
 #' as created with \code{\link[bhmbasket]{simulateScenarios}} or
 #' \code{\link[bhmbasket]{continueRecruitment}}
-#' @details This function can be useful to assess decision rules with regard to the average number 
+#' @details This function can be usuful to assess decision rules with regard to the average number 
 #' of subjects across scenarios when performing interim analyses.
-#' @return A named list of vectors for the average number of subjects in each scenario.
+#' @return A named list of vectors for the average number of subjects in each scneario.
 #' @rdname getAverageNSubjects
 #' @seealso
 #'  \code{\link[bhmbasket]{simulateScenarios}}
@@ -444,7 +444,80 @@ getGoBoundaries <- function (
 #' cohort-wise go decisions required for an overall go decision
 #'  Default: \code{1}
 #' @return An object of class \code{decision_list}
-#' @details [...]
+#' @details This function applies decision rules of the following type to the
+#' outcomes of (simulated) basket trials with binary endpoints:
+#' \deqn{P(p_j|data > p_{B,j}) > \gamma,}
+#' where \eqn{p_j|data} is the posterior response rate of cohort \eqn{j},
+#' \eqn{p_{B,j}} is the response rate boundary of cohort \eqn{j},
+#' and \eqn{\gamma} is the evidence level.
+#' This rule can equivalently be written as \deqn{q_{1-\gamma,j} > p_{B,j},}
+#' where \eqn{q_{1-\gamma,j}} is the \eqn{1-\gamma}-quantile of the posterior
+#' response rate of cohort \eqn{j}.
+#'
+#' The arguments \code{cohort_names} and \code{evidence_levels} determine
+#' \eqn{q_{1-\gamma,j}}, where the entries of \code{cohort_names} and
+#' \code{evidence_levels} are matched corresponding to their order.
+#'
+#' The argument \code{boundary_rules} provides the rules that describe what
+#' should happen with  the posterior quantiles \eqn{q_{1-\gamma,j}}.
+#' The first posterior quantile determined by the first items of
+#' \code{cohort_names} and \code{evidence_levels} is referred to as \code{x[1]},
+#' the second as \code{x[2]}, etc.
+#' Using the \code{quote(c(...))}-notation,
+#' many different rules can be implemented.
+#' A decision rule for only one cohort would be
+#' \code{boundary_rules = quote(c(x[1] > 0.1))},
+#' \code{cohort_names = 'p_1'}, and \code{evidence_levels = 0.5},
+#' which implements the rule \eqn{P(p_1|data > 0.1) > 0.5}.
+#' The number of decisions to be taken must match the number of cohorts, i.e.
+#' for each cohort there must be a decision rule in the vector separated by a comma.
+#' See the example section for a decision rule for more than one cohort and
+#' the example of \code{\link[bhmbasket]{negateGoDecisions}}
+#' for the implementation of a more complex decision rule.
+#' @seealso
+#'  \code{\link[bhmbasket]{performAnalyses}}
+#'  \code{\link[bhmbasket]{getGoProbabilities}}
+#'  \code{\link[bhmbasket]{negateGoDecisions}}
+#'  \code{\link[bhmbasket]{continueRecruitment}}
+#' @rdname getGoDecisions
+#' @examples
+#' scenarios_list <- simulateScenarios(
+#'   n_subjects_list     = list(c(10, 20, 30)),
+#'   response_rates_list = list(c(0.1, 0.1, 0.9)),
+#'   n_trials            = 10)
+#'
+#' analyses_list <- performAnalyses(
+#'   scenario_list      = scenarios_list,
+#'   target_rates       = rep(0.5, 3),
+#'   n_mcmc_iterations  = 100)
+#'
+#' ## Decision rule for more than one cohort
+#' decisions_list <- getGoDecisions(
+#'   analyses_list   = analyses_list,
+#'   cohort_names    = c("p_1", "p_2", "p_3"),
+#'   evidence_levels = c(0.5, 0.5, 0.8),
+#'   boundary_rules  = quote(c(x[1] > 0.7, x[2] < 0.3, x[3] < 0.6)))
+#'
+#' ## Decision rule for only two of the three cohorts
+#' decisions_list <- getGoDecisions(
+#'   analyses_list   = analyses_list,
+#'   cohort_names    = c("p_1", "p_3"),
+#'   evidence_levels = c(0.5, 0.8),
+#'   boundary_rules  = quote(c(x[1] > 0.7, TRUE, x[3] < 0.6)),
+#'   overall_min_gos = 2L)
+#'
+#' ## Different decision rules for each method
+#' ## This works the same way for the different evidence_levels
+#' decisions_list <- getGoDecisions(
+#'   analyses_list   = analyses_list,
+#'   cohort_names    = c("p_1", "p_2", "p_3"),
+#'   evidence_levels = c(0.5, 0.5, 0.8),
+#'   boundary_rules  = list(quote(c(x[1] > 0.1, x[2] < 0.5, x[3] < 0.1)),  # "berry"
+#'                          quote(c(x[1] > 0.2, x[2] < 0.4, x[3] < 0.2)),  # "exnex"
+#'                          quote(c(x[1] > 0.3, x[2] < 0.3, x[3] < 0.3)),  # "exnex_adj"
+#'                          quote(c(x[1] > 0.4, x[2] < 0.2, x[3] < 0.4)),  # "pooled"
+#'                          quote(c(x[1] > 0.5, x[2] < 0.1, x[3] < 0.5)))) # "stratified"
+#' @author Stephan Wojciekowski
 #' @export
 getGoDecisions <- function (
     
@@ -697,8 +770,40 @@ getGoDecisionsByCohort <- function (
 #' @param nogo_decisions_list An object of class `decision_list`,
 #' as returned by \code{\link[bhmbasket]{getGoDecisions}}, Default: `NULL`
 #' @return A list of matrices of Go (and Consider and NoGo) probabilities
-#' @details [...]
+#' @details If only `go_decisions_list` is provided
+#' (i.e. `nogo_decisions_list` is `NULL`),
+#' only Go probabilities will be calculated.
+#' If both `go_decisions_list` and `nogo_decisions_list` are provided,
+#' Go, Consider, and NoGo probabilities will be calculated.
+#' @seealso
+#'  \code{\link[bhmbasket]{getGoDecisions}}
 #' @rdname getGoProbabilities
+#' @examples
+#' scenarios_list <- simulateScenarios(
+#'   n_subjects_list     = list(c(10, 20)),
+#'   response_rates_list = list(rep(0.9, 2)),
+#'   n_trials            = 10)
+#'
+#' analyses_list <- performAnalyses(
+#'   scenario_list       = scenarios_list,
+#'   target_rates        = rep(0.5, 2),
+#'   n_mcmc_iterations   = 100)
+#'
+#' go_decisions_list <- getGoDecisions(
+#'   analyses_list       = analyses_list,
+#'   cohort_names        = c("p_1", "p_2"),
+#'   evidence_levels     = c(0.5, 0.8),
+#'   boundary_rules      = quote(c(x[1] > 0.8, x[2] > 0.6)))
+#'
+#' nogo_decisions_list <- getGoDecisions(
+#'   analyses_list       = analyses_list,
+#'   cohort_names        = c("p_1", "p_2"),
+#'   evidence_levels     = c(0.5, 0.8),
+#'   boundary_rules      = quote(c(x[1] < 0.5, x[2] < 0.3)))
+#'
+#' getGoProbabilities(go_decisions_list)
+#' getGoProbabilities(go_decisions_list, nogo_decisions_list)
+#' @author Stephan Wojciekowski
 #' @export
 getGoProbabilities <- function (
     
@@ -996,7 +1101,68 @@ is.decision_list <- function (x) {
 #' for the minimum number of cohort-level NoGo decisions required for
 #' an overall NoGo decision, Default: `all`
 #' @return A list of NoGo decisions of class `decision_list`
+#' @details This function is intended for implementing decision rules with a
+#' consider zone as
+#' e.g. proposed in "Bayesian design of proof-of-concept trials" by
+#' Fisch et al. (2015).
+#' This approach involves two criteria, Significance and Relevance.
+#' \itemize{
+#'   \item Significance: high evidence that the treatment effect is greater
+#'   than some smaller value (e.g. treatment effect under H0)
+#'   \item Relevance: moderate evidence that the treatment effect is greater
+#'   than some larger value (e.g. treatment effect under a certain alternative)
+#' }
+#' The decision for a cohort is then taken as follows:
+#' \itemize{
+#'   \item Go decision: Significance and Relevance
+#'   \item Consider decision: either Significance, or Relevance, but not both
+#'   \item NoGo decision: no Significance and no Relevance
+#' }
+#' In the example below, the following criteria for are implemented for each of
+#' the three cohorts:
+#' \itemize{
+#'   \item Significance: \eqn{P(p_j > 0.4) > 0.95}
+#'   \item Relevance: \eqn{P(p_j > 0.8) > 0.5}
+#' }
+#' @seealso
+#'  \code{\link[bhmbasket]{getGoDecisions}}
 #' @rdname negateGoDecisions
+#' @examples
+#' scenarios_list <- simulateScenarios(
+#'   n_subjects_list     = list(c(10, 20, 30)),
+#'   response_rates_list = list(rep(0.9, 3)),
+#'   n_trials            = 10)
+#'
+#' analysis_list <- performAnalyses(
+#'   scenario_list      = scenarios_list,
+#'   target_rates       = rep(0.5, 3),
+#'   n_mcmc_iterations  = 100)
+#'
+#' go_decisions_list <- getGoDecisions(
+#'   analyses_list   = analysis_list,
+#'   cohort_names    = c("p_1", "p_2", "p_3",
+#'                       "p_1", "p_2", "p_3"),
+#'   evidence_levels = c(0.5,  0.5,  0.5,
+#'                       0.95, 0.95, 0.95),
+#'   boundary_rules  = quote(c(x[1] > 0.8 & x[4] > 0.4,
+#'                             x[2] > 0.8 & x[5] > 0.4,
+#'                             x[3] > 0.8 & x[6] > 0.4)))
+#'
+#' nogo_decisions <- negateGoDecisions(getGoDecisions(
+#'   analyses_list   = analysis_list,
+#'   cohort_names    = c("p_1", "p_2", "p_3",
+#'                       "p_1", "p_2", "p_3"),
+#'   evidence_levels = c(0.5,  0.5,  0.5,
+#'                       0.95, 0.95, 0.95),
+#'   boundary_rules  = quote(c(x[1] > 0.8 | x[4] > 0.4,
+#'                             x[2] > 0.8 | x[5] > 0.4,
+#'                             x[3] > 0.8 | x[6] > 0.4))))
+#'
+#' getGoProbabilities(go_decisions_list, nogo_decisions)
+#' @author Stephan Wojciekowski
+#' @references Fisch, Roland, et al.
+#' "Bayesian design of proof-of-concept trials."
+#' \emph{Therapeutic innovation & regulatory science} 49.1 (2015): 155-162.
 #' @export
 negateGoDecisions <- function (
     
