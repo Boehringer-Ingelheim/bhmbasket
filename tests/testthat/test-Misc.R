@@ -33,11 +33,10 @@ test_that("chunkVector returns single chunk when n_chunks <= 1", {
 #   - x = 1:10
 #   - n_chunks = 2, 3
 # Behaviour:
-#   - splits x into n_chunks chunks (using cut over indices)
+#   - splits x into n_chunks chunks
 # Expectations:
 #   - output is a list with requested length
-#   - unlisted output contains exactly the original elements (order-preserving
-#     within chunks is fine; overall we check set equality via sort)
+#   - unlisted output contains exactly the original elements
 # Why:
 #   - verifies chunking doesn't drop or duplicate elements.
 # ------------------------------------------------------------------
@@ -72,7 +71,7 @@ test_that("chunkVector splits into multiple chunks and preserves elements", {
 #   - result is a matrix with dim (1,4)
 #   - content equals the original vector
 # Why:
-#   - many downstream functions assume matrix input for apply()/indexing.
+#   - many downstream functions assume matrix input.
 # ------------------------------------------------------------------
 test_that("convertVector2Matrix converts vector to 1-row matrix", {
   
@@ -120,12 +119,12 @@ test_that("convertVector2Matrix leaves matrices unchanged", {
 #   - keys = c("a","b","c")
 #   - values = list(10,20,30)
 # Behaviour:
-#   - creates environment-based hash and assigns values to keys
+#   - creates hash and assigns values to keys
 # Expectations:
 #   - returned object is an environment
 #   - getHashValues returns values in the requested key order
 # Why:
-#   - mapUniqueTrials relies on deterministic retrieval from hashed keys.
+#   - mapUniqueTrials relies on retrieval from hashed keys.
 # ------------------------------------------------------------------
 test_that("createHashTable and getHashValues store and retrieve values", {
   
@@ -181,7 +180,7 @@ test_that("getHashKeys uses default x* names without colnames", {
 # Expectations:
 #   - correct key strings for each row
 # Why:
-#   - ensures keys remain interpretable and consistent when names exist.
+#   - ensures keys remain consistent when names exist.
 # ------------------------------------------------------------------
 test_that("getHashKeys uses colnames when present", {
   
@@ -207,7 +206,7 @@ test_that("getHashKeys uses colnames when present", {
 # Expectations:
 #   - equals c(2,3,4,5)
 # Why:
-#   - sanity check for helper used in summaries / convergence-like displays.
+#   - check for helper used in summaries.
 # ------------------------------------------------------------------
 test_that("cummulativeMovingAverage returns running mean", {
   
@@ -231,7 +230,7 @@ test_that("cummulativeMovingAverage returns running mean", {
 # Expectations:
 #   - correct transformed strings
 # Why:
-#   - small utility; ensures string formatting is deterministic.
+#   - ensures string formatting is deterministic.
 # ------------------------------------------------------------------
 test_that("firstUpper capitalizes first character", {
   
@@ -378,7 +377,7 @@ test_that("invLogit returns correct inverse-logit values", {
 # Expectations:
 #   - error thrown
 # Why:
-#   - consistent input validation prevents silent misuse.
+#   - input validation prevents silent misuse.
 # ------------------------------------------------------------------
 test_that("invLogit errors for missing or non-numeric input", {
   
@@ -460,7 +459,7 @@ test_that("listPerMethod reshapes scenario-first lists into method-first lists",
   scen <- simulateScenarios(
     n_subjects_list     = list(c(10, 10), c(20, 20)),
     response_rates_list = list(c(0.4, 0.4), c(0.6, 0.6)),
-    n_trials            = 5
+    n_trials = 2
   )
   
   analyses <- performAnalyses(

@@ -12,13 +12,13 @@ as created with \code{\link[bhmbasket]{simulateScenarios}} or
 \code{\link[bhmbasket]{continueRecruitment}}}
 }
 \value{
-A named list of vectors for the average number of subjects in each scneario.
+A named list of vectors for the average number of subjects in each scenario.
 }
 \description{
 This function calculates the average number of subjects per scenario.
 }
 \details{
-This function can be usuful to assess decision rules with regard to the average number
+This function can be useful to assess decision rules with regard to the average number
 of subjects across scenarios when performing interim analyses.
 }
 \examples{

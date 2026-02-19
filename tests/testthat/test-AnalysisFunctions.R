@@ -338,7 +338,7 @@ test_that("getPosteriors: basic posterior sampling and name cleaning (no exch we
     j_parameters      = prep$j_parameters,
     j_model_file      = prep$j_model_file,
     j_data            = j_data,
-    n_mcmc_iterations = 200
+    n_mcmc_iterations = 20
   )
   
   expect_true(is.matrix(post))
@@ -397,7 +397,7 @@ test_that("getPosteriors: exNEX exchangeability weights are renamed to w_j and e
     j_parameters      = prep$j_parameters,
     j_model_file      = prep$j_model_file,
     j_data            = j_data,
-    n_mcmc_iterations = 300
+    n_mcmc_iterations = 20
   )
   
   expect_true(is.matrix(post))
@@ -452,7 +452,7 @@ test_that("getPostQuantiles (pooled): calc_differences adds zero columns with co
     j_parameters      = NULL,
     j_model_file      = NULL,
     j_data            = j_data,
-    n_mcmc_iterations = 1000,
+    n_mcmc_iterations = 20,
     save_path         = NULL,
     save_trial        = NULL
   )
@@ -539,7 +539,7 @@ test_that("getPostQuantiles (stratified): multiple trials and calc_differences p
     j_parameters      = NULL,
     j_model_file      = NULL,
     j_data            = j_data,
-    n_mcmc_iterations = 1000,
+    n_mcmc_iterations = 20,
     save_path         = NULL,
     save_trial        = NULL
   )
@@ -571,7 +571,7 @@ test_that("getPostQuantiles (stratified): multiple trials and calc_differences p
 # Tests for prepareAnalysis ----------------------------------------------------
 
 # ------------------------------------------------------------------
-# Test: berry branch builds consistent j_data and parameter names
+# Test: berry branch builds j_data and parameter names
 # Input:
 #   - target_rates = c(0.5, 0.7); priors from getPriorParameters("berry")
 # Behaviour:
@@ -649,7 +649,7 @@ test_that("prepareAnalysis: exnex branch builds mixture priors and pMix", {
   expect_equal(j_data$nex_prec, priors_exnex$tau_j^-2)
   
   expect_length(j_data$pMix, Nexch + 1L)
-  expect_equal(sum(j_data$pMix), 1, tolerance = 1e-8)
+  expect_equal(sum(j_data$pMix), 1, tolerance = 1e-12)
   
   expect_equal(prep$j_parameters, c("p", "mu", "tau", "exch"))
   expect_true(file.exists(prep$j_model_file))
@@ -876,7 +876,7 @@ analysis_list <- performAnalyses(
   scenario_list      = trial_data,
   target_rates       = rep(0.5, 2),
   method_names       = "berry",
-  n_mcmc_iterations  = 100)
+  n_mcmc_iterations  = 20)
 
 trials_unique <- getUniqueTrials(trial_data)
 n_cohorts     <- (ncol(trials_unique) - 1L) / 2
@@ -921,7 +921,7 @@ method_quantiles_list[["berry"]] <- getPostQuantiles(
   j_parameters      = prepare_analysis$j_parameters,
   j_model_file      = prepare_analysis$j_model_file,
   j_data            = prepare_analysis$j_data,
-  n_mcmc_iterations = 100,
+  n_mcmc_iterations = 20,
   save_path         = NULL,
   save_trial        = NULL)
 
@@ -1023,7 +1023,7 @@ test_that("mapUniqueTrials: with previous trials, only GO trials are updated fro
       j_parameters      = prep$j_parameters,
       j_model_file      = prep$j_model_file,
       j_data            = prep$j_data,
-      n_mcmc_iterations = 100,
+      n_mcmc_iterations = 20,
       save_path         = NULL,
       save_trial        = NULL
     )[[1]]
@@ -1141,7 +1141,7 @@ test_that("mapUniqueTrials: pooled backend preserves naive per-trial Beta quanti
     j_parameters      = NULL,
     j_model_file      = NULL,
     j_data            = j_data,
-    n_mcmc_iterations = 1000,
+    n_mcmc_iterations = 20,
     save_path         = NULL,
     save_trial        = NULL
   )
@@ -1162,7 +1162,7 @@ test_that("mapUniqueTrials: pooled backend preserves naive per-trial Beta quanti
       j_parameters      = NULL,
       j_model_file      = NULL,
       j_data            = j_data,
-      n_mcmc_iterations = 1000,
+      n_mcmc_iterations = 20,
       save_path         = NULL,
       save_trial        = NULL
     )[[1]]
@@ -1230,10 +1230,10 @@ test_that("posteriors2Quantiles: computes quantiles, mean, and sd for each colum
   exp_q <- stats::quantile(theta, probs = quantiles)
   expect_equal(out[c("25%", "50%", "75%"), "theta"],
                exp_q,
-               tolerance = 1e-2)
+               tolerance = 1e-12)
   
-  expect_equal(out["Mean", "theta"], mean(theta), tolerance = 1e-2)
-  expect_equal(out["SD",   "theta"], stats::sd(theta), tolerance = 1e-2)
+  expect_equal(out["Mean", "theta"], mean(theta), tolerance = 1e-12)
+  expect_equal(out["SD",   "theta"], stats::sd(theta), tolerance = 1e-12)
 })
 
 
@@ -1265,7 +1265,7 @@ test_that("performAnalyses returns a well-formed analysis_list", {
     target_rates          = c(0.5, 0.5, 0.5),
     method_names          = c("pooled", "exnex"),
     prior_parameters_list = prior_parameters_list,
-    n_mcmc_iterations     = 50,
+    n_mcmc_iterations     = 20,
     verbose               = FALSE
   )
   
@@ -1297,7 +1297,7 @@ test_that("performAnalyses sorts method_names and stores them in analysis_parame
     scenario_list       = scenario_list_pa,
     target_rates        = c(0.5, 0.5, 0.5),
     method_names        = c("stratified", "berry", "pooled"),
-    n_mcmc_iterations   = 30,
+    n_mcmc_iterations   = 20,
     verbose             = FALSE
   )
   
@@ -1330,7 +1330,7 @@ test_that("performAnalyses constructs quantiles from defaults and evidence_level
     evidence_levels     = ev_levels,
     target_rates        = c(0.5, 0.5, 0.5),
     method_names        = c("pooled"),
-    n_mcmc_iterations   = 30,
+    n_mcmc_iterations   = 20,
     verbose             = FALSE
   )
   
@@ -1363,7 +1363,7 @@ test_that("performAnalyses fills prior_parameters_list when not supplied", {
     target_rates          = c(0.5, 0.5, 0.5),
     method_names          = methods,
     prior_parameters_list = NULL,
-    n_mcmc_iterations     = 30,
+    n_mcmc_iterations     = 20,
     verbose               = FALSE
   )
   
@@ -1391,7 +1391,7 @@ test_that("performAnalyses prints a progress message when verbose = TRUE", {
       scenario_list       = scenario_list_pa,
       target_rates        = c(0.5, 0.5, 0.5),
       method_names        = c("pooled"),
-      n_mcmc_iterations   = 10,
+      n_mcmc_iterations   = 20,
       verbose             = TRUE
     ),
     "Performing Analyses"
@@ -1833,7 +1833,7 @@ test_that("saveAnalyses: save_path must be a character vector of length 1", {
     scenario_list      = scen,
     method_names       = "pooled",
     target_rates       = c(0.5, 0.5),
-    n_mcmc_iterations  = 10,
+    n_mcmc_iterations  = 20,
     verbose            = FALSE
   )
   

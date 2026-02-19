@@ -1,11 +1,15 @@
 Package: bhmbasket
 Title: Bayesian Hierarchical Models for Basket Trials
-Version: 0.9.5.999
-Authors@R: 
+Version: 1.0.0
+Authors@R:
+  c(
     person(given = 'Stephan',
            family = 'Wojciekowski',
            role = c('aut', 'cre'),
-           email = 'stephan.wojciekowski@boehringer-ingelheim.com')
+           email = 'stephan.wojciekowski@boehringer-ingelheim.com'),
+    person(given = 'Tathagata',
+           family = 'Chattopadhyay',
+           role = 'ctb'))
 Description: Provides functions for the evaluation of basket
     trial designs with binary endpoints. Operating characteristics of a
     basket trial design are assessed by simulating trial data according to
@@ -26,7 +30,7 @@ Description: Provides functions for the evaluation of basket
 License: GPL-3
 URL: https://CRAN.R-project.org/package=bhmbasket
 Depends: 
-    R (>= 3.5.0)
+    R (>= 3.6.0)
 Imports: 
     foreach,
     doRNG,
@@ -42,5 +46,6 @@ VignetteBuilder:
     knitr
 Encoding: UTF-8
 RoxygenNote: 7.3.2
+Language: en-US
 SystemRequirements: JAGS 4.x.y (http://mcmc-jags.sourceforge.net)
 Config/testthat/edition: 3
