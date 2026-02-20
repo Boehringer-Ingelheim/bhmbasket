@@ -6,7 +6,7 @@
 
 # https://r-pkgs.org/release.html
 
-setwd("C:/Users/wojcieko/OneDrive - Boehringer Ingelheim/Desktop/bhmbasket development - bitbucket")
+# setwd("C:/Users/wojcieko/OneDrive - Boehringer Ingelheim/Desktop/bhmbasket development - bitbucket")
 
 devtools::load_all()
 
