@@ -1,24 +1,21 @@
 getAllCohortNames <- function (
-  
+    
   analyses_list
   
 ) {
   
-  Reduce(intersect,
-         
-         sapply(analyses_list, function (x) {
-           
-           lapply(x$quantiles_list, function (y) {
-             
-             post_names <- Reduce(intersect, lapply(y, colnames)) # colnames(y[[1]])
-             indices    <- grep("p_", post_names)
-
-             post_names[indices]
-             
-           })
-           
-         })
-         
+  Reduce(
+    intersect,
+    sapply(analyses_list, function (x) {
+      lapply(x$quantiles_list, function (y) {
+        
+        post_names <- Reduce(intersect, lapply(y, colnames))
+        indices    <- grep("p_", post_names)
+        
+        post_names[indices]
+        
+      })
+    })
   )
   
 }
@@ -29,9 +26,9 @@ getAllCohortNames <- function (
 #' @param scenario_list An object of class `scenario_list`,
 #' as created with \code{\link[bhmbasket]{simulateScenarios}} or
 #' \code{\link[bhmbasket]{continueRecruitment}}
-#' @details This function can be usuful to assess decision rules with regard to the average number 
+#' @details This function can be useful to assess decision rules with regard to the average number 
 #' of subjects across scenarios when performing interim analyses.
-#' @return A named list of vectors for the average number of subjects in each scneario.
+#' @return A named list of vectors for the average number of subjects in each scenario.
 #' @rdname getAverageNSubjects
 #' @seealso
 #'  \code{\link[bhmbasket]{simulateScenarios}}
@@ -63,19 +60,19 @@ getAllCohortNames <- function (
 #' @author Stephan Wojciekowski
 #' @export
 getAverageNSubjects <- function (
-  
+    
   scenario_list
   
 ) {
   
   error_scenario_list <-
-    simpleError("Please provide an object of class scenario_list for the argument 'scenario_list'")
+    "Providing an object of class 'scenario_list' for the argument 'scenario_list'"
   
-  if (missing(scenario_list))                      stop (error_scenario_list)
-  
-  if (!is.scenario_list(scenario_list))            stop (error_scenario_list)
-  
-  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  checkmate::assertClass(
+    scenario_list,
+    classes   = "scenario_list",
+    .var.name = error_scenario_list
+  )
   
   lapply(scenario_list, function (x) colMeans(x$n_subjects))
   
@@ -143,7 +140,7 @@ getAverageNSubjects <- function (
 #' @author Stephan Wojciekowski
 #' @export
 getEstimates <- function (
-  
+    
   analyses_list,
   add_parameters  = NULL,
   point_estimator = "median",
@@ -151,41 +148,55 @@ getEstimates <- function (
   
 ) {
   
-  error_analyses_list <- simpleError(
-    "Please provide an object of class analysis_list for the argument 'analyses_list'")
-  error_add_parameters  <- simpleError(paste(
-    "Please provide a either NULL or vector of strings for the argument 'add_parameters'",
-    "naming additional parameters of the applied model(s)"))
-  error_point_estimator <- simpleError(
-    "Please provide either 'median' or 'mean' for the argument 'point_estimator'")
-  error_alpha_level <- simpleError(
-    "Please provide a numeric in (0, 1) for the argument 'alpha_level'")
+  error_analyses_list <-
+    "Providing an object of class 'analysis_list' for the argument 'analyses_list'"
+  error_add_parameters <- paste(
+    "Providing either NULL or a vector of strings for the argument 'add_parameters',",
+    "naming additional parameters of the applied model(s)"
+  )
+  error_point_estimator <-
+    "Providing either 'median' or 'mean' for the argument 'point_estimator'"
+  error_alpha_level <-
+    "Providing a numeric in (0, 1) for the argument 'alpha_level'"
   
-  if (missing(analyses_list))                      stop (error_analyses_list)
+  checkmate::assertClass(
+    analyses_list,
+    classes   = "analysis_list",
+    .var.name = error_analyses_list
+  )
   
-  if (!is.analysis_list(analyses_list))            stop (error_analyses_list)
+  checkmate::assertCharacter(
+    add_parameters,
+    null.ok   = TRUE,
+    .var.name = error_add_parameters
+  )
   
-  point_estimator <- tryCatch({
-    
-    match.arg(
-      point_estimator,
-      choices    = c("median", "mean"),
-      several.ok = FALSE)
-    
-  }, error = function (e) e)
+  checkmate::assertChoice(
+    point_estimator,
+    choices   = c("median", "mean"),
+    .var.name = error_point_estimator
+  )
   
-  if (!is.null(add_parameters) &&
-      !is.character(add_parameters))               stop (error_add_parameters)
-  if (inherits(point_estimator, "error"))          stop (error_point_estimator)
-  if (!is.single.numeric.in.zero.one(alpha_level)) stop (error_alpha_level)
+  checkmate::assertNumber(
+    alpha_level,
+    finite    = TRUE,
+    .var.name = error_alpha_level
+  )
+  checkmate::assertTRUE(
+    alpha_level > 0 & alpha_level < 1,
+    .var.name = error_alpha_level
+  )
   
   available_quantiles <- round(analyses_list[[1]]$analysis_parameters$quantiles, 9)
   asked_quantiles     <- round(c(alpha_level / 2, 1 - alpha_level / 2), 9)
-  if (any(!asked_quantiles %in% available_quantiles)) stop (simpleError(paste(
-    "The 'alpha_level' must be among the stored quantiles in 'analyses_list',",
-    "e.g. 1 - alpha_level must be among the evidence_levels in performAnalyses()")))
+  if (any(!asked_quantiles %in% available_quantiles)) {
+    stop(paste(
+      "The 'alpha_level' must be among the stored quantiles in 'analyses_list',",
+      "e.g. 1 - alpha_level must be among the evidence_levels in performAnalyses()"
+    ))
+  }
   
-  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
   
   cohort_names <- getAllCohortNames(analyses_list)
   diff_indices <- grepl("diff", cohort_names)
@@ -206,9 +217,7 @@ getEstimates <- function (
     if (any(hist_index)) {
       
       hist_rr <- sapply(which(hist_index), function (x) {
-        
         true_rr[x] / analyses_list[[s]]$scenario_data$n_subjects[1, x]
-        
       })
       
       true_rr[hist_index] <- hist_rr
@@ -218,12 +227,13 @@ getEstimates <- function (
     ## calculate the differences in true rr if necessary
     if (any(diff_indices)) {
       
-      diff_cohorts <- sapply(strsplit(substrRight(cohort_names[diff_indices], 2), ""), as.numeric)
+      diff_cohorts <- sapply(
+        strsplit(substrRight(cohort_names[diff_indices], 2), ""),
+        as.numeric
+      )
       
       true_diff_rr <- t(apply(diff_cohorts, 2, function (x) {
-        
         diff(true_rr[x])
-        
       }))
       
     } else {
@@ -268,18 +278,24 @@ getEstimates <- function (
       ## Setting up gamma levels
       n_parameters <- length(parameter_names)
       
-      gamma_levels <- c(rep("mean", n_parameters),
-                        rep("sd", n_parameters),
-                        rep(1 - alpha_level / 2, n_parameters),
-                        rep(0.5, n_parameters),
-                        rep(alpha_level / 2, n_parameters))
+      gamma_levels <- c(
+        rep("mean",              n_parameters),
+        rep("sd",                n_parameters),
+        rep(1 - alpha_level / 2, n_parameters),
+        rep(0.5,                 n_parameters),
+        rep(alpha_level / 2,     n_parameters)
+      )
       
-      matrix_estimates <- do.call(rbind, getPosteriorGammaQuantiles(
-        method_name              = method_names[n],
-        gamma_levels             = gamma_levels,
-        quantiles                = analyses_list[[s]]$analysis_parameters$quantiles,
-        posterior_quantiles_list = analyses_list[[s]]$quantiles_list,
-        cohort_names             = rep(parameter_names, times = 5)))
+      matrix_estimates <- do.call(
+        rbind,
+        getPosteriorGammaQuantiles(
+          method_name              = method_names[n],
+          gamma_levels             = gamma_levels,
+          quantiles                = analyses_list[[s]]$analysis_parameters$quantiles,
+          posterior_quantiles_list = analyses_list[[s]]$quantiles_list,
+          cohort_names             = rep(parameter_names, times = 5)
+        )
+      )
       
       ## Mean, SD & Quantiles
       post_quantiles <- matrix(colMeans(matrix_estimates), ncol = 5)
@@ -287,7 +303,8 @@ getEstimates <- function (
       rownames(post_quantiles) <- parameter_names
       colnames(post_quantiles) <- c(
         "Mean", "SD",
-        paste0(c(alpha_level / 2, 0.5, 1 - alpha_level / 2) * 100, "%"))
+        paste0(c(alpha_level / 2, 0.5, 1 - alpha_level / 2) * 100, "%")
+      )
       
       ## Bias and MSE
       if (point_estimator == "median") {
@@ -323,7 +340,7 @@ getEstimates <- function (
         na_matrix      <- matrix(NA, nrow = sum(!rr_index), ncol = 1)
         
         bias_estimates <- rbind(bias_estimates, na_matrix)
-        mse_estimates  <- rbind(mse_estimates, na_matrix)
+        mse_estimates  <- rbind(mse_estimates,  na_matrix)
         
         estimates <- cbind(post_quantiles, bias_estimates, mse_estimates)
         
@@ -335,22 +352,22 @@ getEstimates <- function (
     }
     
     if (!is.null(add_parameters) && all(!occurences)) {
-      stop (simpleError(paste(
+      stop(paste(
         "The additional parameters provided in 'add_parameters' do not occur",
         "in any of the methods stored in 'analyses_list'"
-      )))
+      ))
     }
     
     results_list[[s]] <- results_per_method_list
     
   }
   
-  return (listPerMethod(results_list))
+  return(listPerMethod(results_list))
   
 }
 
 getGammaIndices <- function (
-  
+    
   gamma_levels,
   quantiles
   
@@ -372,9 +389,12 @@ getGammaIndices <- function (
         
         g_numeric <- tryCatch({as.numeric(g)}, warning = function(w) w)
         
-        if (inherits(g_numeric, "warning")) stop(simpleError(paste(
-          "The only strings allowed for the argument 'evidence_levels' are",
-          "'mean' and 'sd'")))
+        if (inherits(g_numeric, "warning")) {
+          stop(paste(
+            "The only strings allowed for the argument 'evidence_levels' are",
+            "'mean' and 'sd'"
+          ))
+        }
         
         gamma_index <- getNumericGammaIndex(g_numeric, quantiles)
         
@@ -386,16 +406,16 @@ getGammaIndices <- function (
       
     }
     
-    return (gamma_index)
+    return(gamma_index)
     
   })
   
-  return (gamma_indices)
+  return(gamma_indices)
   
 }
 
 getGoBoundaries <- function (
-  
+    
   scenario_analysis_list,
   cohort_names,
   go_rates,
@@ -403,111 +423,6 @@ getGoBoundaries <- function (
   method_names
   
 ) {"dummy function"}
-# getGoBoundaries <- function (
-#
-#   scenario_analysis_list,
-#   cohort_names,
-#   go_rates,
-#   gamma_levels_list,
-#   method_names
-#
-# ) {
-#
-#   # getBoundaries <- function (
-#   #
-#   #   scenario_analysis_list,
-#   #   cohort_names,
-#   #   go_rates,
-#   #   gamma_levels_list,
-#   #   method_name
-#   #
-#   # ) {
-#   #
-#   #   boundaries <- sapply(seq_along(cohort_names), function (n) {
-#   #
-#   #     stats::uniroot(
-#   #
-#   #       f = function (x) {
-#   #
-#   #     go_probs_list <- getGoProbabilities(
-#   #       getGoDecisions(
-#   #         analyses_list = scenario_analysis_list,
-#   #         cohort_names           = cohort_names[n],
-#   #         boundary_rules_list    = bquote(x[1] > .(x)),
-#   #         gamma_levels_list      = bquote(list(.(gamma_levels_list[[n]])))))
-#   #
-#   #     return (go_probs_list[[method_name]][[1]][1, 1] - go_rates[n])
-#   #
-#   #       },
-#   #
-#   #       interval = c(0, 1)
-#   #
-#   #     )$root
-#   #
-#   #   })
-#   #
-#   #   return (boundaries)
-#   #
-#   # }
-#
-#   # boundaries <- getBoundaries(
-#   #   scenario_analysis_list = scenario_analysis_list,
-#   #   cohort_names           = cohort_names,
-#   #   go_rates               = go_rates,
-#   #   gamma_levels_list      = gamma_levels_list,
-#   #   method_name            = method_name)
-#   #
-#   # boundary_rules <- str2expression(paste0("c(", paste0(
-#   #   paste0("x[", seq_along(boundaries), "] > ", boundaries),
-#   #          collapse = ", "), ")"))
-#   #
-#   # decisions <- getGoDecisions(
-#   #   analyses_list = scenario_analysis_list,
-#   #   cohort_names           = cohort_names,
-#   #   boundary_rules_list    = boundary_rules,
-#   #   gamma_levels_list      = gamma_levels_list)
-#   #
-#   # getGoProbabilities(decisions)[[method_name]][[1]][1, 1]
-#
-#   boundary_list <- vector(mode = "list", length = length(method_names))
-#   names(boundary_list) <- method_names
-#
-#   for (k in seq_along(method_names)) {
-#
-#     boundary_list[[k]] <- sapply(seq_along(cohort_names), function (n) {
-#
-#       stats::uniroot(
-#
-#         f = function (x) {
-#
-#         go_probs_list <- getGoProbabilities(
-#           getGoDecisions(
-#             analyses_list = scenario_analysis_list,
-#             cohort_names           = cohort_names[n],
-#             boundary_rules_list    = bquote(x[1] > .(x)),
-#             gamma_levels_list      = bquote(list(.(gamma_levels_list[[n]])))))
-#
-#         return (go_probs_list[[method_names[k]]][[1]][1, 1] - go_rates[n])
-#
-#         },
-#
-#         interval = c(0, 1)
-#
-#       )$root
-#
-#     })
-#
-#   }
-#
-#   if (length(boundary_list) == 1) {
-#
-#     boundary_list <- boundary_list[[1]]
-#
-#   }
-#
-#   return (boundary_list)
-#
-# }
 
 #' @title getGoDecisions
 #' @description This function applies decision rules to the analyzed trials.
@@ -605,7 +520,7 @@ getGoBoundaries <- function (
 #' @author Stephan Wojciekowski
 #' @export
 getGoDecisions <- function (
-  
+    
   analyses_list,
   
   cohort_names,
@@ -616,75 +531,114 @@ getGoDecisions <- function (
   
 ) {
   
-  error_analyses_list <- simpleError(
-    "Please provide an object of class analysis_list for the argument 'analyses_list'")
-  error_cohort_names <- simpleError(paste(
-    "Please provide a vector of strings for the argument 'cohort_names',",
-    "e.g. c('p_1','p_2')"))
-  error_evidence_levels <- simpleError(
-    "Please provide a vector of numerics in (0, 1) for the argument 'evidence_levels'")
-  error_boundary_rules <- simpleError(paste(
-    "Please provide a quote(c(...)) for the argument 'boundary_rules.'",
+  error_analyses_list <-
+    "Providing an object of class 'analysis_list' for the argument 'analyses_list'"
+  error_cohort_names <- paste(
+    "Providing a vector of strings for the argument 'cohort_names',",
+    "e.g. c('p_1','p_2')"
+  )
+  error_evidence_levels <-
+    "Providing a vector of numerics in (0, 1) for the argument 'evidence_levels'"
+  error_boundary_rules <- paste(
+    "Providing a quote(c(...)) for the argument 'boundary_rules'.",
     "The vector c(...) inside the quote() must have the same length as the number of cohorts.",
-    "See ?getGoDecisions for details"))
-  error_overall_min_gos <- simpleError(
-    "Please privide a positive integer for the argument 'overall_min_gos'")
+    "See ?getGoDecisions for details"
+  )
+  error_overall_min_gos <-
+    "Providing a positive integer for the argument 'overall_min_gos'"
   
-  if (missing(analyses_list))           stop (error_analyses_list)
-  if (missing(cohort_names))            stop (error_cohort_names)
-  if (missing(evidence_levels))         stop (error_evidence_levels)
-  if (missing(boundary_rules))          stop (error_boundary_rules)
+  checkmate::assertClass(
+    analyses_list,
+    classes   = "analysis_list",
+    .var.name = error_analyses_list
+  )
   
-  if (!is.analysis_list(analyses_list)) stop (error_analyses_list)
-  if (!is.character(cohort_names))      stop (error_cohort_names)
+  checkmate::assertCharacter(
+    cohort_names,
+    min.len   = 1,
+    any.missing = FALSE,
+    .var.name = error_cohort_names
+  )
   
-  if (any(!cohort_names %in% colnames(analyses_list[[1]]$quantiles_list[[1]][[1]]))) stop (
-    simpleError("The specified cohorts do not match the cohorts analyzed in 'analyses_list'"))
+  checkmate::assertInt(
+    overall_min_gos,
+    lower     = 1,
+    .var.name = error_overall_min_gos
+  )
+  
+  checkmate::assertSubset(
+    cohort_names,
+    choices   = colnames(analyses_list[[1]]$quantiles_list[[1]][[1]]),
+    .var.name = error_cohort_names
+  )
+  
+  if (missing(evidence_levels)) {
+    stop(error_evidence_levels)
+  }
+  if (missing(boundary_rules)) {
+    stop(error_boundary_rules)
+  }
   
   if (is.list(evidence_levels)) {
     for (i in seq_along(evidence_levels)) {
-      check.evidence.levels(evidence_levels[[i]],
-                            cohort_names, analyses_list, error_evidence_levels)
+      check.evidence.levels(
+        evidence_levels[[i]],
+        cohort_names,
+        analyses_list,
+        error_evidence_levels
+      )
     }
   } else {
-    check.evidence.levels(evidence_levels,
-                          cohort_names, analyses_list, error_evidence_levels)
+    check.evidence.levels(
+      evidence_levels,
+      cohort_names,
+      analyses_list,
+      error_evidence_levels
+    )
   }
   
   check_boundary_rules <- tryCatch({
     x <- stats::runif(n = length(cohort_names), min = 0.001, max = 0.999)
     if (is.list(boundary_rules)) {
       for (i in seq_along(boundary_rules)) {
-        if (!is.language(boundary_rules[[i]]))                                   stop ()
-        if (!identical(boundary_rules[[i]][1], quote(c())))                      stop ()
-        if (!identical(length(boundary_rules[[i]]) - 1L,
-                       ncol(analyses_list$scenario_1$scenario_data$n_subjects))) stop ()
+        if (!is.language(boundary_rules[[i]]))                                   stop()
+        if (!identical(boundary_rules[[i]][1], quote(c())))                      stop()
+        if (!identical(
+          length(boundary_rules[[i]]) - 1L,
+          ncol(analyses_list$scenario_1$scenario_data$n_subjects)
+        )) stop()
         eval(boundary_rules[[i]])
       }
     } else {
-      if (!is.language(boundary_rules))                                        stop ()
-      if (!identical(boundary_rules[1], quote(c())))                           stop ()
+      if (!is.language(boundary_rules))                                          stop()
+      if (!identical(boundary_rules[1], quote(c())))                             stop()
       ## fix number of decisions to number of cohorts
-      if (!identical(length(boundary_rules) - 1L,
-                     ncol(analyses_list$scenario_1$scenario_data$response_rates))) stop ()
+      if (!identical(
+        length(boundary_rules) - 1L,
+        ncol(analyses_list$scenario_1$scenario_data$response_rates)
+      )) stop()
       eval(boundary_rules)
     }
     rm(x)
   }, error = function (e) e)
-  if (inherits(check_boundary_rules, "error"))     stop(error_boundary_rules)
   
-  if (!is.positive.wholenumber(overall_min_gos))   stop (error_overall_min_gos)
+  if (inherits(check_boundary_rules, "error")) {
+    stop(error_boundary_rules)
+  }
   
-  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
   
   gamma_levels <- evidence_levels
   
   ## Get method names
-  method_names_matrix <- t(sapply(analyses_list,
-                                  function (x) x$analysis_parameters$method_names))
-  if (!all(sapply(seq_len(nrow(method_names_matrix)),
-                  function (x) identical(method_names_matrix[1, ], method_names_matrix[x, ])))) {
-    stop ("The scenarios where analysed with different methods")
+  method_names_matrix <- t(sapply(
+    analyses_list,
+    function (x) x$analysis_parameters$method_names
+  ))
+  if (!all(sapply(seq_len(nrow(method_names_matrix)), function (x) {
+    identical(method_names_matrix[1, ], method_names_matrix[x, ])
+  }))) {
+    stop("The scenarios where analysed with different methods")
   }
   method_names <- method_names_matrix[1, ]
   
@@ -704,14 +658,18 @@ getGoDecisions <- function (
   }
   
   if (length(method_names) < length(boundary_rules)) {
-    stop (paste0("The lengths of 'boundary_rules' must be less than or equal to",
-                 " the length of 'method_names'"))
+    stop(paste0(
+      "The lengths of 'boundary_rules' must be less than or equal to",
+      " the length of 'method_names'"
+    ))
   } else if (length(method_names) > length(boundary_rules)) {
     boundary_rules <- rep(boundary_rules, length.out = length(method_names))
   }
   if (length(method_names) < length(gamma_levels)) {
-    stop (paste0("The lengths of 'evidence_levels' must be less than or equal to",
-                 " the length of 'method_names'"))
+    stop(paste0(
+      "The lengths of 'evidence_levels' must be less than or equal to",
+      " the length of 'method_names'"
+    ))
   } else if (length(method_names) > length(gamma_levels)) {
     gamma_levels <- rep(gamma_levels, length.out = length(method_names))
   }
@@ -734,15 +692,17 @@ getGoDecisions <- function (
           gamma_levels             = gamma_levels[[n]],
           quantiles                = analysis_data$analysis_parameters$quantiles,
           posterior_quantiles_list = analysis_data$quantiles_list,
-          cohort_names             = cohort_names),
-        decision_rule   = boundary_rules[[n]])
+          cohort_names             = cohort_names
+        ),
+        decision_rule = boundary_rules[[n]]
+      )
       
       ## combine new decision outcomes with previous decisions (and convert to logical)
       previous_gos <- analysis_data$scenario_data$previous_analyses$go_decisions[, -1]
       go_decisions <- go_decisions * previous_gos > 0
       
       ## Overall go:
-      overall_go   <- apply(go_decisions, 1, function (x) sum (x) >= overall_min_gos)
+      overall_go   <- apply(go_decisions, 1, function (x) sum(x) >= overall_min_gos)
       go_decisions <- cbind(overall = overall_go, go_decisions)
       
       ## store
@@ -751,43 +711,55 @@ getGoDecisions <- function (
     }
     
     decisions_list[[s]] <-
-      list(decisions_list = methods_decisions_list,
-           analysis_data  = list(
-             quantiles_list      = analyses_list[[s]]$quantiles_list,
-             analysis_parameters = analyses_list[[s]]$analysis_parameters),
-           scenario_data  = analyses_list[[s]]$scenario_data,
-           decision_rules = list(cohort_names   = cohort_names,
-                                  gamma_levels   = gamma_levels,
-                                  boundary_rules = boundary_rules))
+      list(
+        decisions_list = methods_decisions_list,
+        analysis_data  = list(
+          quantiles_list      = analyses_list[[s]]$quantiles_list,
+          analysis_parameters = analyses_list[[s]]$analysis_parameters
+        ),
+        scenario_data  = analyses_list[[s]]$scenario_data,
+        decision_rules = list(
+          cohort_names   = cohort_names,
+          gamma_levels   = gamma_levels,
+          boundary_rules = boundary_rules
+        )
+      )
   }
   
   names(decisions_list) <- names(analyses_list)
   
   class(decisions_list) <- "decision_list"
   
-  return (decisions_list)
+  return(decisions_list)
   
 }
 
 getGoDecisionsByCohort <- function (
-
+    
   gamma_quantiles,
-
+  
   boundary_rates = NULL,
   decision_rule  = quote(x > boundary_rates)
-
+  
 ) {
-
-  go_decisions_list <- lapply(gamma_quantiles,
-                              function (x) {eval(decision_rule)})
-
-  go_decisions <- matrix(unlist(go_decisions_list),
-                         nrow = length(go_decisions_list), byrow = TRUE)
-
+  
+  go_decisions_list <- lapply(
+    gamma_quantiles,
+    function (x) {
+      eval(decision_rule)
+    }
+  )
+  
+  go_decisions <- matrix(
+    unlist(go_decisions_list),
+    nrow = length(go_decisions_list),
+    byrow = TRUE
+  )
+  
   colnames(go_decisions) <- paste0("decision_", seq_len(ncol(go_decisions)))
-
-  return (go_decisions)
-
+  
+  return(go_decisions)
+  
 }
 
 #' @title getGoProbabilities
@@ -834,44 +806,63 @@ getGoDecisionsByCohort <- function (
 #' @author Stephan Wojciekowski
 #' @export
 getGoProbabilities <- function (
-  
+    
   go_decisions_list,
   nogo_decisions_list = NULL
   
 ) {
   
   error_go_decisions_list <-
-    simpleError( paste("Please provide an object of class decision_list",
-                       "for the argument 'go_decisions_list'"))
-  error_nogo_decisions_list <- simpleError(paste(
-    "Please provide either NULL or an object of class decision_list",
-    "for the argument 'nogo_decisions_list'"))
+    paste("Providing an object of class 'decision_list'",
+          "for the argument 'go_decisions_list'")
+  error_nogo_decisions_list <- paste(
+    "Providing either NULL or an object of class 'decision_list'",
+    "for the argument 'nogo_decisions_list'"
+  )
+  error_format_mismatch <- paste(
+    "The decision_lists 'go_decisions_list' and 'go_decisions_list'",
+    "do not follow the same format"
+  )
   
-  if (missing(go_decisions_list))             stop (error_go_decisions_list)
+  checkmate::assertClass(
+    go_decisions_list,
+    classes   = "decision_list",
+    .var.name = error_go_decisions_list
+  )
   
-  if (!is.decision_list(go_decisions_list))   stop (error_go_decisions_list)
-  if (!is.null(nogo_decisions_list) &&
-      !is.decision_list(nogo_decisions_list)) stop (error_nogo_decisions_list)
+  checkmate::assertClass(
+    nogo_decisions_list,
+    classes   = "decision_list",
+    null.ok   = TRUE,
+    .var.name = error_nogo_decisions_list
+  )
   
-  if (!is.null(nogo_decisions_list) &&
-      !identical(dim(go_decisions_list[[1]]$decisions_list[[1]]),
-                 dim(nogo_decisions_list[[1]]$decisions_list[[1]]))) stop(
-                   simpleError(paste("The decision_lists 'go_decisions_list'",
-                                     "and 'go_decisions_list'",
-                                     "do not follow the same format")))
+  if (!is.null(nogo_decisions_list)) {
+    checkmate::assertTRUE(
+      identical(
+        dim(go_decisions_list[[1]]$decisions_list[[1]]),
+        dim(nogo_decisions_list[[1]]$decisions_list[[1]])
+      ),
+      .var.name = error_format_mismatch
+    )
+  }
   
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
   
-  go_probs_per_scenario <- vector(mode = "list",
-                                  length = length(go_decisions_list))
+  go_probs_per_scenario <- vector(
+    mode   = "list",
+    length = length(go_decisions_list)
+  )
   names(go_probs_per_scenario) <- names(go_decisions_list)
   
   for (s in seq_along(go_probs_per_scenario)) {
     
     method_names <- names(go_decisions_list[[s]]$decisions_list)
     
-    go_probs_per_method_list <- vector(mode = "list",
-                                       length = length(method_names))
+    go_probs_per_method_list <- vector(
+      mode   = "list",
+      length = length(method_names)
+    )
     names(go_probs_per_method_list) <- method_names
     
     for (n in seq_along(method_names)) {
@@ -886,18 +877,12 @@ getGoProbabilities <- function (
         nogo_probs     <- t(as.matrix(colMeans(nogo_decisions)))
         consider_probs <- round(1 - nogo_probs - decisions_matrix, 9)
         
-        # calculate consider decision probabilities directly:
-        # consider_decisions <- sapply(2:5, function (i) {
-        #   !apply(cbind(nogo_decisions[, i], go_decisions[, i]), 1, any)
-        # })
-        # consider_decisions <- cbind(apply(consider_decisions, 1, any) &
-        #                               !go_decisions[, 1],
-        #                             consider_decisions)
-        # consider_probs     <- t(as.matrix(colMeans(consider_decisions)))
-        
-        if (!isTRUE(all.equal(sum(go_decisions * nogo_decisions), 0)))
-          stop (paste("There are cohorts for which both go and nogo decisions",
-                      "are TRUE. Please revise your decision rules."))
+        if (!isTRUE(all.equal(sum(go_decisions * nogo_decisions), 0))) {
+          stop(paste(
+            "There are cohorts for which both go and nogo decisions",
+            "are TRUE. Please revise your decision rules."
+          ))
+        }
         
         decisions_matrix <- rbind(decisions_matrix, consider_probs, nogo_probs)
         row.names(decisions_matrix) <- c("Go", "Consider", "NoGo")
@@ -914,97 +899,95 @@ getGoProbabilities <- function (
   
   go_probs_per_method <- listPerMethod(go_probs_per_scenario)
   
-  return (go_probs_per_method)
+  return(go_probs_per_method)
   
 }
 
 getNumericGammaIndex <- function (
-
+    
   g_numeric,
   quantiles
-
+  
 ) {
-
-  if (is.numeric.in.zero.one(g_numeric)) {
-
+  
+  error_gamma_range <-
+    "Providing numerics in (0, 1) for the argument 'gamma_levels'"
+  
+  if (checkmate::testNumeric(g_numeric) && all(g_numeric > 0 & g_numeric < 1)) {
+    
     gamma_index <- which(round(1 - quantiles, 5) == round(g_numeric, 5))
-
-    if (!(is.numeric(gamma_index) && length(gamma_index) > 0)) {
-
-      stop (simpleError(paste0(
-        "gamma must be one of ",
-        paste(round(1 - quantiles, 5), collapse = ", "))))
-
-    }
-
+    
+    error_gamma_values <- paste0(
+      "gamma must be one of ",
+      paste(round(1 - quantiles, 5), collapse = ", ")
+    )
+    
+    checkmate::assertTRUE(
+      is.numeric(gamma_index) && length(gamma_index) > 0,
+      .var.name = error_gamma_values
+    )
+    
   } else {
-
-    stop (simpleError(
-      "gamma_levels must consist of posterior quantiles, 'mean' or 'sd'"))
-
+    
+    stop(
+      "gamma_levels must consist of posterior quantiles, 'mean' or 'sd'"
+    )
+    
   }
-
-  return (gamma_index)
-
+  
+  return(gamma_index)
+  
 }
 
 getPosteriorGammaQuantiles <- function (
-
+    
   method_name,
   posterior_quantiles_list,
   gamma_levels,
   quantiles,
   cohort_names
-
+  
 ) {
-
-  gamma_indices <- getGammaIndices(gamma_levels = gamma_levels,
-                                   quantiles    = quantiles)
-
+  
+  gamma_indices <- getGammaIndices(
+    gamma_levels = gamma_levels,
+    quantiles    = quantiles
+  )
+  
   posterior_quantiles <-
     posterior_quantiles_list[[gsub("_mu", "", method_name)]]
-
+  
   cohort_indices <- sapply(cohort_names, function (n) {
     grep(n, colnames(posterior_quantiles[[1]]), fixed = TRUE)[1]
   })
-
+  
   if (length(gamma_indices) != length(cohort_indices)) {
-
-    stop (paste("The number of gamma indices must be equal",
-                 "to the number of cohorts to be analyzed."))
-
+    stop(paste(
+      "The number of gamma indices must be equal",
+      "to the number of cohorts to be analyzed."
+    ))
   }
   
   u_gamma_indices  <- unique(gamma_indices)
   u_cohort_indices <- unique(cohort_indices)
-
+  
   posterior_gamma_quantiles <- lapply(posterior_quantiles, function (x) {
     as.vector(t(x[u_gamma_indices, u_cohort_indices]))
   })
   
-  # posterior_gamma_quantiles <- lapply(posterior_quantiles, function (x) {
-  #   x[gamma_indices, cohort_indices]
-  # })
-  # 
-  # if (length(gamma_indices) > 1) {
-  #   posterior_gamma_quantiles <- lapply(posterior_gamma_quantiles, diag)
-  # }
-
   for (i in seq_along(posterior_gamma_quantiles)) {
-
     names(posterior_gamma_quantiles[[i]]) <-
       colnames(posterior_quantiles[[1]])[cohort_indices]
-
   }
-
-  return (posterior_gamma_quantiles)
-
+  
+  return(posterior_gamma_quantiles)
+  
 }
 
 getScenarioNumbers <- function (analyses_list) {
-
+  
   as.numeric(sub("scenario_", "", names(analyses_list)))
-
+  
 }
 
 #' @export
@@ -1026,9 +1009,12 @@ print.decision_list <- function (x, digits = 2, ...) {
     
     for (n in seq_len(n_methods)) {
       
-      out_rules <- lapply(out_rules, gsub,
-             pattern     = paste0("x\\[", n, "\\]"),
-             replacement = decision_rules$cohort_names[n])
+      out_rules <- lapply(
+        out_rules,
+        gsub,
+        pattern     = paste0("x\\[", n, "\\]"),
+        replacement = decision_rules$cohort_names[n]
+      )
       
     }
     
@@ -1041,8 +1027,10 @@ print.decision_list <- function (x, digits = 2, ...) {
       out_rules_n <- unlist(utils::as.relistable(out_rules_n))
       
       out_rules_n[grepl("P\\(", out_rules_n)] <-
-        paste0(out_rules_n[grepl("P\\(", out_rules_n)],
-               ") > ", decision_rules$gamma_levels[[n]])
+        paste0(
+          out_rules_n[grepl("P\\(", out_rules_n)],
+          ") > ", decision_rules$gamma_levels[[n]]
+        )
       
       out_rules_n <- utils::relist(out_rules_n)
       
@@ -1050,11 +1038,10 @@ print.decision_list <- function (x, digits = 2, ...) {
       
       if (any(indexAND)) {
         
-        out_rules_n[[which(indexAND)]] <- sapply(out_rules_n[indexAND], function (y) {
-          
-          paste0(y[1], " && ", y[2])
-          
-        })
+        out_rules_n[[which(indexAND)]] <- sapply(
+          out_rules_n[indexAND],
+          function (y) paste0(y[1], " && ", y[2])
+        )
         
       }
       
@@ -1064,21 +1051,28 @@ print.decision_list <- function (x, digits = 2, ...) {
     
   }
   
-  cat("decision_list of ", n_scenarios, " scenario", ifelse(n_scenarios == 1, "", "s"),
-      " with ", n_methods, " method", ifelse(n_methods == 1, "", "s"),"\n\n", sep = "")
+  cat(
+    "decision_list of ", n_scenarios, " scenario", ifelse(n_scenarios == 1, "", "s"),
+    " with ", n_methods, " method", ifelse(n_methods == 1, "", "s"), "\n\n",
+    sep = ""
+  )
   
   for (n in seq_along(scenario_names)) {
     
-    mat_out <- do.call(rbind, lapply(go_probs, function (y) y[[n]]))
+    mat_out <- do.call(
+      rbind,
+      lapply(go_probs, function (y) y[[n]])
+    )
     
-    rownames(mat_out) <-  paste0(
+    rownames(mat_out) <- paste0(
       "    - ",
       paste0(
         firstUpper(method_names),
         sapply(method_names, function (y) {
           getBlankString(max(nchar(method_names)) - nchar(y) + 1)
-        }))
+        })
       )
+    )
     
     cat("  -", scenario_names[n], "\n")
     print(round(mat_out, digits = digits))
@@ -1091,7 +1085,7 @@ print.decision_list <- function (x, digits = 2, ...) {
 
 is.decision_list <- function (x) {
   
-  if (missing(x)) stop ("Please provide an object for the argument 'x'")
+  if (missing(x)) stop("Please provide an object for the argument 'x'")
   
   inherits(x, "decision_list")
   
@@ -1171,25 +1165,32 @@ is.decision_list <- function (x) {
 #' \emph{Therapeutic innovation & regulatory science} 49.1 (2015): 155-162.
 #' @export
 negateGoDecisions <- function (
-  
+    
   go_decisions_list,
   overall_min_nogos = "all"
   
 ) {
   
   error_go_decisions_list <-
-    simpleError(paste("Please provide an object of class decision_list",
-                      "for the argument 'go_decisions_list'"))
+    paste("Providing an object of class 'decision_list'",
+          "for the argument 'go_decisions_list'")
+  error_overall_min_nogos <- paste(
+    "Providing either a non-negative integer or the string 'all'",
+    "for the argument 'overall_min_nogos'"
+  )
   
-  error_overall_min_nogos <- simpleError(
-    paste("Please provide either a non-negative integer or the string 'all'",
-          "for the  'overall_min_nogos'"))
+  checkmate::assertClass(
+    go_decisions_list,
+    classes   = "decision_list",
+    .var.name = error_go_decisions_list
+  )
   
-  if (missing(go_decisions_list))                      stop (error_go_decisions_list)
-  
-  if (!is.decision_list(go_decisions_list))            stop (error_go_decisions_list)
-  if (!identical(overall_min_nogos, "all") &&
-      !is.non.negative.wholenumber(overall_min_nogos)) stop (error_overall_min_nogos)
+  checkmate::assert(
+    checkmate::checkChoice(overall_min_nogos, choices = "all"),
+    checkmate::checkInt(overall_min_nogos,      lower = 0),
+    combine   = "or",
+    .var.name = error_overall_min_nogos
+  )
   
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
   
@@ -1216,8 +1217,11 @@ negateGoDecisions <- function (
         }
         
         nogo_decisions_list[[s]]$decisions_list[[m]][, 1] <-
-          apply(nogo_decisions_list[[s]]$decisions_list[[m]][, -1], 1,
-                function(x) sum(x) >= overall_min_nogos)
+          apply(
+            nogo_decisions_list[[s]]$decisions_list[[m]][, -1],
+            1,
+            function (x) sum(x) >= overall_min_nogos
+          )
         
       }
       
@@ -1225,6 +1229,6 @@ negateGoDecisions <- function (
     
   }
   
-  return (nogo_decisions_list)
+  return(nogo_decisions_list)
   
 }

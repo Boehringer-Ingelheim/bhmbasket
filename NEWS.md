@@ -1,3 +1,19 @@
+# bhmbasket 1.0.0
+
+### New and Altered Features
+
+* Added structured unit tests for core functionality
+
+* Integrated code coverage
+
+* Replaced validation logic with checkmate assertions and removed unused helper functions
+
+* Replaced dependency on R2jags to rjags
+
+* Added Github Actions workflows for automated R CMD check and CI validation
+
+* Minor changes in code
+
 # bhmbasket 0.9.6
 
 ### Fixed Bugs

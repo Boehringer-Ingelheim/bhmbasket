@@ -1,69 +1,26 @@
 Maintainer: 'Stephan Wojciekowski <stephan.wojciekowski@boehringer-ingelheim.com>'
 
-## Test environments
-- x86_64-w64-mingw32 (64-bit), R 4.1.2
-- x86_64-w64-mingw32 (64-bit), R Under development (unstable) (2022-02-13 r81727 ucrt)
-- R-hub ubuntu-gcc-release (r-release)
-- R-hub ubuntu-gcc-devel (r-devel)
-- R-hub macos-m1-bigsur-release (r-release)
-- R-hub macos-highsierra-release-cran (r-release)
+## Test environments & R CMD check results
 
-## R CMD check results
+- Macbuilder aarch64-aarch64-apple-darwin20, macOS 26.2 (25C56), Apple M1, R 4.6.0 (r-devel-macosx-arm64), SDK 14.4 (clang-1700.6.3.2)  
+  - Status: OK
+- GitHub Action Linux: R 4.5.2 (2025-10-31), x86_64-pc-linux-gnu
+  - Status: OK
+- GitHub Action Mac: R 4.5.2 (2025-10-31), aarch64-apple-darwin20
+  - Status: OK
+- GitHub Action Windows: R 4.5.2 (2025-10-31 ucrt), x86_64-w64-mingw32  
+  - Status: OK
 
-### Local
-0 errors √ | 0 warnings √ | 0 notes √
+## From NEWS.md: bhmbasket 1.0.0
 
-### R Winbuilder
-Status: OK
+* Added structured unit tests for core functionality
 
-### R-hub ubuntu-gcc-devel (r-devel)
-* checking CRAN incoming feasibility ... NOTE
+* Integrated code coverage
 
-Found the following (possibly) invalid DOIs:
-  DOI: 10.1177/1740774513497539
-    From: DESCRIPTION
-    Status: Service Unavailable
-    Message: 503
+* Replaced validation logic with checkmate assertions and removed unused helper functions
 
-=> This DOI has not been changed since since bhmbasket version 0.9.1 and the respective publication can be accessed using this DOI via https://www.doi.org/
+* Replaced dependency on R2jags to rjags
 
-### R-hub ubuntu-gcc-release (r-release)
-* checking CRAN incoming feasibility ... NOTE
-
-Found the following (possibly) invalid DOIs:
-  DOI: 10.1177/1740774513497539
-    From: DESCRIPTION
-    Status: Service Unavailable
-    Message: 503
-
-=> This DOI has not been changed since bhmbasket version 0.9.1 and the respective publication can be accessed using this DOI via https://www.doi.org/
-
-### R-hub macos-m1-bigsur-release (r-release)
-OK
-
-### R-hub macos-highsierra-release-cran (r-release)
-OK
-
-## From NEWS.md
-
-### Fixed Bugs
-
-* Fixed a bug that occured in performAnalyses() using R-devel due to a recent change in stats::aggregate()
-
-### New & Altered Features
-
-* Introduced nested parallelization for better usage of HPC resources
-
-* Introduced chunking of tasks for better performance in parallel environments
-
-* Updated vignette on HPC environment
-
-* Update documentation of performAnalyses()
-
-* Recommended doFuture and future over doParallel and parallel when no parallel backend is detected
-
-* Updated Suggests and SystemRequirements in DESCRIPTION
-
-* Added a WORDLIST
+* Added Github Actions workflows for automated R CMD check and CI validation
 
 * Minor changes in code

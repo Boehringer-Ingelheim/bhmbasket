@@ -1,0 +1,56 @@
+name: test-coverage
+
+on:
+  push:
+    branches: [test]
+  pull_request:
+    branches: [test]
+  workflow_dispatch:
+
+jobs:
+  test-coverage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # needed for Codecov OIDC
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      RENV_CONFIG_SANDBOX_ENABLED: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+        with:
+          pandoc-version: '3.1.11'
+      - run: echo "# Test" | pandoc -t html
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'latest'
+          use-public-rspm: true
+          rtools-version: '42'
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: covr
+
+      - name: Install bhmbasket
+        shell: bash
+        run: R CMD INSTALL --preclean .
+
+      # Generate Cobertura XML with covr (do NOT call covr::codecov here)
+      - name: Generate coverage (Cobertura XML)
+        shell: Rscript {0}
+        run: |
+          cov <- covr::package_coverage()
+          xml <- covr::to_cobertura(cov)
+          cat(as.character(xml), file = "coverage.xml")
+
+      - name: Upload to Codecov via OIDC (no secret)
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.xml
+          use_oidc: true
+          fail_ci_if_error: true
+          branch: test
