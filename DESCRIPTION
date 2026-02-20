@@ -9,7 +9,8 @@ Authors@R:
            email = 'stephan.wojciekowski@boehringer-ingelheim.com'),
     person(given = 'Tathagata',
            family = 'Chattopadhyay',
-           role = 'ctb'))
+           role = 'aut',
+           email = 'tchattopadhyay6@gmail.com'))
 Description: Provides functions for the evaluation of basket
     trial designs with binary endpoints. Operating characteristics of a
     basket trial design are assessed by simulating trial data according to

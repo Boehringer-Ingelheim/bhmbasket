@@ -8,6 +8,8 @@
 
 * Replaced validation logic with checkmate assertions and removed unused helper functions
 
+* Replaced dependency on R2jags to rjags
+
 * Added Github Actions workflows for automated R CMD check and CI validation
 
 * Minor changes in code
