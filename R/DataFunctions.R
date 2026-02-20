@@ -73,19 +73,29 @@ getScenarioNormal <- function(
   trials <- vector("list", n_trials)
   
   for (t in seq_len(n_trials)) {
+    
     y_list <- vector("list", K)
+    y_bar  <- numeric(K)
+    
     for (k in seq_len(K)) {
-      y_list[[k]] <- stats::rnorm(
-        n    = n_subjects[k],
-        mean = means[k],
+      
+      y <- stats::rnorm(
+        n    = n_subj_vec[k],
+        mean = mu_vec[k],
         sd   = sd_vec[k]
       )
+      
+      y_list[[k]] <- y
+      
+      y_bar[k]    <- mean(y)
     }
-    names(y_list) <- paste0("c_", cohort_names_chr)
+    
+    names(y_list)  <- paste0("c_", cohort_names_chr)
+    names(y_bar)   <- paste0("c_", cohort_names_chr)
     
     trials[[t]] <- list(
-      y_list     = y_list,
-      n_subjects = n_subjects   # per-trial copy (optional, but handy)
+      y_bar    = y_bar,          
+      n_subjects = n_subj_vec
     )
   }
   
@@ -205,6 +215,8 @@ simulateScenariosNormal <- function(
   )
   
   n_cohorts <- length(mean_list[[1L]])
+  K <- n_cohorts
+  cohort_names_chr <- as.character(seq_len(K))
   
   checkmate::assert_true(
     n_cohorts >= 2L,
@@ -276,18 +288,37 @@ simulateScenariosNormal <- function(
     trials <- vector("list", length = n_trials)
     
     for (t in seq_len(n_trials)) {
-      y_list <- vector("list", length = n_cohorts)
-      for (k in seq_len(n_cohorts)) {
-        n_k        <- n_subj_vec[k]
-        y_list[[k]] <- stats::rnorm(n_k, mean = mu_vec[k], sd = sd_vec[k])
+      
+      y_list <- vector("list", K)
+      y_bar  <- numeric(K)
+      
+      for (k in seq_len(K)) {
+        
+        y <- stats::rnorm(
+          n    = n_subj_vec[k],
+          mean = mu_vec[k],
+          sd   = sd_vec[k]
+        )
+        
+        y_list[[k]] <- y
+        
+        y_bar[k]    <- mean(y)
       }
-      names(y_list) <- paste0("c_", seq_len(n_cohorts))
-      trials[[t]] <- list(y_list = y_list)
+      
+      names(y_list)  <- paste0("c_", cohort_names_chr)
+      names(y_bar)   <- paste0("c_", cohort_names_chr)
+      
+      trials[[t]] <- list(
+        y_bar    = y_bar,          
+        n_subjects = n_subj_vec
+      )
     }
     
     scenario_list[[s]] <- list(
       scenario_number   = scenario_numbers[s],
       n_subjects        = n_subjects_mat,
+      means             = mu_vec,
+      sd                = sd_vec,
       trials            = trials,
       previous_analyses = list(
         go_decisions   = matrix(1, nrow = n_trials, ncol = 1),   # all "go" initially
@@ -812,45 +843,56 @@ loadScenariosNormal <- function(
   return(scenario_list)
 }
 
+
 #' @export
 print.scenario_list_normal <- function(x, ...) {
   
-  n_scenarios    <- length(x)
-  scenario_names <- names(x)
+  n_scen <- length(x)
+  scen_names <- names(x)
   
-  # true means per cohort
-  true_means   <- lapply(x, function(s) s$means)
-  n_cohorts    <- length(true_means[[1L]])
-  cohort_names <- paste0("c_", seq_len(n_cohorts))
+  # infer K from first scenario
+  K <- ncol(x[[1]]$n_subjects)
+  cohort_names <- paste0("c_", seq_len(K))
   
-  # average sample size per cohort over trials
-  n_subjects_avg <- lapply(x, function(s) {
-    colMeans(as.matrix(s$n_subjects))
-  })
+  cat("scenario_list_normal\n")
+  cat("  Scenarios:", n_scen, "\n")
+  cat("  Cohorts:  ", K, "(", paste(cohort_names, collapse = ", "), ")\n\n", sep = "")
   
-  # trial counts
-  n_trial_realizations  <- x[[1L]]$n_trials
-  n_unique_realizations <- nrow(getUniqueTrialsNormal(x))
-  
-  cat("scenario_list_normal of ", n_scenarios, " scenario",
-      ifelse(n_scenarios == 1, "", "s"),
-      " with ", n_cohorts, " cohort", ifelse(n_cohorts == 1, "", "s"),
-      "\n\n", sep = "")
-  
-  for (n in seq_along(scenario_names)) {
+  for (sname in scen_names) {
+    sc <- x[[sname]]
     
-    df_out <- rbind(
-      "    - true means:"               = true_means[[n]],
-      "    - average number of subjects:" = n_subjects_avg[[n]]
-    )
+    n_trials <- length(sc$trials)
+    n_subj_avg <- colMeans(sc$n_subjects)
     
-    colnames(df_out) <- cohort_names
+    cat("-", sname, "(scenario_number =", sc$scenario_number, ")\n")
+    cat("  Trials: ", n_trials, "\n", sep = "")
     
-    cat("  -", scenario_names[n], "\n")
-    print(df_out)
+    # planned sample sizes
+    cat("  Planned n per cohort (avg):\n")
+    tmp_n <- data.frame(cohort = cohort_names, n_avg = as.numeric(n_subj_avg))
+    print(tmp_n, row.names = FALSE)
+    
+    # true parameters if available
+    if (!is.null(sc$means)) {
+      cat("  True means:\n")
+      tmp_mu <- data.frame(cohort = cohort_names, mean = as.numeric(sc$means))
+      print(tmp_mu, row.names = FALSE)
+    }
+    if (!is.null(sc$sd)) {
+      cat("  True SDs:\n")
+      tmp_sd <- data.frame(cohort = cohort_names, sd = as.numeric(sc$sd))
+      print(tmp_sd, row.names = FALSE)
+    }
+    
+    # show first few y_bar values
+    ybar_mat <- do.call(rbind, lapply(sc$trials, function(tr) tr$y_bar))
+    colnames(ybar_mat) <- cohort_names
+    
+    cat("  First 3 trial summary outcomes (y_bar):\n")
+    print(head(as.data.frame(ybar_mat), 3), row.names = FALSE)
+    
     cat("\n")
   }
   
-  cat("  -", n_trial_realizations,  " trial realizations per scenario\n")
-  cat("  -", n_unique_realizations, " unique trial realizations overall\n")
+  invisible(x)
 }
