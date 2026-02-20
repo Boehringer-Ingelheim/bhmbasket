@@ -8,7 +8,7 @@ bibentry(
   title       = "bhmbasket: Bayesian Hierarchical Models for Basket Trials",
   author      = c(
     person("Stephan", "Wojciekowski"),
-    person("Tathagata", "Chattopadhyay"))
+    person("Tathagata", "Chattopadhyay")
   ),
   year        = year,
   note        = note,
