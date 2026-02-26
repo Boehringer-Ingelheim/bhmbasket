@@ -1,13 +1,21 @@
+## Bayesian hierarchical Model: Normal
+
 model {
+
+  ## priors
+  mu_pop     ~ dnorm(mu_pop_mean, prec_mu_pop)
+
+  prec_tau   ~ dgamma(tau_shape,   tau_rate)   # 1 / tau^2  (between-trial)
+  prec_sigma ~ dgamma(sigma_shape, sigma_rate) # 1 / sigma^2 (within-trial)
   
   for (j in 1:J) {
-    for (i in 1:n[j]) {
-      y[j,i] ~ dnorm(mu[j], prec_sigma)
-    }
-    mu[j] ~ dnorm(mu_pop, prec_tau)
+
+    ## Prior
+    theta[j] ~ dnorm(mu_pop, prec_tau)
+
+    ## Likelihood
+    prec_y[j] <- n[j] * prec_sigma  # precision of mean = n_j / sigma^2
+    y[j] ~ dnorm(theta[j], prec_y[j])
   }
 
-  mu_pop     ~ dnorm(mu_pop_mean, prec_mu_pop)
-  prec_tau   ~ dgamma(tau_shape,   tau_rate)
-  prec_sigma ~ dgamma(sigma_shape, sigma_rate)
 }

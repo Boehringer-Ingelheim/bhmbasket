@@ -1,8 +1,14 @@
+
 getAllCohortNames <- function (
     
-  analyses_list
+  analyses_list,
+  endpoint = c("binary", "normal")
   
 ) {
+  
+  endpoint <- match.arg(endpoint)
+  
+  cohort_prefix <- if (endpoint == "binary") "p_" else "theta_"
   
   Reduce(
     intersect,
@@ -10,7 +16,7 @@ getAllCohortNames <- function (
       lapply(x$quantiles_list, function (y) {
         
         post_names <- Reduce(intersect, lapply(y, colnames))
-        indices    <- grep("p_", post_names)
+        indices    <- grep(paste0("^", cohort_prefix), post_names)
         
         post_names[indices]
         
@@ -20,44 +26,6 @@ getAllCohortNames <- function (
   
 }
 
-#' @title getAverageNSubjects
-#' @md
-#' @description This function calculates the average number of subjects per scenario.
-#' @param scenario_list An object of class `scenario_list`,
-#' as created with \code{\link[bhmbasket]{simulateScenarios}} or
-#' \code{\link[bhmbasket]{continueRecruitment}}
-#' @details This function can be useful to assess decision rules with regard to the average number 
-#' of subjects across scenarios when performing interim analyses.
-#' @return A named list of vectors for the average number of subjects in each scenario.
-#' @rdname getAverageNSubjects
-#' @seealso
-#'  \code{\link[bhmbasket]{simulateScenarios}}
-#'  \code{\link[bhmbasket]{continueRecruitment}}
-#' @examples
-#' interim_scenarios <- simulateScenarios(
-#'   n_subjects_list     = list(c(10, 20, 30)),
-#'   response_rates_list = list(rep(0.9, 3)),
-#'   n_trials            = 10)
-#'
-#' interim_analyses <- performAnalyses(
-#'   scenario_list       = interim_scenarios,
-#'   target_rates        = rep(0.5, 3),
-#'   n_mcmc_iterations   = 100)
-#'
-#' interim_gos <- getGoDecisions(
-#'   analyses_list       = interim_analyses,
-#'   cohort_names        = c("p_1", "p_2", "p_3"),
-#'   evidence_levels     = c(0.5, 0.8, 0.5),
-#'   boundary_rules      = quote(c(x[1] > 0.8, x[2] > 0.6, x[3] > 0.7)))
-#'     
-#' scenarios_list <- continueRecruitment(
-#'   n_subjects_add_list = list(c(30, 20, 10)),
-#'   decisions_list      = interim_gos,
-#'   method_name         = "exnex_adj")
-#'   
-#' getAverageNSubjects(scenarios_list)
-#'
-#' @author Stephan Wojciekowski
 #' @export
 getAverageNSubjects <- function (
     
@@ -78,66 +46,6 @@ getAverageNSubjects <- function (
   
 }
 
-#' @title getEstimates
-#' @md
-#' @description This function calculates the point estimates and credible intervals per cohort,
-#' as well as estimates of the biases and the mean squared errors of the point estimates per cohort.
-#' @param analyses_list An object of class `analysis_list`,
-#' as created with \code{\link[bhmbasket]{performAnalyses}}
-#' @param add_parameters A vector of strings naming additional parameters
-#' from the Bayesian hierarchical models, e.g. `c('mu', 'tau')`.
-#' If `NULL`, no additional parameters will be evaluated,
-#' Default: `NULL`
-#' @param point_estimator A string indicating the type of estimator used for calculation of
-#' bias and MSE. Must be one of `'median'` or `'mean'`
-#' @param alpha_level A numeric in (0, 1) for the level of the credible interval.
-#' Only values corresponding to quantiles saved in \code{\link[bhmbasket]{performAnalyses}}
-#' will work, Default: `0.05`
-#' @details Bias and MSE will only be calculated for response rate estimates of simulated trials.
-#' For additional parameters, bias and MSE will not be calculated.
-#'
-#' Possible additional parameters are for the Bayesian hierarchical models are
-#' `c('mu', 'tau')` for `'berry'`, `'exnex'`, and `'exnex_adj'`.
-#' The latter two models can also access the posterior weights
-#' `paste0("w_", seq_len(n_cohorts))`.
-#' @return A named list of matrices of estimates of response rates and credible intervals.
-#' Estimates of bias and MSE are included for response rate estimates of simulated trials.
-#' @rdname getEstimates
-#' @seealso
-#'  \code{\link[bhmbasket]{createTrial}}
-#'  \code{\link[bhmbasket]{simulateScenarios}}
-#'  \code{\link[bhmbasket]{performAnalyses}}
-#' @examples
-#'   scenarios_list <- simulateScenarios(
-#'     n_subjects_list     = list(c(10, 20, 30)),
-#'     response_rates_list = list(c(0.1, 0.2, 3)),
-#'     n_trials            = 10)
-#'
-#'   analyses_list <- performAnalyses(
-#'     scenario_list       = scenarios_list,
-#'     target_rates        = c(0.1, 0.1, 0.1),
-#'     calc_differences    = matrix(c(3, 2, 2, 1), ncol = 2),
-#'     n_mcmc_iterations   = 100)
-#'
-#'   getEstimates(analyses_list)
-#'   getEstimates(analyses_list   = analyses_list,
-#'                add_parameters  = c("mu", "tau", "w_1", "w_2", "w_3"),
-#'                point_estimator = "mean",
-#'                alpha_level     = 0.1)
-#'
-#'   outcome <- createTrial(
-#'     n_subjects          = c(10, 20, 30),
-#'     n_responders        = c( 1,  2,  3))
-#'
-#'   outcome_analysis <- performAnalyses(
-#'     scenario_list       = outcome,
-#'     target_rates        = c(0.1, 0.1, 0.1),
-#'     n_mcmc_iterations   = 100)
-#'
-#'   getEstimates(outcome_analysis)
-#'   getEstimates(analyses_list  = outcome_analysis,
-#'                add_parameters = c("mu", "w_1", "w_2", "w_3"))
-#' @author Stephan Wojciekowski
 #' @export
 getEstimates <- function (
     
@@ -198,11 +106,21 @@ getEstimates <- function (
   
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
   
-  cohort_names <- getAllCohortNames(analyses_list)
+  endpoint <- if (!is.null(analyses_list[[1]]$scenario_data$endpoint)) {
+    analyses_list[[1]]$scenario_data$endpoint
+  } else {
+    "binary"
+  }
+  
+  cohort_prefix <- if (endpoint == "binary") "p_" else "theta_"
+  
+  cohort_names <- getAllCohortNames(analyses_list, endpoint = endpoint)
   diff_indices <- grepl("diff", cohort_names)
   
   ## Filter for cohort names in add_parameters
-  add_parameters <- add_parameters[!grepl("p_", add_parameters)]
+  if (!is.null(add_parameters)) {
+    add_parameters <- add_parameters[!grepl(paste0("^", cohort_prefix), add_parameters)]
+  }
   
   ## Lists to hold the results
   results_list <- vector(mode = "list", length = length(analyses_list))
@@ -210,21 +128,29 @@ getEstimates <- function (
   
   for (s in seq_along(analyses_list)) {
     
-    true_rr <- analyses_list[[s]]$scenario_data$response_rates
-    
-    ## calculate the historic response rates
-    hist_index <- true_rr <= 0 | true_rr >= 1
-    if (any(hist_index)) {
+    if (endpoint == "binary") {
       
-      hist_rr <- sapply(which(hist_index), function (x) {
-        true_rr[x] / analyses_list[[s]]$scenario_data$n_subjects[1, x]
-      })
+      true_vals <- analyses_list[[s]]$scenario_data$response_rates
       
-      true_rr[hist_index] <- hist_rr
+      ## calculate the historic response rates
+      hist_index <- true_vals <= 0 | true_vals >= 1
+      if (any(hist_index)) {
+        
+        hist_vals <- sapply(which(hist_index), function (x) {
+          true_vals[x] / analyses_list[[s]]$scenario_data$n_subjects[1, x]
+        })
+        
+        true_vals[hist_index] <- hist_vals
+        
+      }
+      
+    } else {
+      
+      true_vals <- analyses_list[[s]]$scenario_data$means
       
     }
     
-    ## calculate the differences in true rr if necessary
+    ## calculate the differences in true values if necessary
     if (any(diff_indices)) {
       
       diff_cohorts <- sapply(
@@ -232,18 +158,18 @@ getEstimates <- function (
         as.numeric
       )
       
-      true_diff_rr <- t(apply(diff_cohorts, 2, function (x) {
-        diff(true_rr[x])
+      true_diff_vals <- t(apply(diff_cohorts, 2, function (x) {
+        diff(true_vals[x])
       }))
       
     } else {
       
-      true_diff_rr <- NULL
+      true_diff_vals <- NULL
       
     }
     
-    ## must be after historic response rates
-    true_rr <- cbind(true_rr, true_diff_rr)
+    ## must be after historic replacement (binary)
+    true_vals <- cbind(true_vals, true_diff_vals)
     
     ## prepare loop
     method_names <- analyses_list[[s]]$analysis_parameters$method_names
@@ -322,22 +248,22 @@ getEstimates <- function (
         
       } else {
         
-        ## find all estimates for response rates
-        rr_index         <- grepl("p_", colnames(matrix_estimates))
-        matrix_estimates <- matrix_estimates[, rr_index]
+        ## find all estimates for cohort-level parameters
+        val_index        <- grepl(paste0("^", cohort_prefix), colnames(matrix_estimates))
+        matrix_estimates <- matrix_estimates[, val_index, drop = FALSE]
         
         point_estimates  <- as.matrix(colMeans(matrix_estimates))
         var_estimates    <- as.matrix(apply(matrix_estimates, 2, stats::var))
         
-        bias_estimates <- point_estimates - t(true_rr)
+        bias_estimates <- point_estimates - t(true_vals)
         mse_estimates  <- bias_estimates^2 + var_estimates
         
         colnames(bias_estimates) <- "Bias"
         colnames(mse_estimates)  <- "MSE"
         
         ## Combine results
-        ## introduce NAs for all values that are not response rates
-        na_matrix      <- matrix(NA, nrow = sum(!rr_index), ncol = 1)
+        ## introduce NAs for all values that are not cohort-level parameters
+        na_matrix      <- matrix(NA, nrow = sum(!val_index), ncol = 1)
         
         bias_estimates <- rbind(bias_estimates, na_matrix)
         mse_estimates  <- rbind(mse_estimates,  na_matrix)
@@ -424,27 +350,6 @@ getGoBoundaries <- function (
   
 ) {"dummy function"}
 
-#' @title getGoDecisions
-#' @description This function applies decision rules to the analyzed trials.
-#' The resulting \code{decision_list} can be further processed with
-#' \code{\link[bhmbasket]{getGoProbabilities}} or
-#' \code{\link[bhmbasket]{continueRecruitment}}.
-#' @param analyses_list An object of class \code{analysis_list},
-#' as created with \code{\link[bhmbasket]{performAnalyses}}
-#' @param cohort_names A vector of strings with the names of the cohorts, e.g.
-#' \code{c('p_1', 'p_2')}
-#' @param evidence_levels A vector of numerics in \code{(0, 1)} for the
-#' posterior probability thresholds for the cohorts.
-#' Will be recycled to match the number of methods in the \code{analyses_list}
-#' @param boundary_rules A quote of a vector for the boundary rules,
-#' \code{quote(c(...))}, see details.
-#' The number of decisions to be taken must match the number of cohorts.
-#' Will be recycled to match the number of methods in the \code{analyses_list}
-#' @param overall_min_gos A positive integer for the minimum number of
-#' cohort-wise go decisions required for an overall go decision
-#'  Default: \code{1}
-#' @return An object of class \code{decision_list}
-#' @details [...]
 #' @export
 getGoDecisions <- function (
     
@@ -462,7 +367,7 @@ getGoDecisions <- function (
     "Providing an object of class 'analysis_list' for the argument 'analyses_list'"
   error_cohort_names <- paste(
     "Providing a vector of strings for the argument 'cohort_names',",
-    "e.g. c('p_1','p_2')"
+    "e.g. c('p_1','p_2') or c('theta_1','theta_2')"
   )
   error_evidence_levels <-
     "Providing a vector of numerics in (0, 1) for the argument 'evidence_levels'"
@@ -539,10 +444,10 @@ getGoDecisions <- function (
     } else {
       if (!is.language(boundary_rules))                                          stop()
       if (!identical(boundary_rules[1], quote(c())))                             stop()
-      ## fix number of decisions to number of cohorts
+      ## fix number of decisions to number of cohorts (endpoint-independent)
       if (!identical(
         length(boundary_rules) - 1L,
-        ncol(analyses_list$scenario_1$scenario_data$response_rates)
+        ncol(analyses_list$scenario_1$scenario_data$n_subjects)
       )) stop()
       eval(boundary_rules)
     }
@@ -670,35 +575,17 @@ getGoDecisionsByCohort <- function (
   
 ) {
   
-  go_decisions_list <- lapply(
-    gamma_quantiles,
-    function (x) {
-      eval(decision_rule)
-    }
-  )
+  go_decisions_list <- lapply(gamma_quantiles, function (x) {
+    as.logical(eval(decision_rule))
+  })
   
-  go_decisions <- matrix(
-    unlist(go_decisions_list),
-    nrow = length(go_decisions_list),
-    byrow = TRUE
-  )
-  
+  go_decisions <- matrix(unlist(go_decisions_list), nrow = length(go_decisions_list), byrow = TRUE)
   colnames(go_decisions) <- paste0("decision_", seq_len(ncol(go_decisions)))
   
   return(go_decisions)
   
 }
 
-#' @title getGoProbabilities
-#' @md
-#' @description Calculates the Go probabilities for given decisions
-#' @param go_decisions_list An object of class `decision_list`,
-#' as returned by \code{\link[bhmbasket]{getGoDecisions}}
-#' @param nogo_decisions_list An object of class `decision_list`,
-#' as returned by \code{\link[bhmbasket]{getGoDecisions}}, Default: `NULL`
-#' @return A list of matrices of Go (and Consider and NoGo) probabilities
-#' @details [...]
-#' @rdname getGoProbabilities
 #' @export
 getGoProbabilities <- function (
     
@@ -913,7 +800,16 @@ print.decision_list <- function (x, digits = 2, ...) {
       
     }
     
-    out_rules <- lapply(out_rules, gsub, pattern = "p_", replacement = "P(p_")
+    ## endpoint-aware display prefix
+    endpoint <- if (!is.null(x[[1]]$scenario_data$endpoint)) x[[1]]$scenario_data$endpoint else "binary"
+    cohort_prefix <- if (endpoint == "binary") "p_" else "theta_"
+    
+    out_rules <- lapply(
+      out_rules,
+      gsub,
+      pattern = cohort_prefix,
+      replacement = paste0("P(", cohort_prefix)
+    )
     
     for (n in seq_len(n_methods)) {
       
@@ -921,11 +817,12 @@ print.decision_list <- function (x, digits = 2, ...) {
       
       out_rules_n <- unlist(utils::as.relistable(out_rules_n))
       
-      out_rules_n[grepl("P\\(", out_rules_n)] <-
-        paste0(
-          out_rules_n[grepl("P\\(", out_rules_n)],
-          ") > ", decision_rules$gamma_levels[[n]]
-        )
+      idxP <- which(grepl("P\\(", out_rules_n))
+      out_rules_n[idxP] <- paste0(
+        out_rules_n[idxP],
+        ") > ",
+        decision_rules$gamma_levels[[n]][seq_along(idxP)]
+      )
       
       out_rules_n <- utils::relist(out_rules_n)
       
@@ -996,7 +893,68 @@ is.decision_list <- function (x) {
 #' for the minimum number of cohort-level NoGo decisions required for
 #' an overall NoGo decision, Default: `all`
 #' @return A list of NoGo decisions of class `decision_list`
+#' @details This function is intended for implementing decision rules with a
+#' consider zone as
+#' e.g. proposed in "Bayesian design of proof-of-concept trials" by
+#' Fisch et al. (2015).
+#' This approach involves two criteria, Significance and Relevance.
+#' \itemize{
+#'   \item Significance: high evidence that the treatment effect is greater
+#'   than some smaller value (e.g. treatment effect under H0)
+#'   \item Relevance: moderate evidence that the treatment effect is greater
+#'   than some larger value (e.g. treatment effect under a certain alternative)
+#' }
+#' The decision for a cohort is then taken as follows:
+#' \itemize{
+#'   \item Go decision: Significance and Relevance
+#'   \item Consider decision: either Significance, or Relevance, but not both
+#'   \item NoGo decision: no Significance and no Relevance
+#' }
+#' In the example below, the following criteria for are implemented for each of
+#' the three cohorts:
+#' \itemize{
+#'   \item Significance: \eqn{P(p_j > 0.4) > 0.95}
+#'   \item Relevance: \eqn{P(p_j > 0.8) > 0.5}
+#' }
+#' @seealso
+#'  \code{\link[bhmbasket]{getGoDecisions}}
 #' @rdname negateGoDecisions
+#' @examples
+#' scenarios_list <- simulateScenarios(
+#'   n_subjects_list     = list(c(10, 20, 30)),
+#'   response_rates_list = list(rep(0.9, 3)),
+#'   n_trials            = 10)
+#'
+#' analysis_list <- performAnalyses(
+#'   scenario_list      = scenarios_list,
+#'   target_rates       = rep(0.5, 3),
+#'   n_mcmc_iterations  = 100)
+#'
+#' go_decisions_list <- getGoDecisions(
+#'   analyses_list   = analysis_list,
+#'   cohort_names    = c("p_1", "p_2", "p_3",
+#'                       "p_1", "p_2", "p_3"),
+#'   evidence_levels = c(0.5,  0.5,  0.5,
+#'                       0.95, 0.95, 0.95),
+#'   boundary_rules  = quote(c(x[1] > 0.8 & x[4] > 0.4,
+#'                             x[2] > 0.8 & x[5] > 0.4,
+#'                             x[3] > 0.8 & x[6] > 0.4)))
+#'
+#' nogo_decisions <- negateGoDecisions(getGoDecisions(
+#'   analyses_list   = analysis_list,
+#'   cohort_names    = c("p_1", "p_2", "p_3",
+#'                       "p_1", "p_2", "p_3"),
+#'   evidence_levels = c(0.5,  0.5,  0.5,
+#'                       0.95, 0.95, 0.95),
+#'   boundary_rules  = quote(c(x[1] > 0.8 | x[4] > 0.4,
+#'                             x[2] > 0.8 | x[5] > 0.4,
+#'                             x[3] > 0.8 | x[6] > 0.4))))
+#'
+#' getGoProbabilities(go_decisions_list, nogo_decisions)
+#' @author Stephan Wojciekowski
+#' @references Fisch, Roland, et al.
+#' "Bayesian design of proof-of-concept trials."
+#' \emph{Therapeutic innovation & regulatory science} 49.1 (2015): 155-162.
 #' @export
 negateGoDecisions <- function (
     

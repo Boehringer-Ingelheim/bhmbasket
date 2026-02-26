@@ -1,0 +1,13 @@
+model {
+  
+  for (j in 1:J) {
+    for (i in 1:n[j]) {
+      y[j,i] ~ dnorm(mu[j], prec_sigma)
+    }
+    mu[j] ~ dnorm(mu_pop, prec_tau)
+  }
+
+  mu_pop     ~ dnorm(mu_pop_mean, prec_mu_pop)
+  prec_tau   ~ dgamma(tau_shape,   tau_rate)
+  prec_sigma ~ dgamma(sigma_shape, sigma_rate)
+}
