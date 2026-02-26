@@ -616,8 +616,8 @@ getUniqueTrials <- function (
     }
     
     ## 3) representative per bin = mean of samples in that bin (per cohort)
-    bin_means <- vector("list", n_cohorts)
-    names(bin_means) <- cohort_names
+    bin_mids <- vector("list", n_cohorts)
+    names(bin_mids) <- cohort_names
     
     for (j in seq_len(n_cohorts)) {
       bj <- breaks[[j]]
@@ -626,10 +626,10 @@ getUniqueTrials <- function (
       reps <- rep(NA_real_, length(bj) - 1L)
       for (b in seq_len(length(reps))) {
         vals <- all_scenarios_y[bin_codes[, j] == b, j]
-        if (length(vals) > 0) reps[b] <- mean(vals)
+        if (length(vals) > 0) reps[b] <- (min(vals) + max(vals))/2
         if (is.na(reps[b]))   reps[b] <- mids[b]
       }
-      bin_means[[j]] <- reps
+      bin_mids[[j]] <- reps
     }
     
     ## 4) replace each trial’s y by the bin representative (mean of samples in bin)
@@ -637,7 +637,7 @@ getUniqueTrials <- function (
     colnames(y_rep) <- cohort_names
     
     for (j in seq_len(n_cohorts)) {
-      y_rep[, j] <- bin_means[[j]][bin_codes[, j]]
+      y_rep[, j] <- bin_mids[[j]][bin_codes[, j]]
     }
     
     out <- getUniqueRows(cbind(
@@ -653,7 +653,7 @@ getUniqueTrials <- function (
     group_sizes <- as.integer(tabulate(group_id, nbins = nrow(out)))
     
     attr(out, "bin_breaks")  <- breaks
-    attr(out, "bin_means")   <- bin_means
+    attr(out, "bin_mids")   <- bin_mids
     attr(out, "group_sizes") <- group_sizes
     
     return(out)
@@ -776,7 +776,7 @@ mapUniqueTrials <- function (
   applicable_previous_trials,
   endpoint   = NULL,
   bin_breaks = NULL,
-  bin_means  = NULL
+  bin_mids  = NULL
   
 ) {
   
@@ -786,9 +786,9 @@ mapUniqueTrials <- function (
   
   if (endpoint == "normal") {
     if (is.null(bin_breaks)) bin_breaks <- attr(trials_unique_calc, "bin_breaks")
-    if (is.null(bin_means))  bin_means  <- attr(trials_unique_calc, "bin_means")
-    if (is.null(bin_breaks) || is.null(bin_means)) {
-      stop("For endpoint = 'normal', provide 'bin_breaks' and 'bin_means' or pass trials_unique_calc with these attributes")
+    if (is.null(bin_mids))  bin_mids  <- attr(trials_unique_calc, "bin_mids")
+    if (is.null(bin_breaks) || is.null(bin_mids)) {
+      stop("For endpoint = 'normal', provide 'bin_breaks' and 'bin_mids' or pass trials_unique_calc with these attributes")
     }
   }
   
@@ -831,7 +831,7 @@ mapUniqueTrials <- function (
       for (j in seq_len(n_cohorts)) {
         bks <- bin_breaks[[cohort_names[j]]]
         ids <- cut(y[, j], breaks = bks, include.lowest = TRUE, labels = FALSE)
-        y_rep[, j] <- bin_means[[cohort_names[j]]][ids]
+        y_rep[, j] <- bin_mids[[cohort_names[j]]][ids]
       }
       
       scenario_data_matrix <- cbind(
@@ -1272,7 +1272,7 @@ performAnalyses <- function (
     applicable_previous_trials = applicable_previous_trials,
     endpoint                   = endpoint,
     bin_breaks                 = if (endpoint == "normal") attr(trials_unique, "bin_breaks") else NULL,
-    bin_means                  = if (endpoint == "normal") attr(trials_unique, "bin_means") else NULL
+    bin_mids                  = if (endpoint == "normal") attr(trials_unique, "bin_mids") else NULL
   )
   
   if (verbose) {
