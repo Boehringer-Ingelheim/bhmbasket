@@ -41,7 +41,7 @@ continueRecruitment <- function (
       
       match.arg(
         method_name,
-        choices    = c('berry', 'exnex', 'exnex_adj', 'pooled', 'stratified'),
+        choices    = c('berry', 'exnex', 'exnex_adj', 'pooled', 'stratified', 'normal'),
         several.ok = FALSE)
       
     }, error = function (e) e)
