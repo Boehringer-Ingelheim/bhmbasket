@@ -252,7 +252,7 @@ createTrial <- function (
     
   n_subjects,
   n_responders = NULL,
-  y = NULL,
+  means = NULL,
   sds = NULL,
   endpoint = c("binary", "normal")
   
@@ -265,7 +265,7 @@ createTrial <- function (
   error_n_responders <-
     "Providing a vector of integers for the argument 'n_responders'"
   error_y <-
-    "Providing a numeric vector for the argument 'y'"
+    "Providing a numeric vector for the argument 'means'"
   error_sds <-
     "Providing a non-negative numeric vector for the argument 'sds'"
   
@@ -295,27 +295,33 @@ createTrial <- function (
   } else {
     
     checkmate::assert_numeric(
-      y, any.missing = FALSE, min.len = 1,
+      means, any.missing = FALSE, min.len = 1,
       .var.name = error_y
     )
-    checkmate::assert_numeric(
-      sds, any.missing = FALSE, min.len = 1,
-      .var.name = error_sds
-    )
+    
+    if (is.null(sds)) {
+      sds <- rep(0, length(means))
+    } else {
+      checkmate::assert_numeric(
+        sds, any.missing = FALSE, min.len = 1,
+        .var.name = error_sds
+      )
+      # override with zeros to ensure historical behavior
+      sds <- rep(0, length(means))
     
     ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
     
     utils::capture.output({
       trial <- simulateScenarios(
         n_subjects_list = list(as.integer(n_subjects)),
-        means_list      = list(as.numeric(y)),
+        means_list      = list(as.numeric(means)),
         sds_list        = list(as.numeric(sds)),
         n_trials        = 1,
         endpoint        = endpoint
       )
     })
   }
-  
+  }  
   return(trial)
 }
 
@@ -1051,4 +1057,5 @@ simulateScenarios <- function (
   class(scenario_list) <- "scenario_list"
   
   return(scenario_list)
+
 }

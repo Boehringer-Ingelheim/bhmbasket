@@ -221,69 +221,57 @@ getPostQuantiles <- function (
     save_trial <- sample(seq_len(n_analyses), size = 1)
   }
   
-  exported_stuff <- c(
-    "posteriors2Quantiles", "getPosteriors", "getPostQuantilesOfTrial",
-    "qbetaDiff", "chunkVector")
-  
-  chunks_outer <- chunkVector(seq_len(n_analyses), foreach::getDoParWorkers())
-  
-  "%dorng%" <- doRNG::"%dorng%"
-  "%dopar%" <- foreach::"%dopar%"
-  posterior_quantiles_list <- suppressMessages(
-    foreach::foreach(
-      k = chunks_outer,
-      .combine  = c,
-      .verbose  = FALSE,
-      .packages = c("rjags"),
-      .export   = exported_stuff) %dorng% {
+  posterior_quantiles_list <- future.apply::future_lapply(
+    X = seq_len(n_analyses),
+    FUN = function(j) {
+      
+      if (endpoint == "binary") {
         
-        chunks_inner <- chunkVector(k, foreach::getDoParWorkers())
+        getPostQuantilesOfTrial(
+          n_responders      = as.numeric(scenario_data$n_responders[j, ]),
+          n_subjects        = as.numeric(scenario_data$n_subjects[j, ]),
+          y                 = NULL,
+          sds               = NULL,
+          j_data            = j_data,
+          j_parameters      = j_parameters,
+          j_model_file      = j_model_file,
+          method_name       = method_name,
+          quantiles         = quantiles,
+          calc_differences  = calc_differences,
+          n_mcmc_iterations = n_mcmc_iterations,
+          save_path         = save_path,
+          save_trial        = save_trial,
+          trial_index       = j,
+          endpoint          = "binary"
+        )
         
-        foreach::foreach(i = chunks_inner, .combine = c) %dorng% {
-          
-          lapply(i, function (j) {
-            
-            if (endpoint == "binary") {
-              
-              getPostQuantilesOfTrial(
-                n_responders      = as.numeric(scenario_data$n_responders[j, ]),
-                n_subjects        = as.numeric(scenario_data$n_subjects[j, ]),
-                j_data            = j_data,
-                j_parameters      = j_parameters,
-                j_model_file      = j_model_file,
-                method_name       = method_name,
-                quantiles         = quantiles,
-                calc_differences  = calc_differences,
-                n_mcmc_iterations = n_mcmc_iterations,
-                save_path         = save_path,
-                save_trial        = save_trial,
-                endpoint          = "binary" 
-              )
-              
-            } else {
-              
-              getPostQuantilesOfTrial(
-                y                = as.numeric(scenario_data$y[j, ]),
-                n_subjects       = as.numeric(scenario_data$n_subjects[j, ]),
-                sds              = if (!is.null(scenario_data$sds_observed)) as.numeric(scenario_data$sds_observed[j, ]) else NULL,
-                j_data           = j_data,
-                j_parameters     = j_parameters,
-                j_model_file     = j_model_file,
-                method_name      = method_name,
-                quantiles        = quantiles,
-                calc_differences = calc_differences,
-                n_mcmc_iterations= n_mcmc_iterations,
-                save_path        = save_path,
-                save_trial       = save_trial,
-                endpoint         = "normal" 
-              )
-            }
-            
-          })
-          
-        }
+      } else {
         
-      })
+        getPostQuantilesOfTrial(
+          n_responders      = NULL,
+          n_subjects        = as.numeric(scenario_data$n_subjects[j, ]),
+          y                 = as.numeric(scenario_data$y[j, ]),
+          sds               = if (!is.null(scenario_data$sds_observed))
+            as.numeric(scenario_data$sds_observed[j, ])
+          else NULL,
+          j_data            = j_data,
+          j_parameters      = j_parameters,
+          j_model_file      = j_model_file,
+          method_name       = method_name,
+          quantiles         = quantiles,
+          calc_differences  = calc_differences,
+          n_mcmc_iterations = n_mcmc_iterations,
+          save_path         = save_path,
+          save_trial        = save_trial,
+          trial_index       = j,
+          endpoint          = "normal"
+        )
+      }
+      
+    },
+    future.seed = TRUE,
+    future.scheduling = 1
+  )
   
   return(posterior_quantiles_list)
   
@@ -306,6 +294,7 @@ getPostQuantilesOfTrial <- function (
   
   save_path,
   save_trial,
+  trial_index,
   endpoint = c("binary", "normal")
   
 ) {
@@ -349,14 +338,14 @@ getPostQuantilesOfTrial <- function (
       }
       
       ## existing save block kept as-is (note: uses k from outer scope)
-      if (!is.null(save_path)) {
-        if (k == save_trial) {
-          saveRDS(
-            posterior_samples,
-            file = file.path(save_path, paste0("posterior_samples_",
-                                               k, "_", method_name, "_rds"))
+      if (!is.null(save_path) && identical(trial_index, save_trial)) {
+        saveRDS(
+          posterior_samples,
+          file = file.path(
+            save_path,
+            paste0("posterior_samples_", trial_index, "_", method_name, ".rds")
           )
-        }
+        )
       }
       
       posterior_quantiles <- posteriors2Quantiles(
@@ -672,34 +661,75 @@ is.analysis_list <- function (x) {
 
 #' @title loadAnalyses
 #' @md
-#' @description This function loads an analysis performed with
-#' \code{\link[bhmbasket]{performAnalyses}}
-#' @param load_path A string providing a path where the scenarios are being stored,
-#' Default: \code{\link[base]{tempfile}}
-#' @param scenario_numbers A (vector of) positive integer(s) for the scenario number(s)
-#' @param analysis_numbers A (vector of) positive integer(s) for the analysis number(s),
-#' Default: `rep(1, length(scenario_numbers))`
-#' @return Returns an object of class `analysis_list`
+#' @description
+#' Load previously saved analysis results created by
+#' [`performAnalyses`](#bhmbasket::performAnalyses).
+#'
+#' This function reads one or more analysis files from disk and reconstructs
+#' an `analysis_list` object. Each analysis is expected to have been saved
+#' using [`saveAnalyses`](#bhmbasket::saveAnalyses), which stores the results
+#' as `.rds` files named
+#' 
+#' ```
+#' analysis_data_<scenario_number>_<analysis_number>.rds
+#' ```
+#'
+#' The function simply locates these files under `load_path`,
+#' reads them using [`readRDS`](#base::readRDS), and returns the
+#' corresponding list in the correct format.
+#'
+#' @param scenario_numbers
+#' A vector of **positive integers** identifying the scenario numbers to load.
+#' These must match the scenario numbers used when the analyses were saved.
+#'
+#' @param analysis_numbers
+#' A vector of **positive integers** giving the analysis number for each
+#' scenario. If omitted, it defaults to `rep(1, length(scenario_numbers))`,
+#' i.e. load the first analysis for each scenario.
+#'
+#' @param load_path
+#' A **string** giving the directory containing the saved `.rds` files.
+#' Defaults to [`tempdir()`](#base::tempdir), but in practice should be the
+#' directory returned by [`saveAnalyses`](#bhmbasket::saveAnalyses).
+#'
+#' @return
+#' An object of class `analysis_list`, where each element corresponds to one
+#' loaded scenario. The list is named as `scenario_<number>`
+#' and contains:
+#'
+#' - `quantiles_list` : posterior quantiles  
+#' - `scenario_data`  : the scenario used in the analysis  
+#' - `analysis_parameters` : metadata from `performAnalyses`
+#'
 #' @seealso
-#'  \code{\link[bhmbasket]{performAnalyses}}
-#'  \code{\link[bhmbasket]{saveAnalyses}}
-#'  \code{\link[base]{tempfile}}
-#' @rdname loadAnalyses
+#' * [`performAnalyses`](#bhmbasket::performAnalyses)
+#' * #bhmbasket::saveAnalyses
+#' * [`tempdir`](#base::tempdir)
+#'
 #' @examples
-#'   trial_data <- createTrial(
-#'     n_subjects   = c(10, 20, 30),
-#'     n_responders = c(1, 2, 3))
+#' # Create and analyse a simple binary trial
+#' trial_data <- createTrial(
+#'   n_subjects   = c(10, 20, 30),
+#'   n_responders = c(1, 2, 3)
+#' )
 #'
-#'   analysis_list <- performAnalyses(
-#'     scenario_list      = trial_data,
-#'     target_rates       = rep(0.5, 3),
-#'     n_mcmc_iterations  = 100)
+#' analysis_list <- performAnalyses(
+#'   scenario_list      = trial_data,
+#'   target_rates       = rep(0.5, 3),
+#'   n_mcmc_iterations  = 100
+#' )
 #'
-#'   save_info     <- saveAnalyses(analysis_list)
-#'   analysis_list <- loadAnalyses(scenario_numbers = save_info$scenario_numbers,
-#'                                 analysis_numbers = save_info$analysis_numbers,
-#'                                 load_path        = save_info$path)
-#' @author Stephan Wojciekowski
+#' # Save and reload the analysis
+#' save_info <- saveAnalyses(analysis_list)
+#'
+#' loaded <- loadAnalyses(
+#'   scenario_numbers = save_info$scenario_numbers,
+#'   analysis_numbers = save_info$analysis_numbers,
+#'   load_path        = save_info$path
+#' )
+#'
+#' @author
+#' Stephan Wojciekowski, updated documentation by <your name>
 #' @export
 loadAnalyses <- function (
     
@@ -893,6 +923,12 @@ mapUniqueTrials <- function (
   return(scenario_method_quantiles_list)
 }
 
+
+
+#' The models can be applied in parallel using the `future` framework, e.g. with
+#' `future::plan(future::multisession)` or `future::plan(future::multicore)` on supported systems.
+#' Parallel random number generation is handled reproducibly via `future.seed = TRUE`.
+#' The tasks are scheduled with `future.scheduling = 1`.
 #' @export
 performAnalyses <- function (
     
@@ -1350,7 +1386,7 @@ performJags <- function (
   inits <- vector("list", n_chains)
   for (i in 1:n_chains) {
     inits[[i]]$.RNG.name <- "base::Wichmann-Hill"
-    inits[[i]]$.RNG.seed <- stats::runif(1, 0, 2^31)
+    inits[[i]]$.RNG.seed <- sample.int(.Machine$integer.max, size = 1)
   }
   
   j_model <- rjags::jags.model(file     = model_file,

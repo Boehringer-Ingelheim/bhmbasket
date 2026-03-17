@@ -755,14 +755,16 @@ setPriorParametersStratified <- function (
   
 }
 
+## Normal ####
+
 getPriorParametersNormal <- function (
     
   mu_pop_mean = 0,
-  mu_pop_sd   = 10,
-  tau_shape   = 1,
-  tau_rate    = 1,
-  sigma_shape = 1,
-  sigma_rate  = 1
+  mu_pop_sd   = 2,
+  tau_shape   = 3,
+  tau_rate    = 0.5,
+  sigma_shape = 3,
+  sigma_rate  = 1.28
   
 ) {
   
