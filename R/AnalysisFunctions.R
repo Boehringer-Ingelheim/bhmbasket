@@ -661,75 +661,62 @@ is.analysis_list <- function (x) {
 
 #' @title loadAnalyses
 #' @md
-#' @description
-#' Load previously saved analysis results created by
-#' [`performAnalyses`](#bhmbasket::performAnalyses).
-#'
-#' This function reads one or more analysis files from disk and reconstructs
-#' an `analysis_list` object. Each analysis is expected to have been saved
-#' using [`saveAnalyses`](#bhmbasket::saveAnalyses), which stores the results
-#' as `.rds` files named
-#' 
-#' ```
-#' analysis_data_<scenario_number>_<analysis_number>.rds
-#' ```
-#'
-#' The function simply locates these files under `load_path`,
-#' reads them using [`readRDS`](#base::readRDS), and returns the
-#' corresponding list in the correct format.
-#'
-#' @param scenario_numbers
-#' A vector of **positive integers** identifying the scenario numbers to load.
-#' These must match the scenario numbers used when the analyses were saved.
-#'
-#' @param analysis_numbers
-#' A vector of **positive integers** giving the analysis number for each
-#' scenario. If omitted, it defaults to `rep(1, length(scenario_numbers))`,
-#' i.e. load the first analysis for each scenario.
-#'
-#' @param load_path
-#' A **string** giving the directory containing the saved `.rds` files.
-#' Defaults to [`tempdir()`](#base::tempdir), but in practice should be the
-#' directory returned by [`saveAnalyses`](#bhmbasket::saveAnalyses).
-#'
-#' @return
-#' An object of class `analysis_list`, where each element corresponds to one
-#' loaded scenario. The list is named as `scenario_<number>`
-#' and contains:
-#'
-#' - `quantiles_list` : posterior quantiles  
-#' - `scenario_data`  : the scenario used in the analysis  
-#' - `analysis_parameters` : metadata from `performAnalyses`
-#'
+#' @description This function loads one or more analyses previously saved with
+#' \code{\link[bhmbasket]{saveAnalyses}}. The loaded object can contain analyses for
+#' binary endpoints (response rates) or normal endpoints (continuous means) that were
+#' created with \code{\link[bhmbasket]{performAnalyses}}.
+#' @param load_path A string providing a path where the analyses are stored,
+#' Default: \code{\link[base]{tempdir}}.
+#' @param scenario_numbers A (vector of) positive integer(s) for the scenario number(s).
+#' @param analysis_numbers A (vector of) positive integer(s) for the analysis number(s),
+#' Default: `rep(1, length(scenario_numbers))`.
+#' @return Returns an object of class `analysis_list`.
 #' @seealso
-#' * [`performAnalyses`](#bhmbasket::performAnalyses)
-#' * #bhmbasket::saveAnalyses
-#' * [`tempdir`](#base::tempdir)
-#'
+#'  \code{\link[bhmbasket]{performAnalyses}}
+#'  \code{\link[bhmbasket]{saveAnalyses}}
+#'  \code{\link[base]{tempdir}}
+#' @rdname loadAnalyses
 #' @examples
-#' # Create and analyse a simple binary trial
+#' ## Binary endpoint
 #' trial_data <- createTrial(
 #'   n_subjects   = c(10, 20, 30),
 #'   n_responders = c(1, 2, 3)
 #' )
 #'
 #' analysis_list <- performAnalyses(
-#'   scenario_list      = trial_data,
-#'   target_rates       = rep(0.5, 3),
-#'   n_mcmc_iterations  = 100
+#'   scenario_list     = trial_data,
+#'   target_rates      = rep(0.5, 3),
+#'   n_mcmc_iterations = 100
 #' )
 #'
-#' # Save and reload the analysis
 #' save_info <- saveAnalyses(analysis_list)
-#'
-#' loaded <- loadAnalyses(
+#' analysis_list_loaded <- loadAnalyses(
 #'   scenario_numbers = save_info$scenario_numbers,
 #'   analysis_numbers = save_info$analysis_numbers,
 #'   load_path        = save_info$path
 #' )
 #'
-#' @author
-#' Stephan Wojciekowski, updated documentation by <your name>
+#' ## Normal endpoint
+#' trial_data_n <- createTrial(
+#'   n_subjects = c(10, 20, 30),
+#'   y          = c(2, 3, 4),
+#'   sds        = c(1, 1, 1),
+#'   endpoint   = "normal"
+#' )
+#'
+#' analysis_list_n <- performAnalyses(
+#'   scenario_list     = trial_data_n,
+#'   method_names      = "normal",
+#'   n_mcmc_iterations = 100
+#' )
+#'
+#' save_info_n <- saveAnalyses(analysis_list_n)
+#' analysis_list_n_loaded <- loadAnalyses(
+#'   scenario_numbers = save_info_n$scenario_numbers,
+#'   analysis_numbers = save_info_n$analysis_numbers,
+#'   load_path        = save_info_n$path
+#' )
+#' @author Stephan Wojciekowski
 #' @export
 loadAnalyses <- function (
     
@@ -925,10 +912,122 @@ mapUniqueTrials <- function (
 
 
 
-#' The models can be applied in parallel using the `future` framework, e.g. with
-#' `future::plan(future::multisession)` or `future::plan(future::multicore)` on supported systems.
-#' Parallel random number generation is handled reproducibly via `future.seed = TRUE`.
-#' The tasks are scheduled with `future.scheduling = 1`.
+
+#' @title performAnalyses
+#' @md
+#' @description This function performs Bayesian analyses of simulated or observed trial data and
+#' returns posterior summary quantiles for each scenario and method.
+#'
+#' The function supports both binary endpoints (response rates) and normal endpoints (continuous
+#' cohort means). The endpoint is inferred from `scenario_list[[1]]$endpoint` (default: `"binary"`).
+#'
+#' @param scenario_list An object of class `scenario_list`, as e.g. created with
+#' \code{\link[bhmbasket]{simulateScenarios}} or \code{\link[bhmbasket]{createTrial}}.
+#' @param evidence_levels A vector of numerics in `(0, 1)` for the `1-evidence_levels`-quantiles
+#' of the posterior distributions to be saved. Default:
+#' `c(0.025, 0.05, 0.5, 0.8, 0.9, 0.95, 0.975)`.
+#' @param method_names A vector of strings naming the methods to be used.
+#'
+#' For endpoint `"binary"`, must be one of:
+#' `"berry"`, `"exnex"`, `"exnex_adj"`, `"pooled"`, `"stratified"`.
+#'
+#' For endpoint `"normal"`, must be `"normal"`.
+#' Default: `c("berry", "exnex", "exnex_adj", "pooled", "stratified")`.
+#' @param target_rates A vector of numerics in `(0, 1)` giving target response rates per cohort.
+#' Only used for endpoint `"binary"` and required for methods `"berry"` and `"exnex_adj"`.
+#' Default: `NULL`.
+#' @param prior_parameters_list An object of class `prior_parameters_list`, as e.g. created with
+#' \code{\link[bhmbasket]{getPriorParameters}}. If `NULL`, default priors are generated internally.
+#' For endpoint `"normal"`, the list must contain an entry named `"normal"`. Default: `NULL`.
+#' @param calc_differences A matrix of positive integers with 2 columns defining pairwise
+#' differences between cohorts to be calculated from posterior samples. A length-2 integer vector
+#' may be provided for a single difference. If `NULL`, no differences are computed. Default: `NULL`.
+#' @param n_mcmc_iterations A positive integer for the number of MCMC iterations (per chain) used
+#' for BHM methods. Default: `10000`. If `n_mcmc_iterations` exists in `.GlobalEnv` and the
+#' argument is missing, the global value is used.
+#' @param n_cores Deprecated and ignored as of version 0.9.3. Default: `1`.
+#' @param seed Deprecated and ignored as of version 0.9.3. Default: `1`.
+#' @param verbose A logical indicating whether progress messages should be printed. Default: `TRUE`.
+#' @param nbins Only used for endpoint `"normal"` when `bin_breaks` is `NULL`. A positive integer
+#' controlling the number of bins per cohort for grouping similar trial realizations before MCMC.
+#' Default: `5`.
+#' @param bin_breaks Only used for endpoint `"normal"`. Optional list of numeric break vectors
+#' (named by cohort columns, e.g. `"y_1"`, `"y_2"`, ...) to define custom binning.
+#' If provided, `nbins` is ignored. Default: `NULL`.
+#'
+#' @return An object of class `analysis_list`.
+#'
+#' @details
+#' For endpoint `"binary"`, the function applies the following analysis models:
+#' \itemize{
+#'   \item Bayesian hierarchical model (BHM) proposed by Berry et al. (2013): `"berry"`
+#'   \item Robust exchangeability (EXNEX) BHM by Neuenschwander et al. (2016): `"exnex"`
+#'   \item EXNEX model adjusted to target rates: `"exnex_adj"`
+#'   \item Pooled beta-binomial approach: `"pooled"`
+#'   \item Stratified beta-binomial approach: `"stratified"`
+#' }
+#'
+#' For endpoint `"normal"`, the function applies a hierarchical normal model on cohort-level mean
+#' responses, using an unknown common within-cohort variance and a between-cohort variance (both
+#' modeled via Gamma priors on precisions): `"normal"`.
+#'
+#' Posterior distributions of MCMC-based methods are approximated with JAGS using two independent
+#' chains. The first `floor(n_mcmc_iterations / 3)` iterations are discarded as burn-in. No thinning
+#' is applied.
+#'
+#' To improve performance, the analysis is applied only to unique (or grouped) trial realizations
+#' across all scenarios. For endpoint `"normal"`, trial realizations can be grouped via binning
+#' (`nbins` / `bin_breaks`) to reduce repeated MCMC runs; results are then mapped back to all trial
+#' realizations.
+#'
+#' The models can be run in parallel by registering a parallel backend for the `foreach` framework
+#' (e.g. `doFuture::registerDoFuture()` and `future::plan(future::multisession)`).
+#'
+#' @seealso
+#'  \code{\link[bhmbasket]{simulateScenarios}}
+#'  \code{\link[bhmbasket]{createTrial}}
+#'  \code{\link[bhmbasket]{getPriorParameters}}
+#'  \code{\link[bhmbasket]{getGoDecisions}}
+#'
+#' @rdname performAnalyses
+#' @author Stephan Wojciekowski
+#'
+#' @examples
+#' ## Binary endpoint
+#' trial_data <- createTrial(
+#'   n_subjects   = c(10, 20, 30),
+#'   n_responders = c(1, 2, 3)
+#' )
+#'
+#' analysis_list <- performAnalyses(
+#'   scenario_list     = trial_data,
+#'   target_rates      = rep(0.5, 3),
+#'   calc_differences  = matrix(c(3, 2, 1, 1), ncol = 2),
+#'   n_mcmc_iterations = 100
+#' )
+#'
+#' ## Normal endpoint
+#' trial_data_n <- createTrial(
+#'   n_subjects = c(10, 20, 30),
+#'   y          = c(2, 3, 4),
+#'   sds        = c(1, 1, 1),
+#'   endpoint   = "normal"
+#' )
+#'
+#' analysis_list_n <- performAnalyses(
+#'   scenario_list     = trial_data_n,
+#'   method_names      = "normal",
+#'   n_mcmc_iterations = 100,
+#'   nbins             = 10
+#' )
+#'
+#' @references Berry, Scott M., et al. "Bayesian hierarchical modeling of patient subpopulations:
+#' efficient designs of phase II oncology clinical trials." \emph{Clinical Trials} 10.5 (2013): 720-734.
+#' @references Neuenschwander, Beat, et al. "Robust exchangeability designs for early phase clinical
+#' trials with multiple strata." \emph{Pharmaceutical Statistics} 15.2 (2016): 123-134.
+#' @references Plummer, Martyn. "JAGS: A program for analysis of Bayesian graphical models using
+#' Gibbs sampling." \emph{Proceedings of the 3rd international workshop on distributed statistical
+#' computing.} 2003.
 #' @export
 performAnalyses <- function (
     
@@ -1611,37 +1710,67 @@ qbetaDiff <- function (
 }
 
 
+
 #' @title saveAnalyses
 #' @md
-#' @description This function saves an object of class `analysis_list`
-#' @param analyses_list An object of class `analysis_list`,
-#' as created with \code{\link[bhmbasket]{performAnalyses}}
-#' @param save_path A string for the path where the scenarios are being stored,
-#' Default: \code{\link[base]{tempfile}}
-#' @param analysis_numbers A positive integer naming the analysis number.
-#' If `NULL`, the function will look for the number of saved analyses of the scenario
-#' in the directory and add 1, Default: `NULL`
-#' @return A named list of length 3 of vectors with scenario and analysis numbers and
-#' the `save_path`
+#' @description This function saves one or more analyses (objects of class `analysis_list`)
+#' created with \code{\link[bhmbasket]{performAnalyses}}. The saved files can later be loaded
+#' with \code{\link[bhmbasket]{loadAnalyses}}. Analyses may originate from binary endpoints
+#' (response rates) or normal endpoints (continuous means).
+#' @param analyses_list An object of class `analysis_list`, as created with
+#' \code{\link[bhmbasket]{performAnalyses}}.
+#' @param save_path A string for the directory where the analyses should be stored.
+#' Default: \code{\link[base]{tempdir}}.
+#' @param analysis_numbers A vector of positive integers specifying the analysis number for each
+#' scenario (length must equal `length(analyses_list)`). If `NULL`, the function determines the
+#' next available analysis number per scenario by counting existing files in `save_path`.
+#' Default: `NULL`.
+#' @return A named list with entries `scenario_numbers`, `analysis_numbers`, and `path`.
 #' @seealso
 #'  \code{\link[bhmbasket]{performAnalyses}}
 #'  \code{\link[bhmbasket]{loadAnalyses}}
-#'  \code{\link[base]{tempfile}}
+#'  \code{\link[base]{tempdir}}
 #' @rdname saveAnalyses
 #' @examples
-#'   trial_data <- createTrial(
-#'     n_subjects   = c(10, 20, 30),
-#'     n_responders = c(1, 2, 3))
+#' ## Binary endpoint
+#' trial_data <- createTrial(
+#'   n_subjects   = c(10, 20, 30),
+#'   n_responders = c(1, 2, 3)
+#' )
 #'
-#'   analysis_list <- performAnalyses(
-#'     scenario_list      = trial_data,
-#'     target_rates       = rep(0.5, 3),
-#'     n_mcmc_iterations  = 100)
+#' analysis_list <- performAnalyses(
+#'   scenario_list     = trial_data,
+#'   target_rates      = rep(0.5, 3),
+#'   n_mcmc_iterations = 100
+#' )
 #'
-#'   save_info     <- saveAnalyses(analysis_list)
-#'   analysis_list <- loadAnalyses(scenario_numbers = save_info$scenario_numbers,
-#'                                 analysis_numbers = save_info$analysis_numbers,
-#'                                 load_path        = save_info$path)
+#' save_info <- saveAnalyses(analysis_list)
+#' analysis_list_loaded <- loadAnalyses(
+#'   scenario_numbers = save_info$scenario_numbers,
+#'   analysis_numbers = save_info$analysis_numbers,
+#'   load_path        = save_info$path
+#' )
+#'
+#' ## Normal endpoint
+#' trial_data_n <- createTrial(
+#'   n_subjects = c(10, 20, 30),
+#'   y          = c(2, 3, 4),
+#'   sds        = c(1, 1, 1),
+#'   endpoint   = "normal"
+#' )
+#'
+#' analysis_list_n <- performAnalyses(
+#'   scenario_list     = trial_data_n,
+#'   method_names      = "normal",
+#'   n_mcmc_iterations = 100
+#' )
+#'
+#' save_info_n <- saveAnalyses(analysis_list_n)
+#' analysis_list_n_loaded <- loadAnalyses(
+#'   scenario_numbers = save_info_n$scenario_numbers,
+#'   analysis_numbers = save_info_n$analysis_numbers,
+#'   load_path        = save_info_n$path
+#' )
 #' @author Stephan Wojciekowski
 #' @export
 saveAnalyses <- function (
