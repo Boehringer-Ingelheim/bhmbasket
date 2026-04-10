@@ -119,25 +119,16 @@ the <code>save_path</code></p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Caution: No parallel backend detected for the 'foreach' framework. For execution in parallel, register a parallel backend, e.g. with:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>    doFuture::registerDoFuture()</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>    future::plan(future::multisession)</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 24-Feb-2026 Performing Analyses</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 10-Apr-2026 Performing Analyses</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>          Analyzing 1 scenario (1 unique trial realization)</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    15:42 - with Berry ...........</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    15:42 - with Exnex ...........</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    15:42 - with Exnex_adj .......</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    15:42 - with Pooled ..........</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    15:42 - with Stratified ......</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>          Processing scenarios ...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in getPriorParametersExNexAdjMix(target_rates = target_rates, n_worth = n_worth,     tau_scale = tau_scale, w_j = w_j):</span> could not find function "getPriorParametersExNexAdjMix"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="va">save_info</span>     <span class="op">&lt;-</span> <span class="fu">saveAnalyses</span><span class="op">(</span><span class="va">analysis_list</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'analysis_list' not found</span>
 <span class="r-in"><span>  <span class="va">analysis_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="loadAnalyses.html">loadAnalyses</a></span><span class="op">(</span>scenario_numbers <span class="op">=</span> <span class="va">save_info</span><span class="op">$</span><span class="va">scenario_numbers</span>,</span></span>
 <span class="r-in"><span>                                analysis_numbers <span class="op">=</span> <span class="va">save_info</span><span class="op">$</span><span class="va">analysis_numbers</span>,</span></span>
 <span class="r-in"><span>                                load_path        <span class="op">=</span> <span class="va">save_info</span><span class="op">$</span><span class="va">path</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'save_info' not found</span>
 </code></pre></div>
     </div>
   </div>
