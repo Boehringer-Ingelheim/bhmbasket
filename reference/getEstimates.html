@@ -112,9 +112,10 @@ Estimates of bias and MSE are included for response rate estimates of simulated 
     <h2>Details</h2>
     <p>Bias and MSE will only be calculated for response rate estimates of simulated trials.
 For additional parameters, bias and MSE will not be calculated.</p>
-<p>Possible additional parameters are for the Bayesian hierarchical models are
-<code>c('mu', 'tau')</code> for <code>'berry'</code>, <code>'exnex'</code>, and <code>'exnex_adj'</code>.
-The latter two models can also access the posterior weights
+<p>Possible additional parameters for the Bayesian hierarchical models are
+<code>c('mu', 'tau')</code> for <code>'berry'</code>, <code>'exnex'</code>, <code>'exnex_mix'</code>, <code>'exnex_adj'</code>,
+and <code>'exnex_adj_mix'</code>.
+The ExNex-based models can also access posterior weights
 <code>paste0("w_", seq_len(n_cohorts))</code>.</p>
     </div>
     <div id="see-also">
@@ -146,21 +147,21 @@ The latter two models can also access the posterior weights
 <span class="r-msg co"><span class="r-pr">#&gt;</span>    future::plan(future::multisession)</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> 13-Apr-2026 Performing Analyses</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>          Analyzing 1 scenario (6 unique trial realizations)</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Berry ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Berry ...........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Exnex ...........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex_adj .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Exnex_adj .......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex_adj_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Exnex_adj_mix ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex_mix .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Exnex_mix .......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Pooled ..........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Pooled ..........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Stratified ......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Stratified ......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Stratified_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Stratified_mix ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>          Processing scenarios ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
@@ -485,21 +486,21 @@ The latter two models can also access the posterior weights
 <span class="r-msg co"><span class="r-pr">#&gt;</span>    future::plan(future::multisession)</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> 13-Apr-2026 Performing Analyses</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>          Analyzing 1 scenario (1 unique trial realization)</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Berry ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Berry ...........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Exnex ...........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex_adj .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Exnex_adj .......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex_adj_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Exnex_adj_mix ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex_mix .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Exnex_mix .......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Pooled ..........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Pooled ..........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Stratified ......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Stratified ......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Stratified_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Stratified_mix ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>          Processing scenarios ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>

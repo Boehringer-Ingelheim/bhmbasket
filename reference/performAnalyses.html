@@ -73,7 +73,8 @@ and returns the quantiles of the posterior response rates</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">performAnalyses</span><span class="op">(</span></span>
 <span>  <span class="va">scenario_list</span>,</span>
 <span>  evidence_levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.05</span>, <span class="fl">0.5</span>, <span class="fl">0.8</span>, <span class="fl">0.9</span>, <span class="fl">0.95</span>, <span class="fl">0.975</span><span class="op">)</span>,</span>
-<span>  method_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"berry"</span>, <span class="st">"exnex"</span>, <span class="st">"exnex_adj"</span>, <span class="st">"pooled"</span>, <span class="st">"stratified"</span><span class="op">)</span>,</span>
+<span>  method_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"berry"</span>, <span class="st">"exnex"</span>, <span class="st">"exnex_mix"</span>, <span class="st">"exnex_adj"</span>, <span class="st">"exnex_adj_mix"</span>, <span class="st">"pooled"</span>,</span>
+<span>    <span class="st">"stratified"</span>, <span class="st">"stratified_mix"</span><span class="op">)</span>,</span>
 <span>  target_rates <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  prior_parameters_list <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  calc_differences <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -101,7 +102,8 @@ Default: <code>c(0.025, 0.05, 0.5, 0.8, 0.9, 0.95, 0.975)</code></p></dd>
 
 <dt id="arg-method-names">method_names<a class="anchor" aria-label="anchor" href="#arg-method-names"></a></dt>
 <dd><p>A vector of strings for the names of the methods to be used. Must
-be one of the default values, Default: <code>c("berry", "exnex", "exnex_adj", "pooled", "stratified")</code></p></dd>
+be one of the default values, Default:
+<code>c("berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix", "pooled", "stratified", "stratified_mix")</code></p></dd>
 
 
 <dt id="arg-target-rates">target_rates<a class="anchor" aria-label="anchor" href="#arg-target-rates"></a></dt>
@@ -157,6 +159,9 @@ A numeric for the random seed, Default: <code>1</code></p></dd>
 <li><p>BHM that combines above approaches: <code>"exnex_adj"</code></p></li>
 <li><p>Pooled beta-binomial approach: <code>"pooled"</code></p></li>
 <li><p>Stratified beta-binomial approach: <code>"stratified"</code></p></li>
+<li><p>BHM with mixture prior on the NEX component: <code>"exnex_mix"</code></p></li>
+<li><p>Adjusted BHM with mixture prior on the NEX component: <code>"exnex_adj_mix"</code></p></li>
+<li><p>Stratified beta-binomial approach with mixture beta prior: <code>"stratified_mix"</code></p></li>
 </ul><p>The posterior distributions of the BHMs are approximated with Markov chain Monte Carlo (MCMC)
 methods implemented in JAGS.
 Two independent chains are used with each <code>n_mcmc_iterations</code> number of MCMC iterations.
@@ -177,7 +182,11 @@ For more on this topic, kindly see the respective vignette.
 The tasks that are to be performed in parallel are chunked according to the number of workers
 determined with <code><a href="https://rdrr.io/pkg/foreach/man/getDoParWorkers.html" class="external-link">foreach::getDoParWorkers()</a></code>.</p>
 <p>The JAGS code for the BHM <code>"exnex"</code> was taken from Neuenschwander et al. (2016).
-The JAGS code for the BHM <code>"exnex_adj"</code> is based on the JAGS code for <code>"exnex"</code>.</p>
+The JAGS code for the BHM <code>"exnex_adj"</code> is based on the JAGS code for <code>"exnex"</code>.
+The JAGS code for the BHM <code>"exnex_mix"</code> extends the <code>"exnex"</code> model by using
+a mixture prior for the NEX component.
+The JAGS code for the BHM <code>"exnex_adj_mix"</code> extends the <code>"exnex_adj"</code> model by using
+a mixture prior for the NEX component.</p>
     </div>
     <div id="references">
     <h2>References</h2>
@@ -220,21 +229,21 @@ Vol. 124. No. 125.10. 2003.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>    future::plan(future::multisession)</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> 13-Apr-2026 Performing Analyses</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>          Analyzing 1 scenario (1 unique trial realization)</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Berry ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Berry ...........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Exnex ...........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex_adj .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Exnex_adj .......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex_adj_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Exnex_adj_mix ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex_mix .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Exnex_mix .......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Pooled ..........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Pooled ..........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Stratified ......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Stratified ......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Stratified_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    18:13 - with Stratified_mix ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>          Processing scenarios ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
