@@ -144,17 +144,332 @@ The latter two models can also access the posterior weights
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Caution: No parallel backend detected for the 'foreach' framework. For execution in parallel, register a parallel backend, e.g. with:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>    doFuture::registerDoFuture()</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>    future::plan(future::multisession)</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 10-Apr-2026 Performing Analyses</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>          Analyzing 1 scenario (7 unique trial realizations)</span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in getPriorParametersExNexAdjMix(target_rates = target_rates, n_worth = n_worth,     tau_scale = tau_scale, w_j = w_j):</span> could not find function "getPriorParametersExNexAdjMix"</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 13-Apr-2026 Performing Analyses</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>          Analyzing 1 scenario (6 unique trial realizations)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Berry ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex_adj .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex_adj_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex_mix .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Pooled ..........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Stratified ......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Stratified_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>          Processing scenarios ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="fu">getEstimates</span><span class="op">(</span><span class="va">analyses_list</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'analyses_list' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $berry</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $berry$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Mean         SD        2.5%         50%      97.5%        Bias</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.13927001 0.06230936  0.04538292  0.12952510 0.28279690  0.02952510</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2        0.16198450 0.06660698  0.06775791  0.15621879 0.30877012 -0.04378121</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.12212924 0.04620141  0.04556103  0.11898320 0.21632894  0.01898320</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.03985526 0.06953311 -0.21387643 -0.02851616 0.07083034 -0.12851616</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.02271450 0.07483711 -0.11603716  0.01563839 0.16935621  0.11563839</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   MSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1       0.002087645</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       0.005874867</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3       0.000648722</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 0.018626880</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21 0.014477675</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Mean         SD        2.5%         50%      97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.13900456 0.08235379  0.03210770  0.12552911 0.33331165</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2        0.16807420 0.06841825  0.06314609  0.16263576 0.31518253</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.10374984 0.04677666  0.02717310  0.10028737 0.20384105</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.06432436 0.08226205 -0.23771714 -0.05774736 0.08204506</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.02906964 0.10477077 -0.18802887  0.02511359 0.23437286</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                    Bias          MSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.0255291112 0.0030924766</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       -0.0373642399 0.0104551913</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.0002873666 0.0000124626</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.1577473596 0.0331895529</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.1251135918 0.0210792033</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Mean         SD        2.5%         50%     97.5%         Bias</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.13827573 0.08449986  0.02956009  0.12409870 0.3586277  0.024098701</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2        0.16652852 0.07072256  0.06107122  0.15321596 0.3265658 -0.046784035</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.10720487 0.05408081  0.03216206  0.09704433 0.2215512 -0.002955672</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.05932365 0.08982066 -0.24236767 -0.05655345 0.1105096 -0.156553450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.02825280 0.10213774 -0.17616924  0.02508954 0.2288002  0.125089544</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                    MSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1       0.0039849264</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       0.0101503585</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3       0.0001195033</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 0.0310287578</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21 0.0206623166</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj_mix</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj_mix$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Mean         SD        2.5%         50%      97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.13033618 0.07670758  0.01876200  0.11763347 0.30552007</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2        0.16111939 0.07054721  0.05468204  0.15137496 0.31341262</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.10508542 0.05344115  0.02994774  0.09466676 0.22399029</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.05603397 0.08143498 -0.21978887 -0.05066058 0.07953541</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.03078321 0.10092202 -0.16170447  0.02553507 0.23575894</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   Bias          MSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.017633468 2.659061e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       -0.048625043 9.573288e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3       -0.005333244 7.556932e-05</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.150660577 2.889037e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.125535072 1.996443e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_mix</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_mix$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Mean         SD        2.5%         50%      97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.14014160 0.08776780  0.02470747  0.12442136 0.35048691</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2        0.17212865 0.07661622  0.06214358  0.15870768 0.33700549</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.10513346 0.05349604  0.02581986  0.09732867 0.22269495</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.06699519 0.08733724 -0.23889048 -0.05875595 0.08550606</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.03198706 0.11510411 -0.20943759  0.02393812 0.24906382</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   Bias          MSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.024421357 0.0054931242</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       -0.041292316 0.0098333551</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3       -0.002671326 0.0001411298</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.158755946 0.0321890781</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.123938116 0.0202920547</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $pooled</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $pooled$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                Mean         SD       2.5%      50%    97.5%      Bias</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1       0.1344262 0.04284833 0.06258763 0.130427 0.228834  0.030427</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       0.1344262 0.04284833 0.06258763 0.130427 0.228834 -0.069573</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3       0.1344262 0.04284833 0.06258763 0.130427 0.228834  0.030427</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 0.0000000 0.00000000 0.00000000 0.000000 0.000000 -0.100000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21 0.0000000 0.00000000 0.00000000 0.000000 0.000000  0.100000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   MSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1       0.002356534</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       0.006271134</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3       0.002356534</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 0.010000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21 0.010000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stratified</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stratified$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Mean         SD        2.5%         50%      97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.13636364 0.09629973  0.01550027  0.11464991 0.37487196</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2        0.18095238 0.07840305  0.05899416  0.17084314 0.35909261</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.10000000 0.05303301  0.02262665  0.09142896 0.22533918</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.08470911 0.09749828 -0.29156324 -0.08249186 0.07223819</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.03709724 0.12675644 -0.26525983  0.04715691 0.24159544</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   Bias          MSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.014649905 4.703020e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       -0.029156862 9.968028e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3       -0.008571039 7.346271e-05</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.182491865 4.164362e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.147156905 2.910657e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stratified_mix</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stratified_mix$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Mean         SD        2.5%         50%     97.5%         Bias</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.15366433 0.10366518  0.01758949  0.13653207 0.3712662  0.036532070</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2        0.19127664 0.08097714  0.07282025  0.17284932 0.3523932 -0.027150676</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.10594143 0.05518165  0.02431515  0.10113822 0.2153420  0.001138218</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.08193756 0.10079857 -0.26830767 -0.08306420 0.1230639 -0.183064202</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.03733655 0.12755095 -0.20802918  0.03984827 0.2650844  0.139848273</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                    MSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1       5.961795e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       9.502140e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3       1.271246e-05</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 4.137272e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21 2.982977e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span>  <span class="fu">getEstimates</span><span class="op">(</span>analyses_list   <span class="op">=</span> <span class="va">analyses_list</span>,</span></span>
 <span class="r-in"><span>               add_parameters  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mu"</span>, <span class="st">"tau"</span>, <span class="st">"w_1"</span>, <span class="st">"w_2"</span>, <span class="st">"w_3"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>               point_estimator <span class="op">=</span> <span class="st">"mean"</span>,</span></span>
 <span class="r-in"><span>               alpha_level     <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'analyses_list' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $berry</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $berry$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Mean         SD          5%         50%        95%        Bias</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.13927001 0.06230936  0.05342782  0.12952510 0.25779710  0.03927001</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2        0.16198450 0.06660698  0.07708190  0.15621879 0.28339139 -0.03801550</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.12212924 0.04620141  0.05375828  0.11898320 0.20114727  0.02212924</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.03985526 0.06953311 -0.15725040 -0.02851616 0.05406569 -0.13985526</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.02271450 0.07483711 -0.08759709  0.01563839 0.12333586  0.12271450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mu         0.29531112 0.51655443 -0.57545858  0.29237033 1.13592778          NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tau        0.48663354 0.40083155  0.03197104  0.39917866 1.26601681          NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                    MSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1       0.0028143459</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       0.0054932664</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3       0.0008210563</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 0.0220816823</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21 0.0170747631</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mu                  NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tau                 NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Mean         SD          5%         50%         95%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.13900456 0.08235379  0.03997369  0.12552911  0.28865953</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2        0.16807420 0.06841825  0.07453764  0.16263576  0.28999318</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.10374984 0.04677666  0.03640733  0.10028737  0.18771331</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.06432436 0.08226205 -0.20655177 -0.05774736  0.06274565</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.02906964 0.10477077 -0.12983281  0.02511359  0.19452087</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mu        -2.10284166 0.86005326 -3.51068544 -2.00862014 -0.81850655</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tau        0.60643150 0.53626199  0.04600474  0.45357674  1.67521686</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_1        0.73283582 0.42994452  0.00000000  0.90000000  1.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_2        0.64701493 0.46330409  0.00000000  0.80000000  1.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_3        0.69104478 0.46098487  0.00000000  1.00000000  1.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Bias          MSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.03900456 4.141633e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       -0.03192580 9.637412e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.00374984 2.176459e-05</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.16432436 3.517074e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.12906964 2.250137e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mu                 NA           NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tau                NA           NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_1                NA           NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_2                NA           NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_3                NA           NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Mean         SD          5%         50%        95%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.13827573 0.08449986  0.03568216  0.12409870 0.29717151</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2        0.16652852 0.07072256  0.07217863  0.15321596 0.30491861</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.10720487 0.05408081  0.03771377  0.09704433 0.20624797</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.05932365 0.08982066 -0.21641010 -0.05655345 0.08491726</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.02825280 0.10213774 -0.14036817  0.02508954 0.20294823</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mu         0.11081440 0.80308493 -1.22335007  0.11924067 1.40902480</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tau        0.61929980 0.48833415  0.07294183  0.51178110 1.57792094</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_1        0.76268657 0.42192341  0.00000000  1.00000000 1.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_2        0.62238806 0.47590401  0.00000000  0.80000000 1.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_3        0.66716418 0.46858861  0.00000000  1.00000000 1.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   Bias         MSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.038275726 0.004829331</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       -0.033471477 0.009046873</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.007204871 0.000145622</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.159323652 0.032377429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.128252797 0.022071931</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mu                  NA          NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tau                 NA          NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_1                 NA          NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_2                 NA          NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_3                 NA          NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj_mix</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj_mix$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Mean         SD          5%         50%       95%         Bias</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.13033618 0.07670758  0.02767591  0.11763347 0.2645233  0.030336185</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2        0.16111939 0.07054721  0.06736797  0.15137496 0.2881804 -0.038880610</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.10508542 0.05344115  0.03497965  0.09466676 0.2054148  0.005085421</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.05603397 0.08143498 -0.18711562 -0.05066058 0.0630544 -0.156033969</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.03078321 0.10092202 -0.13070112  0.02553507 0.1977477  0.130783205</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mu         0.07288934 0.97479549 -1.55260347  0.12403716 1.5232484           NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tau        0.62067951 0.47001536  0.09276343  0.49399612 1.5554835           NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_1        0.69776119 0.45850988  0.00000000  1.00000000 1.0000000           NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_2        0.68432836 0.46182372  0.00000000  1.00000000 1.0000000           NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_3        0.73059701 0.44187066  0.00000000  1.00000000 1.0000000           NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                    MSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1       0.0037173528</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       0.0085975142</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3       0.0000732083</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 0.0306298564</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21 0.0215719254</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mu                  NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tau                 NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_1                 NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_2                 NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_3                 NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_mix</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_mix$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Mean         SD          5%         50%         95%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.14014160 0.08776780  0.03275468  0.12442136  0.30991416</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2        0.17212865 0.07661622  0.06833730  0.15870768  0.30467269</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.10513346 0.05349604  0.03401058  0.09732867  0.20514046</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.06699519 0.08733724 -0.21200719 -0.05875595  0.06586384</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.03198706 0.11510411 -0.15939893  0.02393812  0.21089228</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mu        -2.10700578 1.06349095 -3.78881204 -2.10863603 -0.56505376</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tau        0.67711809 0.50665509  0.07990865  0.60845580  1.61010744</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_1        0.73059701 0.44195192  0.00000000  1.00000000  1.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_2        0.61119403 0.48697054  0.00000000  1.00000000  1.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_3        0.63656716 0.48181379  0.00000000  1.00000000  1.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   Bias          MSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.040141596 0.0061148935</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       -0.027871345 0.0082758050</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.005133464 0.0001261076</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.166995191 0.0343922924</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.131987059 0.0233837984</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mu                  NA           NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tau                 NA           NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_1                 NA           NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_2                 NA           NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_3                 NA           NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $pooled</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $pooled$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                Mean         SD         5%      50%       95%        Bias</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1       0.1344262 0.04284833 0.07137335 0.130427 0.2111561  0.03442623</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       0.1344262 0.04284833 0.07137335 0.130427 0.2111561 -0.06557377</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3       0.1344262 0.04284833 0.07137335 0.130427 0.2111561  0.03442623</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 0.0000000 0.00000000 0.00000000 0.000000 0.0000000 -0.10000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21 0.0000000 0.00000000 0.00000000 0.000000 0.0000000  0.10000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   MSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1       0.002585625</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       0.005700379</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3       0.002585625</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 0.010000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21 0.010000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stratified</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stratified$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Mean         SD          5%         50%        95%        Bias</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.13636364 0.09629973  0.02249185  0.11464991 0.32484534  0.03636364</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2        0.18095238 0.07840305  0.07158472  0.17084314 0.32501056 -0.01904762</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.10000000 0.05303301  0.02959876  0.09142896 0.19978101  0.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.08470911 0.09749828 -0.24709067 -0.08249186 0.04578551 -0.18470911</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.03709724 0.12675644 -0.19112227  0.04715691 0.21725053  0.13709724</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   MSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1       0.005362718</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       0.008954397</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3       0.000000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 0.042427741</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21 0.026963231</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stratified_mix</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stratified_mix$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  Mean         SD          5%         50%        95%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.15366433 0.10366518  0.02848756  0.13653207 0.34642491</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2        0.19127664 0.08097714  0.07930271  0.17284932 0.32182327</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.10594143 0.05518165  0.02905581  0.10113822 0.20202793</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.08193756 0.10079857 -0.24653466 -0.08306420 0.08228021</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.03733655 0.12755095 -0.17527498  0.03984827 0.23227639</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   Bias          MSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1        0.053664330 7.280537e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2       -0.008723360 8.993270e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3        0.005941434 3.530063e-05</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_32 -0.181937563 4.122783e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_diff_21  0.137336554 2.848660e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="va">outcome</span> <span class="op">&lt;-</span> <span class="fu"><a href="createTrial.html">createTrial</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    n_subjects          <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span>, <span class="fl">30</span><span class="op">)</span>,</span></span>
@@ -168,15 +483,175 @@ The latter two models can also access the posterior weights
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Caution: No parallel backend detected for the 'foreach' framework. For execution in parallel, register a parallel backend, e.g. with:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>    doFuture::registerDoFuture()</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>    future::plan(future::multisession)</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 10-Apr-2026 Performing Analyses</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 13-Apr-2026 Performing Analyses</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>          Analyzing 1 scenario (1 unique trial realization)</span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in getPriorParametersExNexAdjMix(target_rates = target_rates, n_worth = n_worth,     tau_scale = tau_scale, w_j = w_j):</span> could not find function "getPriorParametersExNexAdjMix"</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Berry ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex_adj .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex_adj_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Exnex_mix .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Pooled ..........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Stratified ......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:36 - with Stratified_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>          Processing scenarios ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="fu">getEstimates</span><span class="op">(</span><span class="va">outcome_analysis</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'outcome_analysis' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $berry</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $berry$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           Mean         SD       2.5%        50%     97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1 0.10393113 0.05800093 0.02864353 0.08561300 0.2312402</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2 0.09950151 0.04344522 0.03841422 0.09101637 0.1822576</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3 0.10368595 0.04671332 0.03774885 0.08564970 0.1905802</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           Mean         SD       2.5%        50%     97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1 0.11208285 0.06793899 0.02123767 0.09705964 0.2806072</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2 0.09956622 0.04512547 0.02505959 0.09894576 0.2151773</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3 0.09922788 0.05022403 0.02744884 0.09450483 0.2059972</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          Mean         SD       2.5%        50%     97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1 0.1094593 0.06539046 0.01462568 0.09760905 0.2619209</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2 0.1089399 0.05449605 0.01665145 0.09901240 0.2327646</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3 0.1105546 0.05237190 0.02800900 0.10825410 0.2377716</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj_mix</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj_mix$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           Mean         SD       2.5%        50%     97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1 0.09981607 0.07546725 0.01320398 0.07206880 0.2867587</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2 0.11497358 0.06065294 0.02091671 0.10902077 0.2584492</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3 0.09810467 0.04427362 0.03737808 0.09113661 0.2097393</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_mix</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_mix$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           Mean         SD        2.5%        50%     97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1 0.09899031 0.07237591 0.007188166 0.08356722 0.2790558</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2 0.09503238 0.05786776 0.021231160 0.08588670 0.2369364</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3 0.10472494 0.04768899 0.032955574 0.09989304 0.1943431</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $pooled</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $pooled$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Mean         SD       2.5%        50%     97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1  0.1 0.03810004 0.03862692 0.09563321 0.1860054</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2  0.1 0.03810004 0.03862692 0.09563321 0.1860054</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3  0.1 0.03810004 0.03862692 0.09563321 0.1860054</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stratified</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stratified$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Mean         SD        2.5%        50%     97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1  0.1 0.08660254 0.003720276 0.07636130 0.3240643</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2  0.1 0.06396021 0.014000117 0.08739591 0.2559472</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3  0.1 0.05303301 0.022626655 0.09142896 0.2253392</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stratified_mix</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stratified_mix$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          Mean         SD        2.5%        50%     97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1 0.1155437 0.09506287 0.006555717 0.08885719 0.3908622</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2 0.1085965 0.06762380 0.025360224 0.09951258 0.3058998</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3 0.1059414 0.05518165 0.018498115 0.09053373 0.2642510</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span>  <span class="fu">getEstimates</span><span class="op">(</span>analyses_list  <span class="op">=</span> <span class="va">outcome_analysis</span>,</span></span>
 <span class="r-in"><span>               add_parameters <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mu"</span>, <span class="st">"w_1"</span>, <span class="st">"w_2"</span>, <span class="st">"w_3"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'outcome_analysis' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $berry</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $berry$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            Mean         SD        2.5%         50%     97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1  0.10393113 0.05800093  0.02864353  0.08561300 0.2312402</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2  0.09950151 0.04344522  0.03841422  0.09101637 0.1822576</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3  0.10368595 0.04671332  0.03774885  0.08564970 0.1905802</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mu  -0.08359055 0.57003640 -1.10601229 -0.12156953 0.8068984</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            Mean         SD        2.5%         50%      97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1  0.11208285 0.06793899  0.02123767  0.09705964  0.2806072</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2  0.09956622 0.04512547  0.02505959  0.09894576  0.2151773</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3  0.09922788 0.05022403  0.02744884  0.09450483  0.2059972</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mu  -2.26228687 0.74361943 -3.67570602 -2.23677326 -0.9413969</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_1  0.76865672 0.42327366  0.00000000  1.00000000  1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_2  0.65671642 0.47658682  0.00000000  1.00000000  1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_3  0.79104478 0.40808791  0.00000000  1.00000000  1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           Mean         SD        2.5%         50%     97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1  0.1094593 0.06539046  0.01462568 0.097609048 0.2619209</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2  0.1089399 0.05449605  0.01665145 0.099012403 0.2327646</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3  0.1105546 0.05237190  0.02800900 0.108254095 0.2377716</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mu  -0.1833206 1.02031013 -2.72151606 0.008511337 0.9345126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_1  0.7164179 0.45242771  0.00000000 1.000000000 1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_2  0.6641791 0.47404879  0.00000000 1.000000000 1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_3  0.7014925 0.45932037  0.00000000 1.000000000 1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj_mix</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj_mix$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           Mean         SD        2.5%        50%     97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1 0.09981607 0.07546725  0.01320398 0.07206880 0.2867587</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2 0.11497358 0.06065294  0.02091671 0.10902077 0.2584492</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3 0.09810467 0.04427362  0.03737808 0.09113661 0.2097393</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mu  0.01594283 0.92820975 -1.31857644 0.01128393 1.2407930</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_1 0.69402985 0.46254627  0.00000000 1.00000000 1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_2 0.73134328 0.44492424  0.00000000 1.00000000 1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_3 0.65671642 0.47658682  0.00000000 1.00000000 1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_mix</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_mix$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            Mean         SD         2.5%         50%      97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1  0.09899031 0.07237591  0.007188166  0.08356722  0.2790558</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2  0.09503238 0.05786776  0.021231160  0.08588670  0.2369364</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3  0.10472494 0.04768899  0.032955574  0.09989304  0.1943431</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mu  -2.35352598 0.86949329 -4.055486366 -2.33448251 -0.5145758</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_1  0.70149254 0.45932037  0.000000000  1.00000000  1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_2  0.71641791 0.45242771  0.000000000  1.00000000  1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> w_3  0.55970149 0.49828569  0.000000000  1.00000000  1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $pooled</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $pooled$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Mean         SD       2.5%        50%     97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1  0.1 0.03810004 0.03862692 0.09563321 0.1860054</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2  0.1 0.03810004 0.03862692 0.09563321 0.1860054</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3  0.1 0.03810004 0.03862692 0.09563321 0.1860054</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stratified</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stratified$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Mean         SD        2.5%        50%     97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1  0.1 0.08660254 0.003720276 0.07636130 0.3240643</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2  0.1 0.06396021 0.014000117 0.08739591 0.2559472</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3  0.1 0.05303301 0.022626655 0.09142896 0.2253392</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stratified_mix</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stratified_mix$scenario_1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          Mean         SD        2.5%        50%     97.5%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_1 0.1155437 0.09506287 0.006555717 0.08885719 0.3908622</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_2 0.1085965 0.06762380 0.025360224 0.09951258 0.3058998</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p_3 0.1059414 0.05518165 0.018498115 0.09053373 0.2642510</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>
   </div>
