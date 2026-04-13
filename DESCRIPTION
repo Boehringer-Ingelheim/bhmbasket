@@ -43,6 +43,7 @@ Suggests:
     future,
     knitr,
     rmarkdown,
+    RBesT,
     testthat (>= 3.0.0)
 VignetteBuilder: 
     knitr

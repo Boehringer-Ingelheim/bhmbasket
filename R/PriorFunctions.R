@@ -3,13 +3,13 @@
 #' @description This function provides default prior parameters for the analysis methods
 #' that can be used in \code{\link[bhmbasket]{performAnalyses}}.
 #' @param method_names A vector of strings for the names of the methods to be used.
-#' Available methods: `c("berry", "exnex", "exnex_adj", "pooled", "stratified")`
+#' Available methods: `c("berry", "exnex", "exnex_adj", "exnex_mix", "exnex_adj_mix", "pooled", "stratified", "stratified_mix)`
 #' @param target_rates A vector of numerics in `(0, 1)` for the
 #' target rate of each cohort
 #' @param n_worth An integer for the number of subjects the variability of the prior should reflect
 #' response rate scale, Default: `1`
 #' @param tau_scale A numeric for the scale parameter of the Half-normal distribution of \eqn{\tau}
-#' in the methods `"berry"`, `"exnex"`, and `"exnex_adj"`, Default: `1`
+#' in the methods `"berry"`, `"exnex"`, `"exnex"_mix`, `"exnex_adj"` and `"exnex_adj_mix"`, Default: `1`
 #' @param w_j A numeric in `(0, 1)` for the weight of the Ex component in the methods `"exnex"`
 #' and `"exnex_adj"`, Default: `0.5`
 #' @return A list with prior parameters of class `prior_parameters_list`
@@ -47,17 +47,34 @@
 #'   The variances of \eqn{\tau_j} are calculated as proposed in "Robust exchangeability designs for early
 #'   phase clinical trials with multiple strata" (Neuenschwander et al. (2016))
 #'   with regard to `n_worth`, see also \code{\link[bhmbasket]{getMuVar}}.
+#'   \item `"exnex_mix"`: Uses the same default Ex prior construction as `"exnex"`.
+#'   The NEX part is specified as a one-component mixture prior with
+#'   `w_nex = 1`, `mean_nex = matrix(logit(target_rates), nrow = 1)`,
+#'   and `sd_nex = matrix(sqrt(getMuVar(target_rates, 0, n_worth)), nrow = 1)`.
+#'   This keeps the default mixture representation compatible with the mix-model interface.
+#'   \item `"exnex_adj_mix"`: Uses the same default Ex prior construction as `"exnex_adj"`.
+#'   The NEX part is specified as a one-component mixture prior with
+#'   `w_nex = 1`, `mean_nex = matrix(logit(target_rates), nrow = 1)`,
+#'   and `sd_nex = matrix(sqrt(getMuVar(target_rates, 0, n_worth)), nrow = 1)`.
+#'   The Ex component is centered as in `"exnex_adj"`.
 #'   \item `"pooled"`: The target rate that results in the greatest variance is determined.
 #'   The scale parameter \eqn{\alpha} is set to that target rate times `n_worth`.
 #'   The scale parameter \eqn{\beta} is set to 1 - that target rate times `n_worth`.
 #'   \item `"stratified"`:
 #'   The scale parameters \eqn{\alpha_j} are set to `target_rates * n_worth`.
 #'   The scale parameters \eqn{\beta_j} are set to `(1 - target_rates) * n_worth`.
+#'   \item `"stratified_mix"`:
+#'   A two-component beta mixture prior is created for each cohort.
+#'   The first component uses
+#'   `a_j = target_rates * n_worth` and `b_j = (1 - target_rates) * n_worth`.
+#'   The second component is a vague prior with `a_j = 1` and `b_j = 1`.
+#'   The default mixture weights are `c(0.8, 0.2)`.
 #' }
 #' @author Stephan Wojciekowski
 #' @examples
 #' prior_parameters_list <- getPriorParameters(
-#'   method_names = c("berry", "exnex", "exnex_adj", "pooled", "stratified"),
+#'   method_names = c("berry", "exnex", "exnex_mix", "exnex_adj",
+#'                    "exnex_adj_mix", "pooled", "stratified", "stratified_mix"),
 #'   target_rates = c(0.1, 0.2, 0.3))
 #' @rdname getPriorParameters
 #' @seealso
@@ -67,6 +84,7 @@
 #'  \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 #'  \code{\link[bhmbasket]{setPriorParametersPooled}}
 #'  \code{\link[bhmbasket]{setPriorParametersStratified}}
+#'  \code{\link[bhmbasket]{setPriorParametersStratifiedMix}}
 #'  \code{\link[bhmbasket]{combinePriorParameters}}
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @references Berry, Scott M., et al. "Bayesian hierarchical modeling of patient subpopulations:
@@ -88,7 +106,8 @@ getPriorParameters <- function (
 
   error_method_names <-
     paste("Providing a (vector of) strings for the argument 'method_names'\n",
-          "Must be one of 'berry', 'exnex', 'exnex_adj', 'pooled', 'stratified'")
+          "Must be one of 'berry', 'exnex', 'exnex_mix', 'exnex_adj', 'exnex_adj_mix',",
+          "'pooled', 'stratified', 'stratified_mix'")
   error_target_rates <-
     "Providing a vector of numerics in (0, 1) for the argument 'target_rates'"
   error_tau_scale    <-
@@ -109,7 +128,9 @@ getPriorParameters <- function (
       several.ok = TRUE
     )
 
-  }, error = function (e) e)
+  }, error = function (e) {
+    stop(error_method_names, call. = FALSE)
+  })
 
   checkmate::assertNumeric(target_rates, any.missing = FALSE, .var.name = error_target_rates)
   checkmate::assertTRUE(all(target_rates > 0 & target_rates < 1), .var.name = error_target_rates)
@@ -244,15 +265,15 @@ combinePriorParameters <- function (
 
 ) {
 
-  error_list <- "Providing a list of of items with class 'prior_parameters_list'"
+  error_list <- "Providing a list of items with class 'prior_parameters_list'"
 
   checkmate::assertList(
-    list_of_prior_parameters, types = "list", any.missing = FALSE, .var.name = "list_of_prior_parameters"
+    list_of_prior_parameters, types = "list", any.missing = FALSE, .var.name = error_list
     )
 
   checkmate::assertTRUE(
     all(vapply(list_of_prior_parameters, function(x) inherits(x, "prior_parameters_list"), logical(1))),
-    .var.name = "list_of_prior_parameters"
+    .var.name = error_list
   )
 
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
@@ -490,8 +511,6 @@ getPriorParametersExNex <- function (
 
   checkmate::assertNumeric(w_j, lower = 0, upper = 1, len = 1, .var.name = error_w_j)
 
-  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-
   target_rate_max_var <- target_rates[abs(target_rates - 0.5) == max(abs(target_rates - 0.5))][1]
   mu_var <- getMuVar(target_rate_max_var, tau_scale, n_worth)
 
@@ -502,21 +521,22 @@ getPriorParametersExNex <- function (
     )))
   }
 
-  ## standard ExNex
+  prior_base <- list(
+    mu_mean   = logit(target_rate_max_var),
+    mu_sd     = sqrt(mu_var),
+    tau_scale = tau_scale,
+    w_j       = w_j
+  )
+
   if (is.null(w_nex) && is.null(mean_nex) && is.null(sd_nex)) {
 
-    prior_parameters <- list(
-      mu_mean   = logit(target_rate_max_var),
-      mu_sd     = sqrt(mu_var),
-      tau_scale = tau_scale,
-      mu_j      = logit(target_rates),
-      tau_j     = sqrt(getMuVar(target_rates, 0, n_worth)),
-      w_j       = w_j
+    prior_extra <- list(
+      mu_j  = logit(target_rates),
+      tau_j = sqrt(getMuVar(target_rates, 0, n_worth))
     )
 
   } else {
 
-    ## mixed NEX version
     checkmate::assertNumeric(w_nex, any.missing = FALSE, lower = 0, upper = 1, .var.name = error_w_nex)
     checkmate::assertTRUE(isTRUE(all.equal(sum(w_nex), 1)), .var.name = error_w_nex)
 
@@ -527,18 +547,14 @@ getPriorParametersExNex <- function (
     checkmate::assertTRUE(nrow(mean_nex) == length(w_nex), .var.name = error_dim)
     checkmate::assertTRUE(ncol(mean_nex) == length(target_rates), .var.name = error_dim)
 
-    prior_parameters <- list(
-      mu_mean   = logit(target_rate_max_var),
-      mu_sd     = sqrt(mu_var),
-      tau_scale = tau_scale,
-      w_j       = w_j,
-      w_nex     = as.numeric(w_nex),
-      mean_nex  = mean_nex,
-      sd_nex    = sd_nex
+    prior_extra <- list(
+      w_nex    = as.numeric(w_nex),
+      mean_nex = mean_nex,
+      sd_nex   = sd_nex
     )
   }
 
-  prior_parameters_list <- list(exnex = prior_parameters)
+  prior_parameters_list <- list(exnex = c(prior_base, prior_extra))
   class(prior_parameters_list) <- "prior_parameters_list"
 
   return(prior_parameters_list)
@@ -670,9 +686,13 @@ setPriorParametersExNex <- function (
     checkmate::assert_true(isTRUE(all.equal(sum(w_j), 1)), .var.name = error_w_j_sum)
   }
 
-  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  prior_base <- list(
+    mu_mean   = mu_mean,
+    mu_sd     = mu_sd,
+    tau_scale = tau_scale,
+    w_j       = w_j
+  )
 
-  ## standard ExNex
   if (is.null(w_nex) && is.null(mean_nex) && is.null(sd_nex)) {
 
     checkmate::assert_numeric(mu_j, any.missing = FALSE, .var.name = error_mu_j)
@@ -680,18 +700,13 @@ setPriorParametersExNex <- function (
     checkmate::assertTRUE(all(tau_j > 0), .var.name = error_tau_j)
     checkmate::assert_true(length(mu_j) == length(tau_j), .var.name = error_mu_j_tau_j)
 
-    prior_parameters <- list(
-      mu_mean   = mu_mean,
-      mu_sd     = mu_sd,
-      tau_scale = tau_scale,
-      mu_j      = mu_j,
-      tau_j     = tau_j,
-      w_j       = w_j
+    prior_extra <- list(
+      mu_j  = mu_j,
+      tau_j = tau_j
     )
 
   } else {
 
-    ## mixed NEX version
     checkmate::assertNumeric(w_nex, any.missing = FALSE, lower = 0, upper = 1, .var.name = error_w_nex)
     checkmate::assertTRUE(isTRUE(all.equal(sum(w_nex), 1)), .var.name = error_w_nex)
 
@@ -701,18 +716,14 @@ setPriorParametersExNex <- function (
     checkmate::assertTRUE(all(dim(mean_nex) == dim(sd_nex)), .var.name = error_dim)
     checkmate::assertTRUE(nrow(mean_nex) == length(w_nex), .var.name = error_dim)
 
-    prior_parameters <- list(
-      mu_mean   = mu_mean,
-      mu_sd     = mu_sd,
-      tau_scale = tau_scale,
-      w_j       = w_j,
-      w_nex     = as.numeric(w_nex),
-      mean_nex  = mean_nex,
-      sd_nex    = sd_nex
+    prior_extra <- list(
+      w_nex    = as.numeric(w_nex),
+      mean_nex = mean_nex,
+      sd_nex   = sd_nex
     )
   }
 
-  prior_parameters_list <- list(exnex = prior_parameters)
+  prior_parameters_list <- list(exnex = c(prior_base, prior_extra))
   class(prior_parameters_list) <- "prior_parameters_list"
 
   return(prior_parameters_list)
@@ -1309,6 +1320,33 @@ getPriorParametersStratifiedMix <- function (
 
 }
 
+#' @title setPriorParametersStratifiedMix
+#' @md
+#' @description This function sets prior parameters for the analysis method `"stratified_mix"`
+#' for use in \code{\link[bhmbasket]{performAnalyses}}.
+#' @param w A numeric vector of mixture weights in \eqn{[0,1]} summing to 1.
+#' @param a_j A positive numeric matrix of beta shape parameters \eqn{\alpha_j},
+#' with one row per mixture component and one column per cohort.
+#' @param b_j A positive numeric matrix of beta shape parameters \eqn{\beta_j},
+#' with one row per mixture component and one column per cohort.
+#' @return A list with prior parameters of class `prior_parameters_list`
+#' @details
+#' The method `"stratified_mix"` is a beta-binomial model that assesses each cohort
+#' individually with a finite mixture beta prior.
+#' @author Stephan Wojciekowski
+#' @examples
+#' prior_parameters_stratified_mix <- setPriorParametersStratifiedMix(
+#'   w   = c(0.8, 0.2),
+#'   a_j = rbind(c(2, 3), c(1, 1)),
+#'   b_j = rbind(c(8, 7), c(1, 1))
+#' )
+#' @rdname setPriorParametersStratifiedMix
+#' @seealso
+#'  \code{\link[bhmbasket]{performAnalyses}}
+#'  \code{\link[bhmbasket]{getPriorParameters}}
+#'  \code{\link[bhmbasket]{combinePriorParameters}}
+#'  \code{\link[bhmbasket]{setPriorParametersStratified}}
+#' @export
 setPriorParametersStratifiedMix <- function(
     w,
     a_j,

@@ -272,7 +272,7 @@ test_that("valid input returns prior_parameters_list with correct structure", {
 
   # Check inner structure
   expect_true(is.list(result$exnex))
-  expect_named(result$exnex, c("mu_mean", "mu_sd", "tau_scale", "mu_j", "tau_j", "w_j"))
+  expect_named(result$exnex, c("mu_mean", "mu_sd", "tau_scale", "w_j", "mu_j", "tau_j"))
 })
 
 # ------------------------------------------------------------------
@@ -374,7 +374,7 @@ test_that("valid input returns prior_parameters_list with correct structure", {
   expect_s3_class(result, "prior_parameters_list")
   expect_named(result, "exnex")
   expect_true(is.list(result$exnex))
-  expect_named(result$exnex, c("mu_mean", "mu_sd", "tau_scale", "mu_j", "tau_j", "w_j"))
+  expect_named(result$exnex, c("mu_mean", "mu_sd", "tau_scale", "w_j", "mu_j", "tau_j"))
 })
 
 # ------------------------------------------------------------------
@@ -426,7 +426,7 @@ test_that("valid input returns prior_parameters_list with correct structure", {
   expect_s3_class(result, "prior_parameters_list")
   expect_named(result, "exnex_adj")
   expect_true(is.list(result$exnex_adj))
-  expect_named(result$exnex_adj, c("mu_mean", "mu_sd", "tau_scale", "mu_j", "tau_j", "w_j"))
+  expect_named(result$exnex_adj, c("mu_mean", "mu_sd", "tau_scale", "w_j", "mu_j", "tau_j"))
 
   # Check adjusted values
   expect_equal(result$exnex_adj$mu_mean, 0)
@@ -460,7 +460,7 @@ test_that("valid input returns prior_parameters_list with correct structure", {
   expect_s3_class(result, "prior_parameters_list")
   expect_named(result, "exnex_adj")
   expect_true(is.list(result$exnex_adj))
-  expect_named(result$exnex_adj, c("mu_mean", "mu_sd", "tau_scale", "mu_j", "tau_j", "w_j"))
+  expect_named(result$exnex_adj, c("mu_mean", "mu_sd", "tau_scale",  "w_j", "mu_j", "tau_j"))
 })
 
 # ------------------------------------------------------------------

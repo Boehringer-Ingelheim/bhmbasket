@@ -1843,3 +1843,229 @@ test_that("saveAnalyses: save_path must be a character vector of length 1", {
     ignore.case = TRUE
   )
 })
+
+# ------------------------------------------------------------------
+# Test: RBesT comparison for mixture models
+# Input:
+#   - Fixed 2-component beta-mixture prior from RBesT
+#   - Two identical cohorts with same data
+# Behaviour:
+#   - stratified_mix should match RBesT closely (same beta-mixture updating)
+#   - exnex_mix and exnex_adj_mix use a logit-normal NEX mixture derived
+#     from the same RBesT prior via rmix() + normal-mixture fitting
+#   - identical cohorts should produce identical posteriors
+# Expectations:
+#   - stratified_mix close to RBesT
+#   - exnex_mix / exnex_adj_mix finite and symmetric across the 2 cohorts
+# Why:
+#   - Validates the three implemented mixture branches against a common
+#     external reference prior and checks structural symmetry.
+# ------------------------------------------------------------------
+test_that("mixture branches agree with RBesT reference prior and preserve symmetry", {
+  skip_if_not_installed("RBesT")
+
+  set.seed(123)
+
+  ## -----------------------------
+  ## symmetric 2-cohort setup
+  ## -----------------------------
+  n <- c(20, 20)
+  r <- c(6, 6)
+
+  trial_data <- createTrial(
+    n_subjects   = n,
+    n_responders = r
+  )
+
+  ## -----------------------------
+  ## fixed RBesT beta-mixture prior
+  ## same prior reused for all 3 branches
+  ## -----------------------------
+  w <- c(0.8, 0.2)
+
+  a_one <- c(4, 1)
+  b_one <- c(12, 1)
+
+  a_j <- cbind(a_one, a_one)
+  b_j <- cbind(b_one, b_one)
+
+  ## =============================
+  ## 1) stratified_mix vs RBesT
+  ## =============================
+  pp_strat_mix <- setPriorParametersStratifiedMix(
+    w   = w,
+    a_j = a_j,
+    b_j = b_j
+  )
+
+  res_strat <- performAnalyses(
+    scenario_list         = trial_data,
+    method_names          = "stratified_mix",
+    prior_parameters_list = pp_strat_mix,
+    n_mcmc_iterations     = 2000,
+    verbose               = FALSE
+  )
+
+  bhm_strat <- res_strat[[1]]$quantiles_list$stratified_mix[[1]][
+    c("2.5%", "50%", "97.5%", "Mean", "SD"),
+    c("p_1", "p_2"),
+    drop = FALSE
+  ]
+  rownames(bhm_strat) <- c("q025", "q500", "q975", "Mean", "SD")
+
+  prior_rbest <- RBesT::mixbeta(
+    c(w[1], a_one[1], b_one[1]),
+    c(w[2], a_one[2], b_one[2])
+  )
+
+  post_rbest <- RBesT::postmix(prior_rbest, n = n[1], r = r[1])
+  post_rbest_draws <- RBesT::rmix(post_rbest, 50000)
+
+  rbest_ref <- c(
+    q025 = unname(RBesT::qmix(post_rbest, 0.025)),
+    q500 = unname(RBesT::qmix(post_rbest, 0.5)),
+    q975 = unname(RBesT::qmix(post_rbest, 0.975)),
+    Mean = mean(post_rbest_draws),
+    SD   = stats::sd(post_rbest_draws)
+  )
+
+  expect_equal(
+    unname(bhm_strat[, "p_1"]),
+    unname(rbest_ref),
+    tolerance = 0.05
+  )
+
+  expect_equal(
+    unname(bhm_strat[, "p_2"]),
+    unname(rbest_ref),
+    tolerance = 0.05
+  )
+
+  expect_equal(
+    unname(bhm_strat[, "p_1"]),
+    unname(bhm_strat[, "p_2"]),
+    tolerance = 0.05
+  )
+
+  ## ==========================================
+  ## 2) derive logit-normal mixture for exnex*
+  ## ==========================================
+  p_draws <- RBesT::rmix(prior_rbest, 20000)
+
+  eps <- 1e-8
+  p_draws <- pmin(pmax(p_draws, eps), 1 - eps)
+  eta_draws <- qlogis(p_draws)
+
+  mix_fit <- RBesT::automixfit(eta_draws)
+
+  w_nex_derived <- as.numeric(mix_fit["w", ])
+  mean_one      <- as.numeric(mix_fit["m", ])
+  sd_one        <- as.numeric(mix_fit["s", ])
+
+  w_nex_derived <- w_nex_derived / sum(w_nex_derived)
+
+  expect_equal(sum(w_nex_derived), 1, tolerance = 1e-8)
+  expect_true(all(sd_one > 0))
+
+  mean_nex <- cbind(mean_one, mean_one)
+  sd_nex   <- cbind(sd_one, sd_one)
+
+  ## =============================
+  ## 3) exnex_mix with EX off
+  ## =============================
+  pp_exnex_mix <- setPriorParametersExNex(
+    mu_mean   = 0,
+    mu_sd     = 1,
+    tau_scale = 0.5,
+    w_j       = 0,
+    w_nex     = w_nex_derived,
+    mean_nex  = mean_nex,
+    sd_nex    = sd_nex
+  )
+  names(pp_exnex_mix) <- "exnex_mix"
+
+  res_exnex_mix <- performAnalyses(
+    scenario_list         = trial_data,
+    method_names          = "exnex_mix",
+    prior_parameters_list = pp_exnex_mix,
+    n_mcmc_iterations     = 2000,
+    verbose               = FALSE
+  )
+
+  bhm_exnex_mix <- res_exnex_mix[[1]]$quantiles_list$exnex_mix[[1]][
+    c("2.5%", "50%", "97.5%", "Mean", "SD"),
+    c("p_1", "p_2"),
+    drop = FALSE
+  ]
+  rownames(bhm_exnex_mix) <- c("q025", "q500", "q975", "Mean", "SD")
+
+  expect_true(all(is.finite(bhm_exnex_mix)))
+
+  expect_equal(
+    unname(bhm_exnex_mix[, "p_1"]),
+    unname(bhm_exnex_mix[, "p_2"]),
+    tolerance = 0.05
+  )
+
+  expect_equal(
+    unname(bhm_exnex_mix[, "p_1"]),
+    unname(rbest_ref),
+    tolerance = 0.05
+  )
+
+  expect_equal(
+    unname(bhm_exnex_mix[, "p_2"]),
+    unname(rbest_ref),
+    tolerance = 0.05
+  )
+
+  ## =============================
+  ## 4) exnex_adj_mix with EX off
+  ## =============================
+  pp_exnex_adj_mix <- setPriorParametersExNexAdj(
+    mu_mean   = 0,
+    mu_sd     = 1,
+    tau_scale = 0.5,
+    w_j       = 0,
+    w_nex     = w_nex_derived,
+    mean_nex  = mean_nex,
+    sd_nex    = sd_nex
+  )
+  names(pp_exnex_adj_mix) <- "exnex_adj_mix"
+
+  res_exnex_adj_mix <- performAnalyses(
+    scenario_list         = trial_data,
+    method_names          = "exnex_adj_mix",
+    target_rates          = c(0.5, 0.5),
+    prior_parameters_list = pp_exnex_adj_mix,
+    n_mcmc_iterations     = 2000,
+    verbose               = FALSE
+  )
+
+  bhm_exnex_adj_mix <- res_exnex_adj_mix[[1]]$quantiles_list$exnex_adj_mix[[1]][
+    c("2.5%", "50%", "97.5%", "Mean", "SD"),
+    c("p_1", "p_2"),
+    drop = FALSE
+  ]
+  rownames(bhm_exnex_adj_mix) <- c("q025", "q500", "q975", "Mean", "SD")
+
+  expect_true(all(is.finite(bhm_exnex_adj_mix)))
+
+  expect_equal(
+    unname(bhm_exnex_adj_mix[, "p_1"]),
+    unname(bhm_exnex_adj_mix[, "p_2"]),
+    tolerance = 0.05
+  )
+
+  expect_equal(
+    unname(bhm_exnex_adj_mix[, "p_1"]),
+    unname(rbest_ref),
+    tolerance = 0.05
+  )
+
+  expect_equal(
+    unname(bhm_exnex_adj_mix[, "p_2"]),
+    unname(rbest_ref),
+    tolerance = 0.05
+  )
+})
