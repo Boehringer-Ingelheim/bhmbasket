@@ -153,21 +153,25 @@ getPriorParameters <- function (
 
     } else if (method_name == "exnex_mix") {
 
-      getPriorParametersExNexMix(
+      getPriorParametersExNex(
         target_rates = target_rates,
         n_worth      = n_worth,
         tau_scale    = tau_scale,
-        w_j          = w_j
-      )[[1]]
+        w_j          = w_j,
+        w_nex        = 1,
+        mean_nex     = matrix(logit(target_rates), nrow = 1),
+        sd_nex       = matrix(sqrt(getMuVar(target_rates, 0, n_worth)), nrow = 1))[[1]]
 
     } else if (method_name == "exnex_adj_mix") {
 
-      getPriorParametersExNexAdjMix(
+      getPriorParametersExNexAdj(
         target_rates = target_rates,
         n_worth      = n_worth,
         tau_scale    = tau_scale,
-        w_j          = w_j
-      )[[1]]
+        w_j          = w_j,
+        w_nex        = 1,
+        mean_nex     = matrix(logit(target_rates), nrow = 1),
+        sd_nex       = matrix(sqrt(getMuVar(target_rates, 0, n_worth)), nrow = 1))[[1]]
 
     } else if (method_name == "pooled") {
 
