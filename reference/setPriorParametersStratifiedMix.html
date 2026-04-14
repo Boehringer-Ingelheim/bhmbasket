@@ -18,7 +18,7 @@ for use in performAnalyses.'><!-- mathjax --><script src="https://cdnjs.cloudfla
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">bhmbasket</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
       </span>
     </div>
 
@@ -81,12 +81,12 @@ for use in <code><a href="performAnalyses.html">performAnalyses</a></code>.</p>
 
 <dt id="arg-a-j">a_j<a class="anchor" aria-label="anchor" href="#arg-a-j"></a></dt>
 <dd><p>A positive numeric matrix of beta shape parameters \(\alpha_j\),
-with one row per mixture component and one column per cohort.</p></dd>
+with rows per mixture component and columns per cohort.</p></dd>
 
 
 <dt id="arg-b-j">b_j<a class="anchor" aria-label="anchor" href="#arg-b-j"></a></dt>
 <dd><p>A positive numeric matrix of beta shape parameters \(\beta_j\),
-with one row per mixture component and one column per cohort.</p></dd>
+with rows per mixture component and columns per cohort.</p></dd>
 
 </dl></div>
     <div id="value">
@@ -96,7 +96,8 @@ with one row per mixture component and one column per cohort.</p></dd>
     <div id="details">
     <h2>Details</h2>
     <p>The method <code>"stratified_mix"</code> is a beta-binomial model that assesses each cohort
-individually with a finite mixture beta prior.</p>
+individually with a finite mixture beta prior.
+See also the R package <code>RBesT</code>.</p>
     </div>
     <div id="see-also">
     <h2>See also</h2>

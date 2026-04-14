@@ -19,7 +19,7 @@ and returns the quantiles of the posterior response rates"><!-- mathjax --><scri
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">bhmbasket</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
       </span>
     </div>
 
@@ -159,8 +159,8 @@ A numeric for the random seed, Default: <code>1</code></p></dd>
 <li><p>BHM that combines above approaches: <code>"exnex_adj"</code></p></li>
 <li><p>Pooled beta-binomial approach: <code>"pooled"</code></p></li>
 <li><p>Stratified beta-binomial approach: <code>"stratified"</code></p></li>
-<li><p>BHM with mixture prior on the NEX component: <code>"exnex_mix"</code></p></li>
-<li><p>Adjusted BHM with mixture prior on the NEX component: <code>"exnex_adj_mix"</code></p></li>
+<li><p>BHM with mixture prior on the Nex component: <code>"exnex_mix"</code></p></li>
+<li><p>Adjusted BHM with mixture prior on the Nex component: <code>"exnex_adj_mix"</code></p></li>
 <li><p>Stratified beta-binomial approach with mixture beta prior: <code>"stratified_mix"</code></p></li>
 </ul><p>The posterior distributions of the BHMs are approximated with Markov chain Monte Carlo (MCMC)
 methods implemented in JAGS.
@@ -184,9 +184,9 @@ determined with <code><a href="https://rdrr.io/pkg/foreach/man/getDoParWorkers.h
 <p>The JAGS code for the BHM <code>"exnex"</code> was taken from Neuenschwander et al. (2016).
 The JAGS code for the BHM <code>"exnex_adj"</code> is based on the JAGS code for <code>"exnex"</code>.
 The JAGS code for the BHM <code>"exnex_mix"</code> extends the <code>"exnex"</code> model by using
-a mixture prior for the NEX component.
+a mixture prior for the Nex component.
 The JAGS code for the BHM <code>"exnex_adj_mix"</code> extends the <code>"exnex_adj"</code> model by using
-a mixture prior for the NEX component.</p>
+a mixture prior for the Nex component.</p>
     </div>
     <div id="references">
     <h2>References</h2>
@@ -229,21 +229,21 @@ Vol. 124. No. 125.10. 2003.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>    future::plan(future::multisession)</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> 14-Apr-2026 Performing Analyses</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>          Analyzing 1 scenario (1 unique trial realization)</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    08:55 - with Berry ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:49 - with Berry ...........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    08:55 - with Exnex ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:49 - with Exnex ...........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    08:55 - with Exnex_adj .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:49 - with Exnex_adj .......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    08:55 - with Exnex_adj_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:49 - with Exnex_adj_mix ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    08:55 - with Exnex_mix .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:49 - with Exnex_mix .......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    08:55 - with Pooled ..........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:49 - with Pooled ..........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    08:55 - with Stratified ......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:49 - with Stratified ......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    08:55 - with Stratified_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:49 - with Stratified_mix ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>          Processing scenarios ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>

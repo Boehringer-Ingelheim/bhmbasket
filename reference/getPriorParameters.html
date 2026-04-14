@@ -18,7 +18,7 @@ that can be used in performAnalyses."><!-- mathjax --><script src="https://cdnjs
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">bhmbasket</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
       </span>
     </div>
 
@@ -112,7 +112,7 @@ and <code>"exnex_adj"</code>, Default: <code>0.5</code></p></dd>
     </div>
     <div id="details">
     <h2>Details</h2>
-    <p>Regarding the default prior parameters for <code>"berry"</code>, <code>"exnex"</code>, and <code>"exnex_adj"</code>:</p><ul><li><p><code>"berry"</code>: The mean of \(\mu\) is set to <code>0</code>.
+    <p>Regarding the default prior parameters for <code>"berry"</code>, <code>"exnex"</code>, <code>"exnex_mix"</code>, <code>"exnex_adj"</code> and <code>"exnex_adj_mix"</code>:</p><ul><li><p><code>"berry"</code>: The mean of \(\mu\) is set to <code>0</code>.
 Its variance is calculated as proposed in "Robust exchangeability designs for early
 phase clinical trials with multiple strata" (Neuenschwander et al. (2016))
 with regard to <code>n_worth</code>.
@@ -124,8 +124,8 @@ The mean of \(\mu\) is set to that target rate.
 The variance of \(\mu\) is calculated as proposed in "Robust exchangeability designs for early
 phase clinical trials with multiple strata" (Neuenschwander et al. (2016))
 with regard to <code>n_worth</code>.
-The scale parameter of \(\tau\) is set to <code>tau_scale</code>.
-For the Nex components:
+The scale parameter of \(\tau\) is set to <code>tau_scale</code>.</p>
+<p>For the Nex components:
 The means of \(\mu_j\) are set to the respective target rates.
 The variances of \(\tau_j\) are calculated as proposed in "Robust exchangeability designs for early
 phase clinical trials with multiple strata" (Neuenschwander et al. (2016))
@@ -137,19 +137,19 @@ The mean of \(\mu\) is set to <code>0</code>.
 The variance of \(\mu\) is calculated as proposed in "Robust exchangeability designs for early
 phase clinical trials with multiple strata" (Neuenschwander et al. (2016))
 with regard to <code>n_worth</code>, see also <code><a href="getMuVar.html">getMuVar</a></code>.
-The scale parameter of \(\tau\) is set to <code>tau_scale</code>.
-For the Nex components:
+The scale parameter of \(\tau\) is set to <code>tau_scale</code>.</p>
+<p>For the Nex components:
 The means of \(\mu_j\) are set to the <code>0</code>.
 The variances of \(\tau_j\) are calculated as proposed in "Robust exchangeability designs for early
 phase clinical trials with multiple strata" (Neuenschwander et al. (2016))
 with regard to <code>n_worth</code>, see also <code><a href="getMuVar.html">getMuVar</a></code>.</p></li>
 <li><p><code>"exnex_mix"</code>: Uses the same default Ex prior construction as <code>"exnex"</code>.
-The NEX part is specified as a one-component mixture prior with
+The Nex part default parameters are specified as a one-component mixture prior with
 <code>w_nex = 1</code>, <code>mean_nex = matrix(logit(target_rates), nrow = 1)</code>,
 and <code>sd_nex = matrix(sqrt(getMuVar(target_rates, 0, n_worth)), nrow = 1)</code>.
-This keeps the default mixture representation compatible with the mix-model interface.</p></li>
+This keeps the default mixture representation compatible with the <code>getPriorParameter()</code>'s input.</p></li>
 <li><p><code>"exnex_adj_mix"</code>: Uses the same default Ex prior construction as <code>"exnex_adj"</code>.
-The NEX part is specified as a one-component mixture prior with
+The Nex part is specified as a one-component mixture prior with
 <code>w_nex = 1</code>, <code>mean_nex = matrix(logit(target_rates), nrow = 1)</code>,
 and <code>sd_nex = matrix(sqrt(getMuVar(target_rates, 0, n_worth)), nrow = 1)</code>.
 The Ex component is centered as in <code>"exnex_adj"</code>.</p></li>
@@ -160,9 +160,9 @@ The scale parameter \(\beta\) is set to 1 - that target rate times <code>n_worth
 The scale parameters \(\alpha_j\) are set to <code>target_rates * n_worth</code>.
 The scale parameters \(\beta_j\) are set to <code>(1 - target_rates) * n_worth</code>.</p></li>
 <li><p><code>"stratified_mix"</code>:
-A two-component beta mixture prior is created for each cohort.
-The first component uses
-<code>a_j = target_rates * n_worth</code> and <code>b_j = (1 - target_rates) * n_worth</code>.
+A two-component beta mixture prior is created by default for each cohort.
+The first component uses <code>a_j = target_rates * n_worth</code> and
+<code>b_j = (1 - target_rates) * n_worth</code>.
 The second component is a vague prior with <code>a_j = 1</code> and <code>b_j = 1</code>.
 The default mixture weights are <code>c(0.8, 0.2)</code>.</p></li>
 </ul></div>
