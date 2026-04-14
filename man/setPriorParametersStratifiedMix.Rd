@@ -10,10 +10,10 @@ setPriorParametersStratifiedMix(w, a_j, b_j)
 \item{w}{A numeric vector of mixture weights in \eqn{[0,1]} summing to 1.}
 
 \item{a_j}{A positive numeric matrix of beta shape parameters \eqn{\alpha_j},
-with one row per mixture component and one column per cohort.}
+with rows per mixture component and columns per cohort.}
 
 \item{b_j}{A positive numeric matrix of beta shape parameters \eqn{\beta_j},
-with one row per mixture component and one column per cohort.}
+with rows per mixture component and columns per cohort.}
 }
 \value{
 A list with prior parameters of class \code{prior_parameters_list}
@@ -25,6 +25,7 @@ for use in \code{\link[bhmbasket]{performAnalyses}}.
 \details{
 The method \code{"stratified_mix"} is a beta-binomial model that assesses each cohort
 individually with a finite mixture beta prior.
+See also the R package \code{RBesT}.
 }
 \examples{
 prior_parameters_stratified_mix <- setPriorParametersStratifiedMix(

@@ -818,8 +818,8 @@ mapUniqueTrials <- function (
 #'   \item BHM that combines above approaches: `"exnex_adj"`
 #'   \item Pooled beta-binomial approach: `"pooled"`
 #'   \item Stratified beta-binomial approach: `"stratified"`
-#'   \item BHM with mixture prior on the NEX component: `"exnex_mix"`
-#'   \item Adjusted BHM with mixture prior on the NEX component: `"exnex_adj_mix"`
+#'   \item BHM with mixture prior on the Nex component: `"exnex_mix"`
+#'   \item Adjusted BHM with mixture prior on the Nex component: `"exnex_adj_mix"`
 #'   \item Stratified beta-binomial approach with mixture beta prior: `"stratified_mix"`
 #' }
 #' The posterior distributions of the BHMs are approximated with Markov chain Monte Carlo (MCMC)
@@ -847,9 +847,9 @@ mapUniqueTrials <- function (
 #' The JAGS code for the BHM `"exnex"` was taken from Neuenschwander et al. (2016).
 #' The JAGS code for the BHM `"exnex_adj"` is based on the JAGS code for `"exnex"`.
 #' The JAGS code for the BHM `"exnex_mix"` extends the `"exnex"` model by using
-#' a mixture prior for the NEX component.
+#' a mixture prior for the Nex component.
 #' The JAGS code for the BHM `"exnex_adj_mix"` extends the `"exnex_adj"` model by using
-#' a mixture prior for the NEX component.
+#' a mixture prior for the Nex component.
 #' @seealso
 #'  \code{\link[bhmbasket]{simulateScenarios}}
 #'  \code{\link[bhmbasket]{createTrial}}
@@ -1386,6 +1386,7 @@ prepareAnalysis <- function (
       j_data$Nstrata  <- length(prior_parameters$mu_j)
       j_data$nex_mean <- prior_parameters$mu_j
       j_data$nex_prec <- prior_parameters$tau_j^-2
+      
     }
 
     ## ExNex mix / ExNex Adj mix
@@ -1396,6 +1397,7 @@ prepareAnalysis <- function (
       j_data$w_nex    <- prior_parameters$w_nex
       j_data$mean_nex <- prior_parameters$mean_nex
       j_data$prec_nex <- prior_parameters$sd_nex^-2
+      
     }
 
     ## adjusted models
@@ -1423,11 +1425,12 @@ prepareAnalysis <- function (
 
   }
 
-  return(list(
+  return (list(
     j_parameters = j_parameters,
     j_model_file = j_model_file,
     j_data       = j_data
   ))
+  
 }
 
 #' @export

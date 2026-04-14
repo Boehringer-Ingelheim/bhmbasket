@@ -23,23 +23,23 @@ setPriorParametersExNex(
 
 \item{tau_scale}{A positive numeric for the scale parameter of \eqn{\tau}}
 
-\item{mu_j}{A vector of numerics for the means \eqn{\mu_j} of the standard NEX priors.
+\item{mu_j}{A vector of numerics for the means \eqn{\mu_j} of the standard Nex priors.
 Ignored if \code{w_nex}, \code{mean_nex}, and \code{sd_nex} are provided.}
 
 \item{tau_j}{A vector of positive numerics for the standard deviations \eqn{\tau_j}
-of the standard NEX priors. Ignored if \code{w_nex}, \code{mean_nex}, and \code{sd_nex} are provided.}
+of the standard Nex priors. Ignored if \code{w_nex}, \code{mean_nex}, and \code{sd_nex} are provided.}
 
 \item{w_j}{A numeric in \verb{(0, 1)} for the weight of the Ex component, or a numeric vector
 of mixture weights summing to 1 if multiple Ex components are specified.}
 
 \item{w_nex}{An optional numeric vector of mixture weights in \eqn{[0,1]} summing to 1
-for the NEX mixture prior.}
+for the Nex mixture prior.}
 
-\item{mean_nex}{An optional numeric matrix of NEX mixture means with one row per NEX
+\item{mean_nex}{An optional numeric matrix of Nex mixture means with one row per Nex
 mixture component and one column per cohort.}
 
-\item{sd_nex}{An optional positive numeric matrix of NEX mixture standard deviations with
-one row per NEX mixture component and one column per cohort.}
+\item{sd_nex}{An optional positive numeric matrix of Nex mixture standard deviations with
+one row per Nex mixture component and one column per cohort.}
 }
 \value{
 A list with prior parameters of class \code{prior_parameters_list}
@@ -48,16 +48,16 @@ A list with prior parameters of class \code{prior_parameters_list}
 This function sets prior parameters for the analysis method \code{"exnex"}
 for use in \code{\link[bhmbasket]{performAnalyses}}.
 
-It supports two specifications for the NEX part:
+It supports two specifications for the Nex part:
 \itemize{
-\item the standard ExNex specification with cohort-specific NEX priors via \code{mu_j} and \code{tau_j}
-\item an extended specification with a mixture prior on the NEX part via \code{w_nex}, \code{mean_nex}, and \code{sd_nex}
+\item the standard ExNex specification with cohort-specific Nex priors via \code{mu_j} and \code{tau_j}
+\item an extended specification with a mixture prior on the Nex part via \code{w_nex}, \code{mean_nex}, and \code{sd_nex}
 }
 }
 \details{
 This function sets the prior parameters for the method proposed by Neuenschwander et al. (2016).
 If \code{w_nex}, \code{mean_nex}, and \code{sd_nex} are all \code{NULL}, the standard ExNex formulation is used.
-Otherwise, the NEX part is specified as a finite mixture prior.
+Otherwise, the Nex part is specified as a finite mixture prior.
 }
 \examples{
 ## standard ExNex
@@ -70,7 +70,7 @@ prior_parameters_exnex <- setPriorParametersExNex(
   w_j       = 0.8
 )
 
-## ExNex with NEX mixture prior
+## ExNex with Nex mixture prior
 prior_parameters_exnex_mix <- setPriorParametersExNex(
   mu_mean   = 0,
   mu_sd     = 1,

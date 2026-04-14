@@ -42,7 +42,7 @@ For additional parameters, bias and MSE will not be calculated.
 Possible additional parameters for the Bayesian hierarchical models are
 \code{c('mu', 'tau')} for \code{'berry'}, \code{'exnex'}, \code{'exnex_mix'}, \code{'exnex_adj'},
 and \code{'exnex_adj_mix'}.
-The ExNex-based models can also access posterior weights
+The ExNex-based models can also access posterior weights.
 \code{paste0("w_", seq_len(n_cohorts))}.
 }
 \examples{

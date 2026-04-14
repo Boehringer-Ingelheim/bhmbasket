@@ -74,8 +74,8 @@ This function applies the following analysis models to (simulated) scenarios of 
 \item BHM that combines above approaches: \code{"exnex_adj"}
 \item Pooled beta-binomial approach: \code{"pooled"}
 \item Stratified beta-binomial approach: \code{"stratified"}
-\item BHM with mixture prior on the NEX component: \code{"exnex_mix"}
-\item Adjusted BHM with mixture prior on the NEX component: \code{"exnex_adj_mix"}
+\item BHM with mixture prior on the Nex component: \code{"exnex_mix"}
+\item Adjusted BHM with mixture prior on the Nex component: \code{"exnex_adj_mix"}
 \item Stratified beta-binomial approach with mixture beta prior: \code{"stratified_mix"}
 }
 The posterior distributions of the BHMs are approximated with Markov chain Monte Carlo (MCMC)
@@ -103,9 +103,9 @@ determined with \code{foreach::getDoParWorkers()}.
 The JAGS code for the BHM \code{"exnex"} was taken from Neuenschwander et al. (2016).
 The JAGS code for the BHM \code{"exnex_adj"} is based on the JAGS code for \code{"exnex"}.
 The JAGS code for the BHM \code{"exnex_mix"} extends the \code{"exnex"} model by using
-a mixture prior for the NEX component.
+a mixture prior for the Nex component.
 The JAGS code for the BHM \code{"exnex_adj_mix"} extends the \code{"exnex_adj"} model by using
-a mixture prior for the NEX component.
+a mixture prior for the Nex component.
 }
 \examples{
  trial_data <- createTrial(

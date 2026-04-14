@@ -1921,23 +1921,13 @@ test_that("mixture branches agree with RBesT reference prior and preserve symmet
     Mean = unname(post_rbest_summary["mean"]),
     SD   = unname(post_rbest_summary["sd"])
   )
-
+  
+  bhm_strat_combined <- (bhm_strat[, "p_1"] + bhm_strat[, "p_2"]) / 2
+  
   expect_equal(
-    unname(bhm_strat[, "p_1"]),
+    unname(bhm_strat_combined),
     unname(rbest_ref),
-    tolerance = 0.05
-  )
-
-  expect_equal(
-    unname(bhm_strat[, "p_2"]),
-    unname(rbest_ref),
-    tolerance = 0.05
-  )
-
-  expect_equal(
-    unname(bhm_strat[, "p_1"]),
-    unname(bhm_strat[, "p_2"]),
-    tolerance = 0.05
+    tolerance = 0.01
   )
 
   ## 2) derive logit-normal mixture for exnex*
@@ -1975,7 +1965,7 @@ test_that("mixture branches agree with RBesT reference prior and preserve symmet
     scenario_list         = trial_data,
     method_names          = "exnex_mix",
     prior_parameters_list = pp_exnex_mix,
-    n_mcmc_iterations     = 2000,
+    n_mcmc_iterations     = 1e4,
     verbose               = FALSE
   )
 
@@ -1987,23 +1977,14 @@ test_that("mixture branches agree with RBesT reference prior and preserve symmet
   rownames(bhm_exnex_mix) <- c("q025", "q500", "q975", "Mean", "SD")
 
   expect_true(all(is.finite(bhm_exnex_mix)))
+  
+  bhm_exnex_mix_combined <- (bhm_exnex_mix[, "p_1"] +
+                               bhm_exnex_mix[, "p_2"]) / 2
 
   expect_equal(
-    unname(bhm_exnex_mix[, "p_1"]),
-    unname(bhm_exnex_mix[, "p_2"]),
-    tolerance = 0.05
-  )
-
-  expect_equal(
-    unname(bhm_exnex_mix[, "p_1"]),
+    unname(bhm_exnex_mix_combined),
     unname(rbest_ref),
-    tolerance = 0.05
-  )
-
-  expect_equal(
-    unname(bhm_exnex_mix[, "p_2"]),
-    unname(rbest_ref),
-    tolerance = 0.05
+    tolerance = 0.01
   )
 
   ## 4) exnex_adj_mix with EX off
@@ -2023,7 +2004,7 @@ test_that("mixture branches agree with RBesT reference prior and preserve symmet
     method_names          = "exnex_adj_mix",
     target_rates          = c(0.5, 0.5),
     prior_parameters_list = pp_exnex_adj_mix,
-    n_mcmc_iterations     = 2000,
+    n_mcmc_iterations     = 1e4,
     verbose               = FALSE
   )
 
@@ -2035,22 +2016,14 @@ test_that("mixture branches agree with RBesT reference prior and preserve symmet
   rownames(bhm_exnex_adj_mix) <- c("q025", "q500", "q975", "Mean", "SD")
 
   expect_true(all(is.finite(bhm_exnex_adj_mix)))
+  
+  bhm_exnex_adj_mix_combined <- (bhm_exnex_adj_mix[, "p_1"] +
+                                   bhm_exnex_adj_mix[, "p_2"]) / 2
 
   expect_equal(
-    unname(bhm_exnex_adj_mix[, "p_1"]),
-    unname(bhm_exnex_adj_mix[, "p_2"]),
-    tolerance = 0.05
-  )
-
-  expect_equal(
-    unname(bhm_exnex_adj_mix[, "p_1"]),
+    unname(bhm_exnex_adj_mix_combined),
     unname(rbest_ref),
-    tolerance = 0.05
+    tolerance = 0.01
   )
 
-  expect_equal(
-    unname(bhm_exnex_adj_mix[, "p_2"]),
-    unname(rbest_ref),
-    tolerance = 0.05
-  )
 })

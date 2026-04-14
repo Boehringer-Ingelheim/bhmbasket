@@ -99,7 +99,7 @@ getAverageNSubjects <- function (
 #' Possible additional parameters for the Bayesian hierarchical models are
 #' `c('mu', 'tau')` for `'berry'`, `'exnex'`, `'exnex_mix'`, `'exnex_adj'`,
 #' and `'exnex_adj_mix'`.
-#' The ExNex-based models can also access posterior weights
+#' The ExNex-based models can also access posterior weights.
 #' `paste0("w_", seq_len(n_cohorts))`.
 #' @return A named list of matrices of estimates of response rates and credible intervals.
 #' Estimates of bias and MSE are included for response rate estimates of simulated trials.

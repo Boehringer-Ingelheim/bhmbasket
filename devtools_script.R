@@ -49,12 +49,14 @@ devtools::install_deps()
 devtools::run_examples()
 devtools::spell_check()
 devtools::check()
-devtools::check_win_devel()
+devtools::check_win_devel() # https://win-builder.r-project.org/upload.aspx
+devtools::check_mac_release()
 # devtools::check_rhub()
 devtools::document()
 ## Update your NEWS file
 ## Update DESCRIPTION (e.g. version number)
 devtools::spell_check()
+spelling::update_wordlist()
 ## Update cran-comments.md
 devtools::check()
 

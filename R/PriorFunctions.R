@@ -14,7 +14,7 @@
 #' and `"exnex_adj"`, Default: `0.5`
 #' @return A list with prior parameters of class `prior_parameters_list`
 #' @details
-#' Regarding the default prior parameters for `"berry"`, `"exnex"`, and `"exnex_adj"`:
+#' Regarding the default prior parameters for `"berry"`, `"exnex"`, `"exnex_mix"`, `"exnex_adj"` and `"exnex_adj_mix"`:
 #' \itemize{
 #'   \item `"berry"`: The mean of \eqn{\mu} is set to `0`.
 #'   Its variance is calculated as proposed in "Robust exchangeability designs for early
@@ -29,6 +29,7 @@
 #'   phase clinical trials with multiple strata" (Neuenschwander et al. (2016))
 #'   with regard to `n_worth`.
 #'   The scale parameter of \eqn{\tau} is set to `tau_scale`.
+#'   
 #'   For the Nex components:
 #'   The means of \eqn{\mu_j} are set to the respective target rates.
 #'   The variances of \eqn{\tau_j} are calculated as proposed in "Robust exchangeability designs for early
@@ -42,18 +43,19 @@
 #'   phase clinical trials with multiple strata" (Neuenschwander et al. (2016))
 #'   with regard to `n_worth`, see also \code{\link[bhmbasket]{getMuVar}}.
 #'   The scale parameter of \eqn{\tau} is set to `tau_scale`.
+#'   
 #'   For the Nex components:
 #'   The means of \eqn{\mu_j} are set to the `0`.
 #'   The variances of \eqn{\tau_j} are calculated as proposed in "Robust exchangeability designs for early
 #'   phase clinical trials with multiple strata" (Neuenschwander et al. (2016))
 #'   with regard to `n_worth`, see also \code{\link[bhmbasket]{getMuVar}}.
 #'   \item `"exnex_mix"`: Uses the same default Ex prior construction as `"exnex"`.
-#'   The NEX part is specified as a one-component mixture prior with
+#'   The Nex part default parameters are specified as a one-component mixture prior with
 #'   `w_nex = 1`, `mean_nex = matrix(logit(target_rates), nrow = 1)`,
 #'   and `sd_nex = matrix(sqrt(getMuVar(target_rates, 0, n_worth)), nrow = 1)`.
-#'   This keeps the default mixture representation compatible with the mix-model interface.
+#'   This keeps the default mixture representation compatible with the `getPriorParameter()`'s input.
 #'   \item `"exnex_adj_mix"`: Uses the same default Ex prior construction as `"exnex_adj"`.
-#'   The NEX part is specified as a one-component mixture prior with
+#'   The Nex part is specified as a one-component mixture prior with
 #'   `w_nex = 1`, `mean_nex = matrix(logit(target_rates), nrow = 1)`,
 #'   and `sd_nex = matrix(sqrt(getMuVar(target_rates, 0, n_worth)), nrow = 1)`.
 #'   The Ex component is centered as in `"exnex_adj"`.
@@ -64,9 +66,9 @@
 #'   The scale parameters \eqn{\alpha_j} are set to `target_rates * n_worth`.
 #'   The scale parameters \eqn{\beta_j} are set to `(1 - target_rates) * n_worth`.
 #'   \item `"stratified_mix"`:
-#'   A two-component beta mixture prior is created for each cohort.
-#'   The first component uses
-#'   `a_j = target_rates * n_worth` and `b_j = (1 - target_rates) * n_worth`.
+#'   A two-component beta mixture prior is created by default for each cohort.
+#'   The first component uses `a_j = target_rates * n_worth` and
+#'   `b_j = (1 - target_rates) * n_worth`.
 #'   The second component is a vague prior with `a_j = 1` and `b_j = 1`.
 #'   The default mixture weights are `c(0.8, 0.2)`.
 #' }
@@ -565,34 +567,34 @@ getPriorParametersExNex <- function (
 #' @description This function sets prior parameters for the analysis method `"exnex"`
 #' for use in \code{\link[bhmbasket]{performAnalyses}}.
 #'
-#' It supports two specifications for the NEX part:
+#' It supports two specifications for the Nex part:
 #' \itemize{
-#'   \item the standard ExNex specification with cohort-specific NEX priors via `mu_j` and `tau_j`
-#'   \item an extended specification with a mixture prior on the NEX part via `w_nex`, `mean_nex`, and `sd_nex`
+#'   \item the standard ExNex specification with cohort-specific Nex priors via `mu_j` and `tau_j`
+#'   \item an extended specification with a mixture prior on the Nex part via `w_nex`, `mean_nex`, and `sd_nex`
 #' }
 #'
 #' @param mu_mean A numeric for the mean of \eqn{\mu}
 #' @param mu_sd A positive numeric for the standard deviation of \eqn{\mu}
 #' @param tau_scale A positive numeric for the scale parameter of \eqn{\tau}
-#' @param mu_j A vector of numerics for the means \eqn{\mu_j} of the standard NEX priors.
+#' @param mu_j A vector of numerics for the means \eqn{\mu_j} of the standard Nex priors.
 #'   Ignored if `w_nex`, `mean_nex`, and `sd_nex` are provided.
 #' @param tau_j A vector of positive numerics for the standard deviations \eqn{\tau_j}
-#'   of the standard NEX priors. Ignored if `w_nex`, `mean_nex`, and `sd_nex` are provided.
+#'   of the standard Nex priors. Ignored if `w_nex`, `mean_nex`, and `sd_nex` are provided.
 #' @param w_j A numeric in `(0, 1)` for the weight of the Ex component, or a numeric vector
 #'   of mixture weights summing to 1 if multiple Ex components are specified.
 #' @param w_nex An optional numeric vector of mixture weights in \eqn{[0,1]} summing to 1
-#'   for the NEX mixture prior.
-#' @param mean_nex An optional numeric matrix of NEX mixture means with one row per NEX
+#'   for the Nex mixture prior.
+#' @param mean_nex An optional numeric matrix of Nex mixture means with one row per Nex
 #'   mixture component and one column per cohort.
-#' @param sd_nex An optional positive numeric matrix of NEX mixture standard deviations with
-#'   one row per NEX mixture component and one column per cohort.
+#' @param sd_nex An optional positive numeric matrix of Nex mixture standard deviations with
+#'   one row per Nex mixture component and one column per cohort.
 #'
 #' @return A list with prior parameters of class `prior_parameters_list`
 #'
 #' @details
 #' This function sets the prior parameters for the method proposed by Neuenschwander et al. (2016).
 #' If `w_nex`, `mean_nex`, and `sd_nex` are all `NULL`, the standard ExNex formulation is used.
-#' Otherwise, the NEX part is specified as a finite mixture prior.
+#' Otherwise, the Nex part is specified as a finite mixture prior.
 #'
 #' @author Stephan Wojciekowski
 #'
@@ -607,7 +609,7 @@ getPriorParametersExNex <- function (
 #'   w_j       = 0.8
 #' )
 #'
-#' ## ExNex with NEX mixture prior
+#' ## ExNex with Nex mixture prior
 #' prior_parameters_exnex_mix <- setPriorParametersExNex(
 #'   mu_mean   = 0,
 #'   mu_sd     = 1,
@@ -784,7 +786,7 @@ getPriorParametersExNexAdj <- function (
     w_j, lower = 0, upper = 1, len = 1, .var.name = error_w_j
   )
 
-  ## mixed NEX validation only if mixture inputs are supplied
+  ## mixed Nex validation only if mixture inputs are supplied
   if (!(is.null(w_nex) && is.null(mean_nex) && is.null(sd_nex))) {
     checkmate::assertNumeric(
       w_nex, any.missing = FALSE, lower = 0, upper = 1, .var.name = error_w_nex
@@ -842,27 +844,27 @@ getPriorParametersExNexAdj <- function (
 #' @description This function sets prior parameters for the analysis method `"exnex_adj"`
 #' for use in \code{\link[bhmbasket]{performAnalyses}}.
 #'
-#' It supports two specifications for the NEX part:
+#' It supports two specifications for the Nex part:
 #' \itemize{
-#'   \item the standard ExNex Adjusted specification with cohort-specific NEX priors via `mu_j` and `tau_j`
-#'   \item an extended specification with a mixture prior on the NEX part via `w_nex`, `mean_nex`, and `sd_nex`
+#'   \item the standard ExNex Adjusted specification with cohort-specific Nex priors via `mu_j` and `tau_j`
+#'   \item an extended specification with a mixture prior on the Nex part via `w_nex`, `mean_nex`, and `sd_nex`
 #' }
 #'
 #' @param mu_mean [numeric] Mean of \eqn{\mu}
 #' @param mu_sd [numeric] Positive standard deviation of \eqn{\mu}
 #' @param tau_scale [numeric] Positive scale parameter of \eqn{\tau}
-#' @param mu_j [numeric] Vector of means \eqn{\mu_j} for the standard NEX priors.
+#' @param mu_j [numeric] Vector of means \eqn{\mu_j} for the standard Nex priors.
 #'   Ignored if `w_nex`, `mean_nex`, and `sd_nex` are provided.
 #' @param tau_j [numeric] Vector of positive standard deviations \eqn{\tau_j}
-#'   for the standard NEX priors. Ignored if `w_nex`, `mean_nex`, and `sd_nex` are provided.
+#'   for the standard Nex priors. Ignored if `w_nex`, `mean_nex`, and `sd_nex` are provided.
 #' @param w_j [numeric] Weight of the Ex component in `(0, 1)`, or a numeric vector
 #'   of mixture weights summing to 1 if multiple Ex components are specified.
 #' @param w_nex [numeric] Optional vector of mixture weights in \eqn{[0,1]} summing to 1
-#'   for the NEX mixture prior.
-#' @param mean_nex [numeric] Optional matrix of NEX mixture means with one row per NEX
+#'   for the Nex mixture prior.
+#' @param mean_nex [numeric] Optional matrix of Nex mixture means with one row per Nex
 #'   mixture component and one column per cohort.
-#' @param sd_nex [numeric] Optional positive matrix of NEX mixture standard deviations with
-#'   one row per NEX mixture component and one column per cohort.
+#' @param sd_nex [numeric] Optional positive matrix of Nex mixture standard deviations with
+#'   one row per Nex mixture component and one column per cohort.
 #'
 #' @return A list with prior parameters of class `prior_parameters_list`
 #'
@@ -870,7 +872,7 @@ getPriorParametersExNexAdj <- function (
 #' This function sets prior parameters for the ExNex Adjusted method, which combines
 #' the approach proposed by Neuenschwander et al. (2016) and the approach proposed by
 #' Berry et al. (2013). If `w_nex`, `mean_nex`, and `sd_nex` are all `NULL`, the standard
-#' ExNex Adjusted formulation is used. Otherwise, the NEX part is specified as a finite
+#' ExNex Adjusted formulation is used. Otherwise, the Nex part is specified as a finite
 #' mixture prior.
 #'
 #' @author Stephan Wojciekowski
@@ -886,7 +888,7 @@ getPriorParametersExNexAdj <- function (
 #'   w_j       = 0.8
 #' )
 #'
-#' ## ExNex Adjusted with NEX mixture prior
+#' ## ExNex Adjusted with Nex mixture prior
 #' prior_parameters_exnex_adj_mix <- setPriorParametersExNexAdj(
 #'   mu_mean   = 0,
 #'   mu_sd     = 1,
@@ -1004,7 +1006,7 @@ setPriorParametersExNexAdj <- function (
 
   } else {
 
-    ## mixed NEX version
+    ## mixed Nex version
     checkmate::assertNumeric(
       w_nex, any.missing = FALSE, lower = 0, upper = 1, .var.name = error_w_nex
     )
@@ -1326,13 +1328,14 @@ getPriorParametersStratifiedMix <- function (
 #' for use in \code{\link[bhmbasket]{performAnalyses}}.
 #' @param w A numeric vector of mixture weights in \eqn{[0,1]} summing to 1.
 #' @param a_j A positive numeric matrix of beta shape parameters \eqn{\alpha_j},
-#' with one row per mixture component and one column per cohort.
+#' with rows per mixture component and columns per cohort.
 #' @param b_j A positive numeric matrix of beta shape parameters \eqn{\beta_j},
-#' with one row per mixture component and one column per cohort.
+#' with rows per mixture component and columns per cohort.
 #' @return A list with prior parameters of class `prior_parameters_list`
 #' @details
 #' The method `"stratified_mix"` is a beta-binomial model that assesses each cohort
 #' individually with a finite mixture beta prior.
+#' See also the R package `RBesT`.
 #' @author Stephan Wojciekowski
 #' @examples
 #' prior_parameters_stratified_mix <- setPriorParametersStratifiedMix(
