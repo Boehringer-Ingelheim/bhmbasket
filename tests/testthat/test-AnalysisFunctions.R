@@ -1866,9 +1866,7 @@ test_that("mixture branches agree with RBesT reference prior and preserve symmet
 
   set.seed(123)
 
-  ## -----------------------------
   ## symmetric 2-cohort setup
-  ## -----------------------------
   n <- c(20, 20)
   r <- c(6, 6)
 
@@ -1877,10 +1875,7 @@ test_that("mixture branches agree with RBesT reference prior and preserve symmet
     n_responders = r
   )
 
-  ## -----------------------------
   ## fixed RBesT beta-mixture prior
-  ## same prior reused for all 3 branches
-  ## -----------------------------
   w <- c(0.8, 0.2)
 
   a_one <- c(4, 1)
@@ -1889,9 +1884,7 @@ test_that("mixture branches agree with RBesT reference prior and preserve symmet
   a_j <- cbind(a_one, a_one)
   b_j <- cbind(b_one, b_one)
 
-  ## =============================
   ## 1) stratified_mix vs RBesT
-  ## =============================
   pp_strat_mix <- setPriorParametersStratifiedMix(
     w   = w,
     a_j = a_j,
@@ -1919,14 +1912,14 @@ test_that("mixture branches agree with RBesT reference prior and preserve symmet
   )
 
   post_rbest <- RBesT::postmix(prior_rbest, n = n[1], r = r[1])
-  post_rbest_draws <- RBesT::rmix(post_rbest, 50000)
+  post_rbest_summary <- summary(post_rbest)
 
   rbest_ref <- c(
-    q025 = unname(RBesT::qmix(post_rbest, 0.025)),
-    q500 = unname(RBesT::qmix(post_rbest, 0.5)),
-    q975 = unname(RBesT::qmix(post_rbest, 0.975)),
-    Mean = mean(post_rbest_draws),
-    SD   = stats::sd(post_rbest_draws)
+    q025 = unname(post_rbest_summary[" 2.5%"]),
+    q500 = unname(post_rbest_summary["50.0%"]),
+    q975 = unname(post_rbest_summary["97.5%"]),
+    Mean = unname(post_rbest_summary["mean"]),
+    SD   = unname(post_rbest_summary["sd"])
   )
 
   expect_equal(
@@ -1947,9 +1940,7 @@ test_that("mixture branches agree with RBesT reference prior and preserve symmet
     tolerance = 0.05
   )
 
-  ## ==========================================
   ## 2) derive logit-normal mixture for exnex*
-  ## ==========================================
   p_draws <- RBesT::rmix(prior_rbest, 20000)
 
   eps <- 1e-8
@@ -1962,17 +1953,13 @@ test_that("mixture branches agree with RBesT reference prior and preserve symmet
   mean_one      <- as.numeric(mix_fit["m", ])
   sd_one        <- as.numeric(mix_fit["s", ])
 
-  w_nex_derived <- w_nex_derived / sum(w_nex_derived)
-
   expect_equal(sum(w_nex_derived), 1, tolerance = 1e-8)
   expect_true(all(sd_one > 0))
 
   mean_nex <- cbind(mean_one, mean_one)
   sd_nex   <- cbind(sd_one, sd_one)
 
-  ## =============================
   ## 3) exnex_mix with EX off
-  ## =============================
   pp_exnex_mix <- setPriorParametersExNex(
     mu_mean   = 0,
     mu_sd     = 1,
@@ -2019,9 +2006,7 @@ test_that("mixture branches agree with RBesT reference prior and preserve symmet
     tolerance = 0.05
   )
 
-  ## =============================
   ## 4) exnex_adj_mix with EX off
-  ## =============================
   pp_exnex_adj_mix <- setPriorParametersExNexAdj(
     mu_mean   = 0,
     mu_sd     = 1,
