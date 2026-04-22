@@ -1674,5 +1674,3 @@ setPriorParametersNormal <- function (
   
   return(prior_parameters_list)
 }
-
-## test ####
