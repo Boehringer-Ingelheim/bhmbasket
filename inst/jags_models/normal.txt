@@ -1,21 +1,50 @@
-## Bayesian hierarchical Model: Normal
+## Bayesian Hierarchical Model: ExNex ADJ – Normal Endpoint
+## Adapted from Neuenschwander et al. (2016), Pharmaceutical Statistics
+## Binary likelihood replaced with Normal; log-odds replaced with mean scale
 
 model {
 
-  ## priors
-  mu_pop     ~ dnorm(mu_pop_mean, prec_mu_pop)
-
-  prec_tau   ~ dgamma(tau_shape,   tau_rate)   
   prec_sigma ~ dgamma(sigma_shape, sigma_rate)
-  
-  for (j in 1:J) {
 
-    ## Prior
-    theta[j] ~ dnorm(mu_pop, prec_tau)
+  # prior distributions for EX-parameters
+  for (jj in 1:Nexch) {
+    mu[jj] ~ dnorm(mu_mean[jj], mu_prec[jj])
+    prior_tau_prec[jj] <- pow(tau_HN_scale[jj], -2)
+    tau[jj] ~ dnorm(0, prior_tau_prec[jj])I(0.001, )
+    prec_tau[jj] <- pow(tau[jj], -2)
+  }
 
-    ## Likelihood
-    prec_y[j] <- n[j] * prec_sigma  # precision of mean = n_j / sigma^2
-    y[j] ~ dnorm(theta[j], prec_y[j])
+  # Mean parameters under EX  (one per exchangeability class)
+  for (jj in 1:Nexch) {
+    for (j in 1:Nstrata) {
+      re[jj, j]     ~ dnorm(0, prec_tau[jj])
+      Means[jj, j]  <- mu[jj] + re[jj, j]       # stratum mean under EX class jj
+    }
+  }
+
+  # Mean parameters under NEX  (independent per stratum)
+  for (j in 1:Nstrata) {
+    Means[Nmix, j] ~ dnorm(nex_mean[j], nex_prec[j])
+  }
+
+  # Latent mixture indicators
+  for (j in 1:Nstrata) {
+    exch_index[j] ~ dcat(pMix[1:Nmix])
+    for (jj in 1:Nmix) {
+      exch[j, jj] <- equals(exch_index[j], jj)
+    }
+  }
+
+  # Select theta for each stratum via mixture index
+  for (j in 1:Nstrata) {
+    theta[j] <- Means[exch_index[j], j]
+  }
+
+  # Likelihood – Normal on observed stratum mean y[j]
+  for (j in 1:Nstrata) {
+    mu_y[j]    <- theta[j] + target_means[j]  # stratum-specific offset
+    prec_y[j]  <- n[j] * prec_sigma          # precision of mean = n_j * (1/sigma^2)
+    y[j]       ~ dnorm(mu_y[j], prec_y[j])
   }
 
 }

@@ -1,12 +1,14 @@
-
 getAllCohortNames <- function (
     
-  analyses_list,
-  endpoint = c("binary", "normal")
+  analyses_list
   
 ) {
   
-  endpoint <- match.arg(endpoint)
+  endpoint <- if (!is.null(analyses_list[[1]]$scenario_data$endpoint)) {
+    analyses_list[[1]]$scenario_data$endpoint
+  } else {
+    "binary"
+  }
   
   cohort_prefix <- if (endpoint == "binary") "p_" else "theta_"
   
@@ -46,6 +48,39 @@ getAverageNSubjects <- function (
   
 }
 
+#' @title getEstimates
+#' @md
+#' @description This function calculates the point estimates and credible intervals per cohort,
+#' as well as estimates of the biases and the mean squared errors of the point estimates per cohort.
+#' @param analyses_list An object of class `analysis_list`,
+#' as created with \code{\link[bhmbasket]{performAnalyses}}
+#' @param add_parameters A vector of strings naming additional parameters
+#' from the Bayesian hierarchical models, e.g. `c('mu', 'tau')`.
+#' If `NULL`, no additional parameters will be evaluated,
+#' Default: `NULL`
+#' @param point_estimator A string indicating the type of estimator used for calculation of
+#' bias and MSE. Must be one of `'median'` or `'mean'`
+#' @param alpha_level A numeric in (0, 1) for the level of the credible interval.
+#' Only values corresponding to quantiles saved in \code{\link[bhmbasket]{performAnalyses}}
+#' will work, Default: `0.05`
+#' @details
+#' For binary endpoints, bias and MSE are calculated for posterior response-rate estimates.
+#' For continuous endpoints, bias and MSE are calculated for posterior cohort-mean estimates.
+#' For additional parameters, bias and MSE are not calculated.
+#'
+#' Possible additional parameters for the Bayesian hierarchical models are
+#' `c('mu', 'tau')` for `'berry'`, `'exnex'`, `'exnex_mix'`, `'exnex_adj'`,
+#' and `'exnex_adj_mix'`.
+#' The ExNex-based models can also access posterior weights
+#' `paste0("w_", seq_len(n_cohorts))`.
+#' @return A named list of matrices of estimates of cohort-level parameters and credible intervals.
+#' Estimates of bias and MSE are included for simulated trial outcomes.
+#' @rdname getEstimates
+#' @seealso
+#'  \code{\link[bhmbasket]{createTrial}}
+#'  \code{\link[bhmbasket]{simulateScenarios}}
+#'  \code{\link[bhmbasket]{performAnalyses}}
+#' @author Stephan Wojciekowski
 #' @export
 getEstimates <- function (
     
@@ -104,8 +139,6 @@ getEstimates <- function (
     ))
   }
   
-  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-  
   endpoint <- if (!is.null(analyses_list[[1]]$scenario_data$endpoint)) {
     analyses_list[[1]]$scenario_data$endpoint
   } else {
@@ -114,15 +147,13 @@ getEstimates <- function (
   
   cohort_prefix <- if (endpoint == "binary") "p_" else "theta_"
   
-  cohort_names <- getAllCohortNames(analyses_list, endpoint = endpoint)
+  cohort_names <- getAllCohortNames(analyses_list)
   diff_indices <- grepl("diff", cohort_names)
   
-  ## Filter for cohort names in add_parameters
   if (!is.null(add_parameters)) {
     add_parameters <- add_parameters[!grepl(paste0("^", cohort_prefix), add_parameters)]
   }
   
-  ## Lists to hold the results
   results_list <- vector(mode = "list", length = length(analyses_list))
   names(results_list) <- names(analyses_list)
   
@@ -132,7 +163,6 @@ getEstimates <- function (
       
       true_vals <- analyses_list[[s]]$scenario_data$response_rates
       
-      ## calculate the historic response rates
       hist_index <- true_vals <= 0 | true_vals >= 1
       if (any(hist_index)) {
         
@@ -141,16 +171,13 @@ getEstimates <- function (
         })
         
         true_vals[hist_index] <- hist_vals
-        
       }
       
     } else {
       
       true_vals <- analyses_list[[s]]$scenario_data$means
-      
     }
     
-    ## calculate the differences in true values if necessary
     if (any(diff_indices)) {
       
       diff_cohorts <- sapply(
@@ -165,19 +192,15 @@ getEstimates <- function (
     } else {
       
       true_diff_vals <- NULL
-      
     }
     
-    ## must be after historic replacement (binary)
     true_vals <- cbind(true_vals, true_diff_vals)
     
-    ## prepare loop
     method_names <- analyses_list[[s]]$analysis_parameters$method_names
     
     results_per_method_list <- vector(mode = "list", length = length(method_names))
     names(results_per_method_list) <- method_names
     
-    ## prepare check that additional parameters occur in at least one of the methods
     if (!is.null(add_parameters)) {
       occurences <- vector(length = length(method_names))
     }
@@ -198,10 +221,8 @@ getEstimates <- function (
       } else {
         
         parameter_names <- cohort_names
-        
       }
       
-      ## Setting up gamma levels
       n_parameters <- length(parameter_names)
       
       gamma_levels <- c(
@@ -223,7 +244,6 @@ getEstimates <- function (
         )
       )
       
-      ## Mean, SD & Quantiles
       post_quantiles <- matrix(colMeans(matrix_estimates), ncol = 5)
       
       rownames(post_quantiles) <- parameter_names
@@ -232,23 +252,20 @@ getEstimates <- function (
         paste0(c(alpha_level / 2, 0.5, 1 - alpha_level / 2) * 100, "%")
       )
       
-      ## Bias and MSE
       if (point_estimator == "median") {
         indices_point_est <- n_parameters * 3 + seq_len(n_parameters)
       } else {
         indices_point_est <- seq_len(n_parameters)
       }
       
-      matrix_estimates <- matrix_estimates[, indices_point_est]
+      matrix_estimates <- matrix_estimates[, indices_point_est, drop = FALSE]
       
-      ## if only a single trial (i.e. a trial outcome) has been evaluated
-      if (is.null(dim(matrix_estimates))) {
+      if (is.null(dim(matrix_estimates)) || nrow(as.matrix(matrix_estimates)) == 1L) {
         
         estimates <- post_quantiles
         
       } else {
         
-        ## find all estimates for cohort-level parameters
         val_index        <- grepl(paste0("^", cohort_prefix), colnames(matrix_estimates))
         matrix_estimates <- matrix_estimates[, val_index, drop = FALSE]
         
@@ -261,20 +278,15 @@ getEstimates <- function (
         colnames(bias_estimates) <- "Bias"
         colnames(mse_estimates)  <- "MSE"
         
-        ## Combine results
-        ## introduce NAs for all values that are not cohort-level parameters
-        na_matrix      <- matrix(NA, nrow = sum(!val_index), ncol = 1)
+        na_matrix <- matrix(NA, nrow = sum(!val_index), ncol = 1)
         
         bias_estimates <- rbind(bias_estimates, na_matrix)
         mse_estimates  <- rbind(mse_estimates,  na_matrix)
         
         estimates <- cbind(post_quantiles, bias_estimates, mse_estimates)
-        
       }
       
-      ## Save results
       results_per_method_list[[method_names[n]]] <- estimates
-      
     }
     
     if (!is.null(add_parameters) && all(!occurences)) {
@@ -285,11 +297,9 @@ getEstimates <- function (
     }
     
     results_list[[s]] <- results_per_method_list
-    
   }
   
   return(listPerMethod(results_list))
-  
 }
 
 getGammaIndices <- function (
@@ -575,11 +585,19 @@ getGoDecisionsByCohort <- function (
   
 ) {
   
-  go_decisions_list <- lapply(gamma_quantiles, function (x) {
-    as.logical(eval(decision_rule))
-  })
+  go_decisions_list <- lapply(
+    gamma_quantiles,
+    function (x) {
+      as.logical(eval(decision_rule))
+    }
+  )
   
-  go_decisions <- matrix(unlist(go_decisions_list), nrow = length(go_decisions_list), byrow = TRUE)
+  go_decisions <- matrix(
+    unlist(go_decisions_list),
+    nrow = length(go_decisions_list),
+    byrow = TRUE
+  )
+  
   colnames(go_decisions) <- paste0("decision_", seq_len(ncol(go_decisions)))
   
   return(go_decisions)
@@ -797,11 +815,14 @@ print.decision_list <- function (x, digits = 2, ...) {
         pattern     = paste0("x\\[", n, "\\]"),
         replacement = decision_rules$cohort_names[n]
       )
-      
     }
     
-    ## endpoint-aware display prefix
-    endpoint <- if (!is.null(x[[1]]$scenario_data$endpoint)) x[[1]]$scenario_data$endpoint else "binary"
+    endpoint <- if (!is.null(x[[1]]$scenario_data$endpoint)) {
+      x[[1]]$scenario_data$endpoint
+    } else {
+      "binary"
+    }
+    
     cohort_prefix <- if (endpoint == "binary") "p_" else "theta_"
     
     out_rules <- lapply(
@@ -834,13 +855,10 @@ print.decision_list <- function (x, digits = 2, ...) {
           out_rules_n[indexAND],
           function (y) paste0(y[1], " && ", y[2])
         )
-        
       }
       
       out_rules[[n]] <- unlist(unclass(out_rules_n))
-      
     }
-    
   }
   
   cat(
@@ -868,11 +886,8 @@ print.decision_list <- function (x, digits = 2, ...) {
     
     cat("  -", scenario_names[n], "\n")
     print(round(mat_out, digits = digits))
-    
     cat("\n")
-    
   }
-  
 }
 
 is.decision_list <- function (x) {

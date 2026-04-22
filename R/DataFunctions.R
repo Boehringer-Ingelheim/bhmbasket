@@ -1,3 +1,57 @@
+#' @title continueRecruitment
+#' @md
+#' @description This function continues the recruitment of subjects for a set of scenarios
+#' based on the Go / NoGo decisions in the simulated trial outcomes of said scenarios.
+#' @param n_subjects_add_list A list that contains for each scenario an integer vector for
+#' the number of subjects per cohort to be additionally recruited.
+#' @param decisions_list A list with decisions per scenario created with
+#' \code{\link[bhmbasket]{getGoDecisions}}
+#' @param method_name A string for the method name of the analysis the decisions are based on.
+#' Can be `NULL` if only one method has been used for analysis, Default: `NULL`
+#' @return An object of class `scenario_list` with the scenario data for each specified scenario.
+#' @details
+#' This function is intended to be used for analyses with the following work flow:\cr
+#' `simulateScenarios()` -> `performAnalyses()` -> `getGoDecisions()`-> \cr
+#' `continueRecruitment()` -> `performAnalyses()` -> `getGoDecisions()`-> \cr
+#' `continueRecruitment()` -> ...
+#'
+#' For binary endpoints, recruitment is continued by simulating additional responders.
+#' For continuous endpoints, recruitment is continued by simulating additional cohort-level
+#' sample means and updating the stored cohort means by weighted averaging with respect to
+#' the numbers of subjects.
+#'
+#' Note that `n_subjects_add_list` takes the additional number of subjects to be recruited,
+#' not the overall number of subjects.
+#' This way the work flow can be repeated as often as
+#' required, which can be useful e.g. for interim analyses.
+#' @examples
+#' interim_scenarios <- simulateScenarios(
+#'   n_subjects_list     = list(c(10, 20, 30)),
+#'   response_rates_list = list(rep(0.9, 3)),
+#'   n_trials            = 10)
+#'
+#' interim_analyses <- performAnalyses(
+#'   scenario_list       = interim_scenarios,
+#'   target_rates        = rep(0.5, 3),
+#'   n_mcmc_iterations   = 100)
+#'
+#' interim_gos <- getGoDecisions(
+#'   analyses_list       = interim_analyses,
+#'   cohort_names        = c("p_1", "p_2", "p_3"),
+#'   evidence_levels     = c(0.5, 0.8, 0.5),
+#'   boundary_rules      = quote(c(x[1] > 0.8, x[2] > 0.6, x[3] > 0.7)))
+#'
+#' scenarios_list <- continueRecruitment(
+#'   n_subjects_add_list = list(c(30, 20, 10)),
+#'   decisions_list      = interim_gos,
+#'   method_name         = "exnex_adj")
+#' @seealso
+#'  \code{\link[bhmbasket]{simulateScenarios}}
+#'  \code{\link[bhmbasket]{performAnalyses}}
+#'  \code{\link[bhmbasket]{getGoDecisions}}
+#' @rdname continueRecruitment
+#' @author Stephan Wojciekowski
+#' @export
 continueRecruitment <- function (
     
   n_subjects_add_list,
@@ -7,18 +61,17 @@ continueRecruitment <- function (
   
 ) {
   
-  error_n_subjects_add_list <- 
+  error_n_subjects_add_list <-
     "Providing a list of vectors of positive integers for the argument 'n_subjects_add_list'"
-  error_decisions_list <- 
+  error_decisions_list <-
     "Providing an object of class decision_list for the argument 'decisions_list'"
   error_method_name <- simpleError(paste(
     "Please provide a string naming an analysis method for the argument 'method_name'",
-    "Must be one of 'berry', 'exnex', 'exnex_adj', 'pooled', 'stratified'"))
+    "Must be one of 'berry', 'exnex', 'exnex_mix', 'exnex_adj', 'exnex_adj_mix', 'pooled', 'stratified', 'stratified_mix', 'normal'"
+  ))
   
   checkmate::assert_true(!missing(n_subjects_add_list), .var.name = error_n_subjects_add_list)
-  
-  checkmate::assert_true(!missing(decisions_list),      .var.name = error_decisions_list)
-  
+  checkmate::assert_true(!missing(decisions_list), .var.name = error_decisions_list)
   checkmate::assert_class(decisions_list, "decision_list", .var.name = error_decisions_list)
   
   if (is.null(method_name)) {
@@ -26,13 +79,9 @@ continueRecruitment <- function (
     n_methods <- length(decisions_list$scenario_1$decisions_list)
     
     if (n_methods > 1) {
-      
       stop(error_method_name)
-      
     } else {
-      
       method_name <- names(decisions_list$scenario_1$decisions_list)
-      
     }
     
   } else {
@@ -41,45 +90,46 @@ continueRecruitment <- function (
       
       match.arg(
         method_name,
-        choices    = c('berry', 'exnex', 'exnex_adj', 'pooled', 'stratified', 'normal'),
-        several.ok = FALSE)
+        choices = c(
+          "berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix",
+          "pooled", "stratified", "stratified_mix", "normal"
+        ),
+        several.ok = FALSE
+      )
       
-    }, error = function (e) e)
+    }, error = function(e) e)
     
     if (inherits(method_name, "error")) stop(error_method_name)
-    
   }
   
   if (!is.list(n_subjects_add_list)) {
-    
     n_subjects_add_list <- rep(list(n_subjects_add_list), length(decisions_list))
-    
   }
   
   checkmate::assert_list(
-    
-    n_subjects_add_list, types = c("integer", "numeric"),
-    any.missing = FALSE, 
+    n_subjects_add_list,
+    types = c("integer", "numeric"),
+    any.missing = FALSE,
     .var.name = error_n_subjects_add_list
   )
   
   checkmate::assert_list(
-    
-    n_subjects_add_list, len = length(decisions_list), any.missing = FALSE, 
+    n_subjects_add_list,
+    len = length(decisions_list),
+    any.missing = FALSE,
     .var.name = "The lengths of 'n_subjects_add_list' and 'decisions_list' must be equal"
   )
   
   checkmate::assert_true(
-    
-    all(vapply(n_subjects_add_list,
-               checkmate::test_integerish,
-               logical(1),
-               lower = 0, any.missing = FALSE)
-    ),
+    all(vapply(
+      n_subjects_add_list,
+      checkmate::test_integerish,
+      logical(1),
+      lower = 0,
+      any.missing = FALSE
+    )),
     .var.name = error_n_subjects_add_list
   )
-  
-  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
   
   scenario_numbers <- as.numeric(sub("scenario_", "", names(decisions_list)))
   
@@ -88,15 +138,14 @@ continueRecruitment <- function (
   
   for (s in seq_along(scenario_list)) {
     
-    if (!(method_name %in%
-          decisions_list[[s]]$analysis_data$analysis_parameters$method_names)) {
+    if (!(method_name %in% decisions_list[[s]]$analysis_data$analysis_parameters$method_names)) {
       stop(simpleError("Selected method_name not analyzed"))
     }
     
     scenario_data <- decisions_list[[s]]$scenario_data
     endpoint <- if (!is.null(scenario_data$endpoint)) scenario_data$endpoint else "binary"
-    
     n_subjects_add <- n_subjects_add_list[[s]]
+    n_trials <- scenario_data$n_trials
     
     if (endpoint == "binary") {
       
@@ -108,18 +157,17 @@ continueRecruitment <- function (
       } else {
         stop(simpleError(paste0(
           "Only historical cohorts in scenario ",
-          scenario_data$scenario_number)))
+          scenario_data$scenario_number
+        )))
       }
       
-      response_rates_new <- response_rates[, index_new]
+      response_rates_new <- response_rates[, index_new, drop = FALSE]
       cohort_names_new   <- cohort_names[index_new]
       
       checkmate::assert_true(
-        length(n_subjects_add) == length(response_rates_new),
+        length(n_subjects_add) == ncol(response_rates_new),
         .var.name = "The length of n_subjects_add must be equal to the length of the response rates that are in (0, 1)"
       )
-      
-      n_trials <- scenario_data$n_trials
       
       add_scenario <- getScenario(
         n_subjects     = n_subjects_add,
@@ -129,7 +177,7 @@ continueRecruitment <- function (
         endpoint       = endpoint
       )
       
-    } else { ## normal
+    } else {
       
       means <- scenario_data$means
       sds   <- scenario_data$sds
@@ -140,19 +188,18 @@ continueRecruitment <- function (
       } else {
         stop(simpleError(paste0(
           "Only historical cohorts in scenario ",
-          scenario_data$scenario_number)))
+          scenario_data$scenario_number
+        )))
       }
       
-      means_new       <- means[, index_new]
-      sds_new         <- sds[, index_new]
+      means_new        <- means[, index_new, drop = FALSE]
+      sds_new          <- sds[, index_new, drop = FALSE]
       cohort_names_new <- cohort_names[index_new]
       
       checkmate::assert_true(
-        length(n_subjects_add) == length(means_new),
+        length(n_subjects_add) == ncol(means_new),
         .var.name = "The length of n_subjects_add must be equal to the length of the recruiting cohorts"
       )
-      
-      n_trials <- scenario_data$n_trials
       
       add_scenario <- getScenario(
         n_subjects   = n_subjects_add,
@@ -176,7 +223,8 @@ continueRecruitment <- function (
     
     if (!all(index_new %in% as.numeric(sub("decision_", "", colnames(go_decisions))))) {
       stop(simpleError(
-        "There must be a decision for each recruiting cohort in the 'decisions_list'"))
+        "There must be a decision for each recruiting cohort in the 'decisions_list'"
+      ))
     }
     
     go_decisions <- go_decisions[overall_gos, index_new, drop = FALSE]
@@ -184,13 +232,13 @@ continueRecruitment <- function (
     if (endpoint == "binary") {
       
       n_responders_add <- add_scenario$n_responders[overall_gos, , drop = FALSE] * go_decisions
-      n_subjects_add   <- add_scenario$n_subjects[overall_gos, , drop = FALSE] * go_decisions
+      n_subjects_add_m <- add_scenario$n_subjects[overall_gos, , drop = FALSE] * go_decisions
       
       n_responders <- scenario_data$n_responders
       n_subjects   <- scenario_data$n_subjects
       
       n_responders[overall_gos, index_new] <- n_responders[overall_gos, index_new] + n_responders_add
-      n_subjects[overall_gos, index_new]   <- n_subjects[overall_gos, index_new] + n_subjects_add
+      n_subjects[overall_gos, index_new]   <- n_subjects[overall_gos, index_new] + n_subjects_add_m
       
       scenario_list[[s]] <- list(
         n_subjects        = n_subjects,
@@ -204,20 +252,19 @@ continueRecruitment <- function (
         endpoint          = endpoint
       )
       
-    } else { ## normal
+    } else {
       
-      y_add          <- add_scenario$y[overall_gos, , drop = FALSE] * go_decisions
-      n_subjects_add <- add_scenario$n_subjects[overall_gos, , drop = FALSE] * go_decisions
+      y_add            <- add_scenario$y[overall_gos, , drop = FALSE] * go_decisions
+      n_subjects_add_m <- add_scenario$n_subjects[overall_gos, , drop = FALSE] * go_decisions
       
-      y_old         <- scenario_data$y
+      y_old          <- scenario_data$y
       n_subjects_old <- scenario_data$n_subjects
       
-      ## pooled mean update by counts
-      y_old_n <- y_old[overall_gos, index_new, drop = FALSE] * n_subjects_old[overall_gos, index_new, drop = FALSE]
-      y_add_n <- y_add * n_subjects_add
-      n_new   <- n_subjects_old[overall_gos, index_new, drop = FALSE] + n_subjects_add
+      y_old_n <- y_old[overall_gos, index_new, drop = FALSE] *
+        n_subjects_old[overall_gos, index_new, drop = FALSE]
+      y_add_n <- y_add * n_subjects_add_m
+      n_new   <- n_subjects_old[overall_gos, index_new, drop = FALSE] + n_subjects_add_m
       
-      ## avoid division by zero for stopped cohorts
       y_updated <- y_old[overall_gos, index_new, drop = FALSE]
       idx_nonzero <- n_new > 0
       y_updated[idx_nonzero] <- (y_old_n[idx_nonzero] + y_add_n[idx_nonzero]) / n_new[idx_nonzero]
@@ -248,6 +295,35 @@ continueRecruitment <- function (
   return(scenario_list)
 }
 
+#' @title createTrial
+#' @description This function creates an object of class `scenario_list`
+#' for a single trial outcome, which can subsequently be analyzed with other functions of
+#' `bhmbasket`, e.g. \code{\link[bhmbasket]{performAnalyses}}
+#' @param n_subjects A vector of integers for the number of subjects in the trial outcome
+#' @param n_responders A vector of integers for the number of responders in the trial outcome.
+#' Used for binary endpoints.
+#' @param means A numeric vector of cohort means. Used for continuous endpoints.
+#' @param sds A numeric vector of cohort standard deviations. Used for continuous endpoints.
+#' Historical continuous cohorts can be represented by `sds = 0`.
+#' @param endpoint A string indicating the endpoint type. Must be one of `"binary"` or `"normal"`,
+#' Default: `"binary"`
+#' @return An object of class `scenario_list` with the scenario data for a single trial outcome.
+#' @details
+#' For binary endpoints, this function is a wrapper for \code{\link[bhmbasket]{simulateScenarios}}
+#' using `response_rates_list`.
+#' For continuous endpoints, it is a wrapper using `means_list` and `sds_list`.
+#' @seealso
+#'  \code{\link[bhmbasket]{simulateScenarios}}
+#'  \code{\link[bhmbasket]{performAnalyses}}
+#' @author Stephan Wojciekowski
+#' @rdname createTrial
+#' @examples
+#'  trial_outcome <- createTrial(
+#'    n_subjects   = c(10, 20, 30, 40),
+#'    n_responders = c(1, 2, 3, 4)
+#'  )
+#' @export
+#' @md
 createTrial <- function (
     
   n_subjects,
@@ -260,17 +336,17 @@ createTrial <- function (
   
   endpoint <- match.arg(endpoint)
   
-  error_n_subjects <- 
-    "Providing a vector of integers for the argument 'error_n_subjects'"
+  error_n_subjects <-
+    "Providing a vector of integers for the argument 'n_subjects'"
   error_n_responders <-
     "Providing a vector of integers for the argument 'n_responders'"
-  error_y <-
+  error_means <-
     "Providing a numeric vector for the argument 'means'"
   error_sds <-
     "Providing a non-negative numeric vector for the argument 'sds'"
   
   checkmate::assert_integerish(
-    n_subjects, any.missing = FALSE, min.len = 1, 
+    n_subjects, any.missing = FALSE, min.len = 1,
     .var.name = error_n_subjects
   )
   
@@ -280,8 +356,6 @@ createTrial <- function (
       n_responders, any.missing = FALSE, min.len = 1,
       .var.name = error_n_responders
     )
-    
-    ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
     
     utils::capture.output({
       trial <- simulateScenarios(
@@ -296,7 +370,7 @@ createTrial <- function (
     
     checkmate::assert_numeric(
       means, any.missing = FALSE, min.len = 1,
-      .var.name = error_y
+      .var.name = error_means
     )
     
     if (is.null(sds)) {
@@ -306,10 +380,11 @@ createTrial <- function (
         sds, any.missing = FALSE, min.len = 1,
         .var.name = error_sds
       )
-      # override with zeros to ensure historical behavior
-      sds <- rep(0, length(means))
-    
-    ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+      checkmate::assert_true(
+        all(sds >= 0),
+        .var.name = error_sds
+      )
+    }
     
     utils::capture.output({
       trial <- simulateScenarios(
@@ -321,7 +396,7 @@ createTrial <- function (
       )
     })
   }
-  }  
+  
   return(trial)
 }
 
@@ -423,11 +498,11 @@ getRecruitment <- function (
 getResponders <- function (
     
   response_rates = NULL,
+  means = NULL,
+  sds = NULL,
   n_subjects,
   n_trials,
-  endpoint = c("binary", "normal"),
-  means = NULL,
-  sds = NULL
+  endpoint = c("binary", "normal")
   
 ) {
   
@@ -477,37 +552,23 @@ getScenario <- function(
   
   checkmate::assert_integerish(n_subjects, lower = 0, any.missing = FALSE)
   checkmate::assert_integerish(n_trials, lower = 1, any.missing = FALSE, len = 1)
-  checkmate::assert_true(length(cohort_names) == length(n_subjects),
-                         .var.name = "cohort_names must match length of n_subjects")
-  
-  if (endpoint == "binary") {
-    checkmate::assert_numeric(response_rates, any.missing = FALSE)
-  } else {
-    checkmate::assert_numeric(means, any.missing = FALSE)
-    checkmate::assert_numeric(sds, any.missing = FALSE)
-    checkmate::assert_true(length(means) == length(n_subjects),
-                           .var.name = "means must match length of n_subjects")
-    checkmate::assert_true(length(sds) == length(n_subjects),
-                           .var.name = "sds must match length of n_subjects")
-    checkmate::assert_true(all(is.finite(means)),
-                           .var.name = "means must be finite")
-    checkmate::assert_true(all(is.finite(sds) & sds >= 0),
-                           .var.name = "sds must be non-negative and finite")
-  }
-  
-  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  checkmate::assert_true(
+    length(cohort_names) == length(n_subjects),
+    .var.name = "cohort_names must match length of n_subjects"
+  )
   
   cohort_names_chr <- as.character(cohort_names)
   
   if (endpoint == "binary") {
     
-    response_rates           <- convertVector2Matrix(response_rates)
-    colnames(response_rates) <- paste0("rr_", cohort_names_chr)
+    checkmate::assert_numeric(response_rates, any.missing = FALSE)
+    
+    response_rates            <- convertVector2Matrix(response_rates)
+    colnames(response_rates)  <- paste0("rr_", cohort_names_chr)
     
     new_cohorts  <- FALSE
     hist_cohorts <- FALSE
     
-    # New cohorts: 0 < rr < 1
     if (any(response_rates < 1 & response_rates > 0)) {
       new_cohorts <- TRUE
       index_new   <- which(response_rates < 1 & response_rates > 0)
@@ -520,11 +581,11 @@ getScenario <- function(
       n_responders <- getResponders(
         response_rates = response_rates[, index_new, drop = FALSE],
         n_subjects     = n_subjects[index_new],
-        n_trials       = n_trials
+        n_trials       = n_trials,
+        endpoint       = endpoint
       )
     }
     
-    # Historical cohorts: rr >= 1 OR rr == 0
     if (any(response_rates >= 1 | response_rates == 0)) {
       hist_cohorts <- TRUE
       index_hist   <- which(response_rates >= 1 | response_rates == 0)
@@ -578,7 +639,18 @@ getScenario <- function(
       endpoint          = endpoint
     )
     
-  } else { ## endpoint == "normal"
+  } else {
+    
+    checkmate::assert_numeric(means, any.missing = FALSE)
+    checkmate::assert_numeric(sds, any.missing = FALSE)
+    checkmate::assert_true(length(means) == length(n_subjects),
+                           .var.name = "means must match length of n_subjects")
+    checkmate::assert_true(length(sds) == length(n_subjects),
+                           .var.name = "sds must match length of n_subjects")
+    checkmate::assert_true(all(is.finite(means)),
+                           .var.name = "means must be finite")
+    checkmate::assert_true(all(is.finite(sds) & sds >= 0),
+                           .var.name = "sds must be non-negative and finite")
     
     means_mat <- convertVector2Matrix(means)
     sds_mat   <- convertVector2Matrix(sds)
@@ -586,9 +658,6 @@ getScenario <- function(
     colnames(means_mat) <- paste0("mean_", cohort_names_chr)
     colnames(sds_mat)   <- paste0("sd_", cohort_names_chr)
     
-    ## For normal endpoint:
-    ## - "historical" cohorts are represented by sd == 0 (fixed observed mean)
-    ## - "new" cohorts are represented by sd > 0 (simulate trial-level sample means)
     new_cohorts  <- FALSE
     hist_cohorts <- FALSE
     
@@ -605,9 +674,8 @@ getScenario <- function(
         .var.name = "n_subjects and sds must have same length"
       )
       
-      ## sample means: ybar ~ N(mean, sd / sqrt(n))
       y_means <- getResponders(
-        endpoint = "normal",
+        endpoint   = endpoint,
         means      = means_mat[, index_new, drop = FALSE],
         sds        = sds_mat[, index_new, drop = FALSE],
         n_subjects = n_subjects[index_new],
@@ -665,7 +733,7 @@ getScenario <- function(
     
     scenario_data <- list(
       n_subjects        = n_subjects_mat,
-      y                = y_means,
+      y                 = y_means,
       means             = means_mat,
       sds               = sds_mat,
       sds_observed      = sds_rep,
@@ -818,6 +886,56 @@ saveScenarios <- function (
   return (list(scenario_numbers = scenario_numbers, path = save_path))
 }
 
+#' @title simulateScenarios
+#' @description This function creates scenarios for the analysis with
+#' \code{\link[bhmbasket]{performAnalyses}}.
+#' @param n_subjects_list A list that contains for each scenario a vector for
+#' the number of subjects per cohort.
+#' A single vector can be provided if all scenarios should have the same number of subjects.
+#' @param response_rates_list A list that contains for each scenario a vector for
+#' the response rates per cohort. Used for binary endpoints.
+#' @param means_list A list that contains for each scenario a vector for
+#' the true cohort means. Used for continuous endpoints.
+#' @param sds_list A list that contains for each scenario a vector for
+#' the true cohort standard deviations. Used for continuous endpoints.
+#' Historical continuous cohorts can be represented by standard deviation `0`.
+#' @param endpoint A string indicating the endpoint type. Must be one of `"binary"` or `"normal"`,
+#' Default: `"binary"`
+#' @param scenario_numbers A vector of positive integers naming the scenarios,
+#' Default: `seq_along(response_rates_list)` for binary endpoints and
+#' `seq_along(means_list)` for continuous endpoints.
+#' @param n_trials An integer indicating the number of trial simulations per scenario,
+#' Default: `10000`. If `n_trials` is present in `.GlobalEnv` and `missing(n_trials)`,
+#' the globally available value will be used.
+#' @return An object of class `scenario_list` with the scenario data for each specified scenario.
+#' @details
+#' For binary endpoints, the function simulates trials with binary outcomes.
+#' Integer values for the response rates are treated as observed outcomes.
+#'
+#' For continuous endpoints, the function simulates cohort-level sample means.
+#' Cohorts with standard deviation `0` are treated as historical cohorts with fixed observed means.
+#' @author Stephan Wojciekowski
+#' @seealso
+#'  \code{\link[bhmbasket]{saveScenarios}}
+#'  \code{\link[bhmbasket]{createTrial}}
+#'  \code{\link[bhmbasket]{performAnalyses}}
+#' @rdname simulateScenarios
+#' @examples
+#'   n_subjects     <- c(10, 20, 30)
+#'
+#'   rr_negative    <- rep(0.1, 3)
+#'   rr_nugget      <- c(0.9, 0.1, 0.1)
+#'   rr_positive    <- rep(0.9, 3)
+#'
+#'   scenarios_list <- simulateScenarios(
+#'     n_subjects_list     = list(n_subjects,
+#'                                n_subjects,
+#'                                n_subjects),
+#'     response_rates_list = list(rr_negative,
+#'                                rr_nugget,
+#'                                rr_positive))
+#' @export
+#' @md
 simulateScenarios <- function (
     n_subjects_list,
     response_rates_list = NULL,
@@ -830,20 +948,20 @@ simulateScenarios <- function (
   
   endpoint <- match.arg(endpoint)
   
-  error_n_subjects_list     <- 
+  error_n_subjects_list     <-
     "Providing a list of vectors of positive integers for the argument 'n_subjects_list'"
-  error_response_rates_list <- 
+  error_response_rates_list <-
     paste("Providing a list of vectors of non-negative numerics for the argument",
           "'response_rates_list'\n", "Values outside of (0, 1) must be integers")
-  error_means_list          <- 
+  error_means_list          <-
     "Providing a list of numeric vectors for the argument 'means_list'"
-  error_sds_list            <- 
+  error_sds_list            <-
     "Providing a list of vectors of non-negative numerics for the argument 'sds_list'"
-  error_n_trials            <- 
+  error_n_trials            <-
     "Providing a positive integer for the argument 'n_trials'"
-  error_scenario_numbers    <- 
+  error_scenario_numbers    <-
     "Providing a vector of positive integers for the argument 'scenario_numbers'"
-  error_endpoint            <- 
+  error_endpoint            <-
     "Providing 'binary' or 'normal' for the argument 'endpoint'"
   
   checkmate::assert_choice(
@@ -852,7 +970,6 @@ simulateScenarios <- function (
     .var.name = error_endpoint
   )
   
-  ## endpoint-specific primary input checks
   if (endpoint == "binary") {
     
     checkmate::assert_list(
@@ -883,7 +1000,6 @@ simulateScenarios <- function (
     n_scenarios_input <- length(means_list)
   }
   
-  ## keep same convenience behavior for n_subjects_list (list or single vector)
   if (!is.list(n_subjects_list)) {
     n_subjects_list <- rep(list(n_subjects_list), n_scenarios_input)
   }
@@ -906,7 +1022,6 @@ simulateScenarios <- function (
     .var.name = error_n_subjects_list
   )
   
-  ## default scenario_numbers depends on active endpoint input
   if (is.null(scenario_numbers)) {
     scenario_numbers <- seq_len(n_scenarios_input)
   }
@@ -932,10 +1047,8 @@ simulateScenarios <- function (
     
     n_cohorts <- length(response_rates_list[[1L]])
     
-    checkmate::assert_true(
-      n_cohorts >= 2L,
-      .var.name = "Each scenario having at least 2 cohorts"
-    )
+    checkmate::assert_true(n_cohorts >= 2L,
+                           .var.name = "Each scenario having at least 2 cohorts")
     
     cohort_lengths_rr <- vapply(response_rates_list, length, integer(1))
     checkmate::assert_true(
@@ -950,16 +1063,9 @@ simulateScenarios <- function (
     )
     
     for (rates in response_rates_list) {
-      
       is_whole <- abs(rates - round(rates)) < .Machine$double.eps^0.5
-      
-      ok <- (rates > 0 & rates < 1) |
-        (is_whole & (rates == 0 | rates >= 1))
-      
-      checkmate::assert_true(
-        all(ok),
-        .var.name = error_response_rates_list
-      )
+      ok <- (rates > 0 & rates < 1) | (is_whole & (rates == 0 | rates >= 1))
+      checkmate::assert_true(all(ok), .var.name = error_response_rates_list)
     }
     
     for (i in seq_along(n_subjects_list)) {
@@ -969,7 +1075,7 @@ simulateScenarios <- function (
       )
     }
     
-  } else { ## endpoint == "normal"
+  } else {
     
     checkmate::assert_true(
       length(n_subjects_list) == length(means_list),
@@ -983,10 +1089,8 @@ simulateScenarios <- function (
     
     n_cohorts <- length(means_list[[1L]])
     
-    checkmate::assert_true(
-      n_cohorts >= 2L,
-      .var.name = "Each scenario having at least 2 cohorts"
-    )
+    checkmate::assert_true(n_cohorts >= 2L,
+                           .var.name = "Each scenario having at least 2 cohorts")
     
     cohort_lengths_means <- vapply(means_list, length, integer(1))
     checkmate::assert_true(
@@ -1023,11 +1127,9 @@ simulateScenarios <- function (
   
   checkmate::assert_count(
     n_trials,
-    positive  = TRUE,
+    positive = TRUE,
     .var.name = error_n_trials
   )
-  
-  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
   
   scenario_list <- vector(mode = "list", length = length(scenario_numbers))
   
@@ -1057,5 +1159,4 @@ simulateScenarios <- function (
   class(scenario_list) <- "scenario_list"
   
   return(scenario_list)
-
 }

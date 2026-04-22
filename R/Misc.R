@@ -328,7 +328,7 @@ scaleRoundList <- function(
   if (missing(list))                                     stop (error_list)
   
   if (!is.list(list))                                    stop (error_list)
-  if (!is.single.positive.numeric(scale_param))          stop (scale_param)
+  if (!is.single.positive.numeric(scale_param))          stop (error_scale_param)
   if (!is.null(round_digits) &&
       !is.single.non.negative.wholenumber(round_digits)) stop (error_round_digits)
   
