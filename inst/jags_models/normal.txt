@@ -1,6 +1,6 @@
 ## Bayesian Hierarchical Model: ExNex ADJ – Normal Endpoint
 ## Adapted from Neuenschwander et al. (2016), Pharmaceutical Statistics
-## Binary likelihood replaced with Normal; log-odds replaced with mean scale
+## Modfied for Normal endpoint
 
 model {
 

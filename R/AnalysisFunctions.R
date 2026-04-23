@@ -287,6 +287,7 @@ getPostQuantilesOfTrial <- function (
   
   save_path,
   save_trial,
+  
   trial_index,
   endpoint = c("binary", "normal")
   
@@ -318,6 +319,7 @@ getPostQuantilesOfTrial <- function (
       
     } else {
       
+      ## Get posterior response rates per indication
       posterior_samples <- getPosteriors(
         j_parameters      = j_parameters,
         j_model_file      = j_model_file,
@@ -325,6 +327,7 @@ getPostQuantilesOfTrial <- function (
         n_mcmc_iterations = n_mcmc_iterations
       )
       
+      ## Calculate differences between response rates of cohorts
       if (!is.null(calc_differences)) {
         posterior_samples <- calcDiffsMCMC(
           posterior_samples = posterior_samples,
@@ -332,6 +335,8 @@ getPostQuantilesOfTrial <- function (
         )
       }
       
+      ## Save posterior response rates per indication for one randomly selected simulation,
+      ## due to time and storage space constraints only one simulation
       if (!is.null(save_path)) {
         if (trial_index == save_trial) {
           saveRDS(
@@ -344,6 +349,7 @@ getPostQuantilesOfTrial <- function (
         }
       }
       
+      ## Calculate the required quantiles for the decision rules
       posterior_quantiles <- posteriors2Quantiles(
         quantiles  = quantiles,
         posteriors = posterior_samples
@@ -419,23 +425,26 @@ getPostQuantilesPooled <- function(
   
   posterior_mean      <- shape_1 / (shape_1 + shape_2)
   posterior_sd        <- ((shape_1 * shape_2) / ((shape_1 + shape_2)^2 * (shape_1 + shape_2 + 1)))^0.5
-  posterior_quantiles <- rbind(
-    posterior_quantiles,
-    Mean = posterior_mean,
-    SD   = posterior_sd
-  )
+  posterior_quantiles <- rbind(posterior_quantiles,
+                               Mean = posterior_mean,
+                               SD   = posterior_sd)
   
   if (!is.null(calc_differences)) {
     
     diff_quantiles <- apply(calc_differences, 1, function (x) {
+      
       matrix(rep(0, nrow(posterior_quantiles)), ncol = 1)
+      
     })
     
     diff_names <- apply(calc_differences, 1, function (x) {
+      
       paste0("p_diff_", paste0(as.character(x), collapse = ""))
+      
     })
     
     colnames(diff_quantiles) <- diff_names
+    
     posterior_quantiles <- cbind(posterior_quantiles, diff_quantiles)
   }
   
@@ -687,14 +696,11 @@ getUniqueTrials <- function (
     
     all_scenarios_n_responders <- do.call(rbind, lapply(scenario_list, function (x) x$n_responders))
     
-    out <- getUniqueRows(cbind(
+    return(getUniqueRows(cbind(
       all_scenarios_n_responders,
       all_scenarios_n_subjects,
-      go_flag = all_scenarios_overall_gos
-    ))
-    
-    return(out)
-    
+      go_flag = all_scenarios_overall_gos)))
+
   } else {
     
     all_scenarios_y <- do.call(rbind, lapply(scenario_list, function (x) x$y))
@@ -906,6 +912,8 @@ mapUniqueTrials <- function (
   method_names     <- names(method_quantiles_list)
   scenario_numbers <- sapply(scenario_list, function (x) x$scenario_number)
   
+  ## Create hash tables for results for easy retrieval
+  
   hash_keys        <- getHashKeys(trials_unique_calc)
   hash_tables_list <- vector(mode = "list", length = length(method_quantiles_list))
   
@@ -979,11 +987,16 @@ mapUniqueTrials <- function (
       names(scenario_method_quantiles) <- method_names
     }
     
+    ## In case there are trial realizations that need updating
+    ## This should only not be the case if all trial realizations of a scenario have a NoGo decision
+    ## and there are applicable previous trials.
     if (any(scenario_go_flags)) {
       
+      ## Get search keys
       scenario_data_matrix_go <- convertVector2Matrix(scenario_data_matrix[scenario_go_flags, ])
       search_keys             <- getHashKeys(scenario_data_matrix_go)
       
+      ## Save scenario specific posterior quantiles for each method
       for (n in seq_along(method_names)) {
         scenario_method_quantiles[[method_names[n]]][scenario_go_flags] <-
           getHashValues(search_keys, hash_tables_list[[n]])
@@ -999,43 +1012,131 @@ mapUniqueTrials <- function (
 }
 
 
+## Wrapper of getPostQuantiles() for specifying several scenarios
+## Returns a list of quantiles of posterior distributions according to supplied methods.
 #' @title performAnalyses
 #' @md
 #' @description This function performs the analysis of simulated or observed trial data with the
-#' specified methods and returns posterior quantiles.
-#' It supports binary endpoints and normal endpoints.
-#' @param scenario_list An object of class `scenario_list`
+#' specified methods
+#' and returns the quantiles of the posterior distributions.
+#' For binary endpoints, posterior response rates are returned.
+#' For normal endpoints, posterior cohort means are returned.
+#' @param scenario_list An object of class `scenario_list`,
+#' as e.g. created with \code{\link[bhmbasket]{simulateScenarios}}
 #' @param evidence_levels A vector of numerics in `(0, 1)` for the
-#' `1-evidence_levels` posterior quantiles to be saved.
-#' @param method_names A vector of strings for the methods to be used.
-#' For binary endpoints:
-#' `c("berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix", "pooled", "stratified", "stratified_mix")`
-#' For normal endpoints:
-#' `"normal"`
-#' @param target_rates A vector of numerics in `(0, 1)` for binary endpoints.
-#' Ignored for normal endpoints.
-#' @param prior_parameters_list An object of class `prior_parameters_list`
-#' @param calc_differences Optional matrix of cohort indices with 2 columns for posterior differences
-#' @param n_mcmc_iterations A positive integer for the number of MCMC iterations
-#' @param n_cores Deprecated
-#' @param seed Deprecated
-#' @param verbose Logical; print progress messages
-#' @param nbins For endpoint `"normal"`, the number of bins used for grouping similar trial
-#' realizations before analysis. Ignored for binary endpoints.
-#' @param bin_breaks For endpoint `"normal"`, optional list of break vectors used instead of `nbins`.
-#' @return An object of class `analysis_list`
+#' `1-evidence_levels`-quantiles of the posterior distributions to be saved.
+#' Default: `c(0.025, 0.05, 0.5, 0.8, 0.9, 0.95, 0.975)`
+#' @param method_names A vector of strings for the names of the methods to be used.
+#' For endpoint `"binary"`, this must be one of the default values, Default:
+#' `c("berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix", "pooled", "stratified", "stratified_mix")`.
+#' For endpoint `"normal"`, the only supported method is `"normal"`.
+#' @param target_rates A vector of numerics in `(0, 1)` for the
+#' target rates of each cohort. Only used for endpoint `"binary"`, Default: `NULL`
+#' @param prior_parameters_list An object of class `prior_parameters_list`,
+#' as e.g. created with \code{\link[bhmbasket]{getPriorParameters}}
+#' @param calc_differences A matrix of positive integers with 2 columns.
+#' For each row the differences will be calculated.
+#' Also a vector of positive integers can be provided for a single difference.
+#' The integers are the numbers for the cohorts to be subtracted from one another.
+#' E.g. providing `c(2, 1)` calculates the difference between cohort `2` and cohort `1`.
+#' If `NULL`, no subtractions are performed, Default: `NULL`
+#' @param n_mcmc_iterations A positive integer for the number of MCMC iterations,
+#' see Details, Default: `10000`.
+#' If `n_mcmc_iterations` is present in `.GlobalEnv` and `missing(n_mcmc_iterations)`,
+#' the globally available value will be used.
+#' @param n_cores Argument is deprecated and does nothing as of version 0.9.3.
+#' A positive integer for the number of cores for the parallelization,
+#' Default: `1`
+#' @param seed Argument is deprecated and does nothing as of version 0.9.3.
+#' A numeric for the random seed, Default: `1`
+#' @param verbose A logical indicating whether messages should be printed, Default: `TRUE`
+#' @param nbins A positive integer for the number of bins used to group similar trial realizations
+#' for endpoint `"normal"`. Ignored for endpoint `"binary"`, Default: `5`
+#' @param bin_breaks Either `NULL` or a named list of numeric break vectors used instead of `nbins`
+#' for endpoint `"normal"`. Ignored for endpoint `"binary"`, Default: `NULL`
+#' @return An object of class `analysis_list`.
 #' @details
-#' For endpoint `"binary"`, the function supports hierarchical Bayesian models, pooled models,
-#' stratified models, and their mixture extensions.
-#' For endpoint `"normal"`, the function supports the `"normal"` hierarchical model.
-#' For the normal endpoint, binning/grouping is used in `getUniqueTrials()` and `mapUniqueTrials()`
-#' to reduce repeated MCMC evaluations for similar trial realizations.
+#' This function applies the following analysis models to (simulated) scenarios of class
+#' `scenario_list`:
+#' \itemize{
+#'   \item Bayesian hierarchical model (BHM) proposed by Berry et al. (2013): `"berry"`
+#'   \item BHM proposed by Neuenschwander et al. (2016): `"exnex"`
+#'   \item BHM that combines above approaches: `"exnex_adj"`
+#'   \item Pooled beta-binomial approach: `"pooled"`
+#'   \item Stratified beta-binomial approach: `"stratified"`
+#'   \item BHM with mixture prior on the Nex component: `"exnex_mix"`
+#'   \item Adjusted BHM with mixture prior on the Nex component: `"exnex_adj_mix"`
+#'   \item Stratified beta-binomial approach with mixture beta prior: `"stratified_mix"`
+#'   \item Adjusted ExNex hierarchical normal model for continuous endpoints: `"normal"`
+#' }
+#' For endpoint `"binary"`, the posterior distributions are those of the cohort-specific
+#' response rates.
+#' For endpoint `"normal"`, the posterior distributions are those of the cohort-specific
+#' adjusted means.
+#'
+#' The posterior distributions of the BHMs are approximated with Markov chain Monte Carlo (MCMC)
+#' methods implemented in JAGS.
+#' Two independent chains are used with each `n_mcmc_iterations` number of MCMC iterations.
+#' The first `floor(n_mcmc_iterations / 3)` number of iterations are discarded as burn-in period.
+#' No thinning is applied.
+#'
+#' Note that the value for `n_mcmc_iterations` required for a good approximation of the posterior
+#' distributions depends on the analysis model, the investigated scenarios, and the use case.
+#' The default value might be a good compromise between run-time and approximation for
+#' the estimation of decision probabilities, but
+#' it should definitively be increased for the analysis of a single trial's outcome.
+#'
+#' The analysis models will only be applied to the unique trial realizations across
+#' all simulated scenarios.
+#' For endpoint `"binary"`, uniqueness is determined exactly from the response counts and
+#' sample sizes.
+#' For endpoint `"normal"`, similar trial realizations are grouped by binning the observed
+#' cohort means before analysis, in order to reduce repeated MCMC evaluations.
+#' These grouped realizations are then mapped back to the original trial realizations.
+#'
+#' The models can be applied in parallel by registering a parallel backend for the 'foreach'
+#' framework, e.g. with `doFuture::registerDoFuture()` and `future::plan(future::multisession)`.
+#' The parallelization is nested, so that the resources of a HPC environment can be used
+#' efficiently.
+#' For more on this topic, kindly see the respective vignette.
+#' The tasks that are to be performed in parallel are chunked according to the number of workers
+#' determined with `foreach::getDoParWorkers()`.
+#'
+#' The JAGS code for the BHM `"exnex"` was taken from Neuenschwander et al. (2016).
+#' The JAGS code for the BHM `"exnex_adj"` is based on the JAGS code for `"exnex"`.
+#' The JAGS code for the BHM `"exnex_mix"` extends the `"exnex"` model by using
+#' a mixture prior for the Nex component.
+#' The JAGS code for the BHM `"exnex_adj_mix"` extends the `"exnex_adj"` model by using
+#' a mixture prior for the Nex component.
+#' The JAGS code for the model `"normal"` is an adjusted ExNex hierarchical normal model
+#' for continuous endpoints, where the likelihood is defined on observed cohort means and
+#' the cohort-specific target means are used as additive offsets.
 #' @seealso
 #'  \code{\link[bhmbasket]{simulateScenarios}}
 #'  \code{\link[bhmbasket]{createTrial}}
 #'  \code{\link[bhmbasket]{getPriorParameters}}
 #' @rdname performAnalyses
 #' @author Stephan Wojciekowski
+#' @examples
+#'  trial_data <- createTrial(
+#'    n_subjects   = c(10, 20, 30),
+#'    n_responders = c(1, 2, 3))
+#'
+#'  analysis_list <- performAnalyses(
+#'    scenario_list      = trial_data,
+#'    target_rates       = rep(0.5, 3),
+#'    calc_differences   = matrix(c(3, 2, 1, 1), ncol = 2),
+#'    n_mcmc_iterations  = 100)
+#' @references Berry, Scott M., et al. "Bayesian hierarchical modeling of patient subpopulations:
+#' efficient designs of phase II oncology clinical trials."
+#' \emph{Clinical Trials} 10.5 (2013): 720-734.
+#' @references Neuenschwander, Beat, et al. "Robust exchangeability designs
+#' for early phase clinical trials with multiple strata."
+#' \emph{Pharmaceutical statistics} 15.2 (2016): 123-134.
+#' @references Plummer, Martyn. "JAGS: A program for analysis of Bayesian graphical models
+#' using Gibbs sampling."
+#' \emph{Proceedings of the 3rd international workshop on distributed statistical computing.}
+#' Vol. 124. No. 125.10. 2003.
 #' @export
 performAnalyses <- function (
     
@@ -1523,7 +1624,8 @@ performAnalyses <- function (
   return(analyses_list)
 }
 
-
+## based on R2jags::jags
+## stripped fown to improve performance
 performJags <- function (
     
   data,
@@ -1773,24 +1875,74 @@ qbetaDiff <- function (
   return(quantiles_diff)
 }
 
-
 #' @title saveAnalyses
 #' @md
 #' @description This function saves an object of class `analysis_list`
 #' @param analyses_list An object of class `analysis_list`,
 #' as created with \code{\link[bhmbasket]{performAnalyses}}
 #' @param save_path A string for the path where the scenarios are being stored,
-#' Default: \code{\link[base]{tempfile}}
+#' Default: \code{\link[base]{tempdir}}
 #' @param analysis_numbers A positive integer naming the analysis number.
 #' If `NULL`, the function will look for the number of saved analyses of the scenario
-#' in the directory and add 1, Default: `NULL`
-#' @return A named list of length 3 of vectors with scenario and analysis numbers and
-#' the `save_path`
+#' in the directory and add `1`, Default: `NULL`
+#' @return A named list of length `3` containing the scenario numbers,
+#' analysis numbers, and the `save_path`
+#' @details
+#' This function saves objects of class `analysis_list` as created with
+#' \code{\link[bhmbasket]{performAnalyses}}.
+#' It supports analyses for both binary and normal endpoints.
+#'
+#' Each scenario in `analyses_list` is saved as a separate `.rds` file with file name
+#' pattern `analysis_data_<scenario_number>_<analysis_number>.rds`.
+#'
+#' If `analysis_numbers = NULL`, the function determines the next available analysis
+#' number for each scenario from the files already present in `save_path`.
 #' @seealso
 #'  \code{\link[bhmbasket]{performAnalyses}}
 #'  \code{\link[bhmbasket]{loadAnalyses}}
-#'  \code{\link[base]{tempfile}}
+#'  \code{\link[base]{tempdir}}
 #' @rdname saveAnalyses
+#' @examples
+#' ## Binary endpoint example
+#' trial_data_bin <- createTrial(
+#'   n_subjects   = c(10, 20, 30),
+#'   n_responders = c(1, 2, 3)
+#' )
+#'
+#' analysis_list_bin <- performAnalyses(
+#'   scenario_list      = trial_data_bin,
+#'   target_rates       = rep(0.5, 3),
+#'   n_mcmc_iterations  = 100
+#' )
+#'
+#' save_info_bin <- saveAnalyses(analysis_list_bin)
+#' loaded_bin <- loadAnalyses(
+#'   scenario_numbers = save_info_bin$scenario_numbers,
+#'   analysis_numbers = save_info_bin$analysis_numbers,
+#'   load_path        = save_info_bin$path
+#' )
+#'
+#' ## Normal endpoint example
+#' trial_data_norm <- createTrial(
+#'   n_subjects = c(20, 20, 20),
+#'   means      = c(5.0, 5.4, 5.8),
+#'   sds        = c(1, 1, 1),
+#'   endpoint   = "normal"
+#' )
+#'
+#' analysis_list_norm <- performAnalyses(
+#'   scenario_list      = trial_data_norm,
+#'   method_names       = "normal",
+#'   target_means       = c(5, 5, 5),
+#'   n_mcmc_iterations  = 100
+#' )
+#'
+#' save_info_norm <- saveAnalyses(analysis_list_norm)
+#' loaded_norm <- loadAnalyses(
+#'   scenario_numbers = save_info_norm$scenario_numbers,
+#'   analysis_numbers = save_info_norm$analysis_numbers,
+#'   load_path        = save_info_norm$path
+#' )
 #' @author Stephan Wojciekowski
 #' @export
 saveAnalyses <- function (
