@@ -1091,6 +1091,7 @@ mapUniqueTrials <- function (
 #'   \item via `prior_parameters_list[["normal"]]`, in which case the
 #'   `target_means` stored in that object are used by the model
 #' }
+#' 
 #' If both are supplied, the values in `prior_parameters_list[["normal"]]`
 #' take precedence.
 #'

@@ -29,6 +29,11 @@ This function is intended to be used for analyses with the following work flow:\
 \code{continueRecruitment()} -> \code{performAnalyses()} -> \code{getGoDecisions()}-> \cr
 \code{continueRecruitment()} -> ...
 
+For binary endpoints, recruitment is continued by simulating additional responders.
+For continuous endpoints, recruitment is continued by simulating additional cohort-level
+sample means and updating the stored cohort means by weighted averaging with respect to
+the numbers of subjects.
+
 Note that \code{n_subjects_add_list} takes the additional number of subjects to be recruited,
 not the overall number of subjects.
 This way the work flow can be repeated as often as

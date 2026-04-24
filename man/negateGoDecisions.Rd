@@ -23,23 +23,29 @@ Negates the go decisions derived with
 }
 \details{
 This function is intended for implementing decision rules with a
-consider zone as
-e.g. proposed in "Bayesian design of proof-of-concept trials" by
-Fisch et al. (2015).
+consider zone, as e.g. proposed in "Bayesian design of proof-of-concept trials"
+by Fisch et al. (2015).
+
 This approach involves two criteria, Significance and Relevance.
 \itemize{
 \item Significance: high evidence that the treatment effect is greater
-than some smaller value (e.g. treatment effect under H0)
+than some smaller value (e.g. treatment effect under \eqn{H_0})
 \item Relevance: moderate evidence that the treatment effect is greater
 than some larger value (e.g. treatment effect under a certain alternative)
 }
+
 The decision for a cohort is then taken as follows:
 \itemize{
 \item Go decision: Significance and Relevance
 \item Consider decision: either Significance, or Relevance, but not both
 \item NoGo decision: no Significance and no Relevance
 }
-In the example below, the following criteria for are implemented for each of
+
+This function operates on decision lists and can therefore be used for
+decision rules derived from analyses with binary endpoints as well as for
+decision rules derived from analyses with continuous endpoints.
+
+In the example below, the following criteria are implemented for each of
 the three cohorts:
 \itemize{
 \item Significance: \eqn{P(p_j > 0.4) > 0.95}

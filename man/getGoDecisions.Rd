@@ -16,8 +16,9 @@ getGoDecisions(
 \item{analyses_list}{An object of class \code{analysis_list},
 as created with \code{\link[bhmbasket]{performAnalyses}}}
 
-\item{cohort_names}{A vector of strings with the names of the cohorts, e.g.
-\code{c('p_1', 'p_2')}}
+\item{cohort_names}{A vector of strings with the names of the cohort-level posterior
+parameters to be assessed, e.g. \code{c('p_1', 'p_2')} for binary endpoints or
+\code{c('theta_1', 'theta_2')} for continuous endpoints}
 
 \item{evidence_levels}{A vector of numerics in \code{(0, 1)} for the
 posterior probability thresholds for the cohorts.
@@ -29,47 +30,62 @@ The number of decisions to be taken must match the number of cohorts.
 Will be recycled to match the number of methods in the \code{analyses_list}}
 
 \item{overall_min_gos}{A positive integer for the minimum number of
-cohort-wise go decisions required for an overall go decision
- Default: \code{1}}
+cohort-wise go decisions required for an overall go decision,
+Default: \code{1}}
 }
 \value{
 An object of class \code{decision_list}
 }
 \description{
-This function applies decision rules to the analyzed trials.
+This function applies decision rules to analyzed trial outcomes.
 The resulting \code{decision_list} can be further processed with
 \code{\link[bhmbasket]{getGoProbabilities}} or
 \code{\link[bhmbasket]{continueRecruitment}}.
 }
 \details{
-This function applies decision rules of the following type to the
-outcomes of (simulated) basket trials with binary endpoints:
-\deqn{P(p_j|data > p_{B,j}) > \gamma,}
-where \eqn{p_j|data} is the posterior response rate of cohort \eqn{j},
-\eqn{p_{B,j}} is the response rate boundary of cohort \eqn{j},
-and \eqn{\gamma} is the evidence level.
-This rule can equivalently be written as \deqn{q_{1-\gamma,j} > p_{B,j},}
+This function applies decision rules to posterior summaries obtained from
+\code{\link[bhmbasket]{performAnalyses}}.
+
+For binary endpoints, the rules are applied to posterior response rates \eqn{p_j}.
+A rule of the form
+\deqn{P(p_j \mid data > p_{B,j}) > \gamma}
+can equivalently be written as
+\deqn{q_{1-\gamma,j} > p_{B,j},}
 where \eqn{q_{1-\gamma,j}} is the \eqn{1-\gamma}-quantile of the posterior
 response rate of cohort \eqn{j}.
 
-The arguments \code{cohort_names} and \code{evidence_levels} determine
-\eqn{q_{1-\gamma,j}}, where the entries of \code{cohort_names} and
-\code{evidence_levels} are matched corresponding to their order.
+For continuous endpoints, the same logic is applied to posterior cohort means \eqn{\theta_j}.
+A rule of the form
+\deqn{P(\theta_j \mid data > \theta_{B,j}) > \gamma}
+can equivalently be written as
+\deqn{q_{1-\gamma,j} > \theta_{B,j},}
+where \eqn{q_{1-\gamma,j}} is the \eqn{1-\gamma}-quantile of the posterior
+cohort mean of cohort \eqn{j}.
 
-The argument \code{boundary_rules} provides the rules that describe what
-should happen with  the posterior quantiles \eqn{q_{1-\gamma,j}}.
-The first posterior quantile determined by the first items of
+The arguments \code{cohort_names} and \code{evidence_levels} determine the posterior
+quantities to be extracted, where the entries of \code{cohort_names} and
+\code{evidence_levels} are matched according to their order.
+
+The argument \code{boundary_rules} provides the rules that describe what should happen
+with the extracted posterior quantiles.
+The first posterior quantity determined by the first items of
 \code{cohort_names} and \code{evidence_levels} is referred to as \code{x[1]},
 the second as \code{x[2]}, etc.
 Using the \code{quote(c(...))}-notation,
 many different rules can be implemented.
+
 A decision rule for only one cohort would be
 \code{boundary_rules = quote(c(x[1] > 0.1))},
 \code{cohort_names = 'p_1'}, and \code{evidence_levels = 0.5},
-which implements the rule \eqn{P(p_1|data > 0.1) > 0.5}.
+which implements the rule \eqn{P(p_1 \mid data > 0.1) > 0.5}.
+For a continuous endpoint an analogous rule would be
+\code{boundary_rules = quote(c(x[1] > 5.0))},
+\code{cohort_names = 'theta_1'}, and \code{evidence_levels = 0.8},
+which implements the rule \eqn{P(\theta_1 \mid data > 5.0) > 0.8}.
+
 The number of decisions to be taken must match the number of cohorts, i.e.
-for each cohort there must be a decision rule in the vector separated by a comma.
-See the example section for a decision rule for more than one cohort and
+for each cohort there must be one decision rule in the vector separated by commas.
+See the example section for decision rules for more than one cohort and
 the example of \code{\link[bhmbasket]{negateGoDecisions}}
 for the implementation of a more complex decision rule.
 }
@@ -96,7 +112,7 @@ decisions_list <- getGoDecisions(
   analyses_list   = analyses_list,
   cohort_names    = c("p_1", "p_3"),
   evidence_levels = c(0.5, 0.8),
-  boundary_rules  = quote(c(x[1] > 0.7, TRUE, x[3] < 0.6)),
+  boundary_rules  = quote(c(x[1] > 0.7, TRUE, x[2] < 0.6)),
   overall_min_gos = 2L)
 
 ## Different decision rules for each method
@@ -105,17 +121,42 @@ decisions_list <- getGoDecisions(
   analyses_list   = analyses_list,
   cohort_names    = c("p_1", "p_2", "p_3"),
   evidence_levels = c(0.5, 0.5, 0.8),
-  boundary_rules  = list(quote(c(x[1] > 0.1, x[2] < 0.5, x[3] < 0.1)),  # "berry"
-                         quote(c(x[1] > 0.2, x[2] < 0.4, x[3] < 0.2)),  # "exnex"
-                         quote(c(x[1] > 0.3, x[2] < 0.3, x[3] < 0.3)),  # "exnex_adj"
-                         quote(c(x[1] > 0.4, x[2] < 0.2, x[3] < 0.4)),  # "pooled"
-                         quote(c(x[1] > 0.5, x[2] < 0.1, x[3] < 0.5)))) # "stratified"
+  boundary_rules  = list(
+    quote(c(x[1] > 0.1,  x[2] < 0.5,  x[3] < 0.1)),   # "berry"
+    quote(c(x[1] > 0.2,  x[2] < 0.4,  x[3] < 0.2)),   # "exnex"
+    quote(c(x[1] > 0.25, x[2] < 0.35, x[3] < 0.25)),  # "exnex_adj"
+    quote(c(x[1] > 0.3,  x[2] < 0.3,  x[3] < 0.3)),   # "exnex_adj_mix"
+    quote(c(x[1] > 0.35, x[2] < 0.25, x[3] < 0.35)),  # "exnex_mix"
+    quote(c(x[1] > 0.4,  x[2] < 0.2,  x[3] < 0.4)),   # "pooled"
+    quote(c(x[1] > 0.45, x[2] < 0.15, x[3] < 0.45)),  # "stratified"
+    quote(c(x[1] > 0.5,  x[2] < 0.1,  x[3] < 0.5))    # "stratified_mix"
+  ))
+
+## Continuous-endpoint decision rule
+normal_scenarios <- simulateScenarios(
+  n_subjects_list = list(c(30, 30, 30)),
+  means_list      = list(c(5.0, 5.3, 5.8)),
+  sds_list        = list(c(1, 1, 1)),
+  n_trials        = 10,
+  endpoint        = "normal")
+
+normal_analyses <- performAnalyses(
+  scenario_list      = normal_scenarios,
+  method_names       = "normal",
+  target_means       = c(5, 5, 5),
+  n_mcmc_iterations  = 100)
+
+normal_decisions <- getGoDecisions(
+  analyses_list   = normal_analyses,
+  cohort_names    = c("theta_1", "theta_2", "theta_3"),
+  evidence_levels = c(0.8, 0.8, 0.8),
+  boundary_rules  = quote(c(x[1] > 5.0, x[2] > 5.2, x[3] > 5.5)))
 }
 \seealso{
 \code{\link[bhmbasket]{performAnalyses}}
- \code{\link[bhmbasket]{getGoProbabilities}}
- \code{\link[bhmbasket]{negateGoDecisions}}
- \code{\link[bhmbasket]{continueRecruitment}}
+\code{\link[bhmbasket]{getGoProbabilities}}
+\code{\link[bhmbasket]{negateGoDecisions}}
+\code{\link[bhmbasket]{continueRecruitment}}
 }
 \author{
 Stephan Wojciekowski

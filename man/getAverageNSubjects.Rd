@@ -12,14 +12,16 @@ as created with \code{\link[bhmbasket]{simulateScenarios}} or
 \code{\link[bhmbasket]{continueRecruitment}}}
 }
 \value{
-A named list of vectors for the average number of subjects in each scneario.
+A named list of vectors for the average number of subjects in each scenario.
 }
 \description{
 This function calculates the average number of subjects per scenario.
 }
 \details{
-This function can be usuful to assess decision rules with regard to the average number
+This function can be useful to assess decision rules with regard to the average number
 of subjects across scenarios when performing interim analyses.
+It can be applied to scenarios with binary endpoints as well as to scenarios with
+continuous endpoints.
 }
 \examples{
 interim_scenarios <- simulateScenarios(
@@ -37,12 +39,12 @@ interim_gos <- getGoDecisions(
   cohort_names        = c("p_1", "p_2", "p_3"),
   evidence_levels     = c(0.5, 0.8, 0.5),
   boundary_rules      = quote(c(x[1] > 0.8, x[2] > 0.6, x[3] > 0.7)))
-    
+
 scenarios_list <- continueRecruitment(
   n_subjects_add_list = list(c(30, 20, 10)),
   decisions_list      = interim_gos,
   method_name         = "exnex_adj")
-  
+
 getAverageNSubjects(scenarios_list)
 
 }

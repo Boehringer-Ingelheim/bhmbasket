@@ -761,6 +761,29 @@ is.scenario_list <- function (x) {
   inherits(x, "scenario_list")
 }
 
+#' @title loadScenarios
+#' @md
+#' @description This function loads scenarios saved with \code{\link[bhmbasket]{saveScenarios}}
+#' @param scenario_numbers A vector of integers naming the scenario to be loaded
+#' @param load_path A string for the directory where the scenarios are being stored,
+#' Default: \code{\link[base]{tempfile}}
+#' @return Returns an object of class `scenario_list`
+#' @rdname loadScenarios
+#' @author Stephan Wojciekowski
+#' @seealso
+#'  \code{\link[bhmbasket]{simulateScenarios}}
+#'  \code{\link[bhmbasket]{saveScenarios}}
+#'  \code{\link[base]{tempfile}}
+#' @examples
+#'   scenarios_list <- simulateScenarios(
+#'     n_subjects_list     = list(c(10, 20, 30)),
+#'     response_rates_list = list(rep(0.9, 3)),
+#'     n_trials            = 10)
+#'
+#'   save_info      <- saveScenarios(scenarios_list)
+#'   scenarios_list <- loadScenarios(scenario_numbers = save_info$scenario_numbers,
+#'                                   load_path        = save_info$path)
+#' @export
 loadScenarios <- function (
     
   scenario_numbers,
@@ -884,7 +907,6 @@ print.scenario_list <- function(x, ...) {
 #' @author Stephan Wojciekowski
 #' @seealso
 #'  \code{\link[bhmbasket]{simulateScenarios}}
-#'  \code{\link[bhmbasket]{createTrial}}
 #'  \code{\link[bhmbasket]{loadScenarios}}
 #'  \code{\link[base]{saveRDS}}
 #' @examples

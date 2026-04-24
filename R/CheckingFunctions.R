@@ -6,6 +6,7 @@ is.positive.numeric <- function (x) {
 
 }
 
+#' @export
 is.numeric.in.zero.one <- function (x) {
 
   return (is.numeric(x) && all(x > 0) && all(x < 1))

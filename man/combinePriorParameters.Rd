@@ -17,14 +17,20 @@ This function combines prior parameters from different sources and returns them
 for use in \code{\link[bhmbasket]{performAnalyses}}.
 }
 \details{
-This function is intended to combine the prior parameters set with the functions
+This function is intended to combine prior parameters set with the functions
 \code{\link[bhmbasket]{setPriorParametersBerry}},
 \code{\link[bhmbasket]{setPriorParametersExNex}},
 \code{\link[bhmbasket]{setPriorParametersExNexAdj}},
-\code{\link[bhmbasket]{setPriorParametersPooled}}, or
+\code{\link[bhmbasket]{setPriorParametersPooled}},
 \code{\link[bhmbasket]{setPriorParametersStratified}},
+\code{\link[bhmbasket]{setPriorParametersStratifiedMix}}, and
+\code{\link[bhmbasket]{setPriorParametersNormal}},
 in case more than one analysis method should be applied with
 \code{\link[bhmbasket]{performAnalyses}}.
+
+Each element of \code{list_of_prior_parameters} must itself be an object of class
+\code{prior_parameters_list} and should usually contain the prior parameters for one method.
+The combined object is returned as a single \code{prior_parameters_list}, with one entry per method.
 }
 \examples{
  prior_parameters_stratified <- setPriorParametersStratified(c(1, 2), c(3, 4))
@@ -41,6 +47,8 @@ in case more than one analysis method should be applied with
 \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 \code{\link[bhmbasket]{setPriorParametersPooled}}
 \code{\link[bhmbasket]{setPriorParametersStratified}}
+\code{\link[bhmbasket]{setPriorParametersStratifiedMix}}
+\code{\link[bhmbasket]{setPriorParametersNormal}}
 \code{\link[bhmbasket]{getPriorParameters}}
 \code{\link[bhmbasket]{getMuVar}}
 }

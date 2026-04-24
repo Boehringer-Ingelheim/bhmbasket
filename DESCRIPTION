@@ -29,7 +29,7 @@ Depends:
     R (>= 3.5.0)
 Imports: 
     foreach,
-    doRNG,
+    future.apply,
     rjags,
     checkmate
 Suggests: 
@@ -41,6 +41,6 @@ Suggests:
 VignetteBuilder: 
     knitr
 Encoding: UTF-8
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 SystemRequirements: JAGS 4.x.y (http://mcmc-jags.sourceforge.net)
 Config/testthat/edition: 3

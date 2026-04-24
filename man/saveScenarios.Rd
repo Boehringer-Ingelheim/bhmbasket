@@ -7,16 +7,30 @@
 saveScenarios(scenario_list, save_path = tempdir())
 }
 \arguments{
-\item{scenario_list}{An object of class \code{scenario_list}, e.g. created with \code{simulateScenarios()}}
+\item{scenario_list}{An object of class \code{scenario_list},
+as e.g. created with \code{\link[bhmbasket]{simulateScenarios}}
+or \code{\link[bhmbasket]{createTrial}}}
 
-\item{save_path}{A string providing the path for the directory in which the directory of the
-scenario should be created, Default: \code{\link[base]{tempfile}}}
+\item{save_path}{A string providing the path of the directory in which the scenario data
+should be saved, Default: \code{\link[base]{tempdir}}}
 }
 \value{
-A named list of length 2 with the scenario numbers and the \code{save_path}
+A named list of length 2 containing:
+\itemize{
+\item \code{scenario_numbers}: the scenario numbers of the saved scenarios
+\item \code{path}: the directory in which the scenario data were saved
+}
 }
 \description{
-Saves the scenario data in a newly created or existing directory
+This function saves one or more scenario objects of class \code{scenario_list}
+to a newly created or existing directory.
+}
+\details{
+Each scenario in \code{scenario_list} is saved separately as an \code{.rds} file with file name
+pattern \verb{scenario_data_<scenario_number>.rds}.
+
+If the directory specified by \code{save_path} does not yet exist, it is created automatically.
+Existing files with the same scenario number will be overwritten.
 }
 \examples{
   scenarios_list <- simulateScenarios(
@@ -24,14 +38,18 @@ Saves the scenario data in a newly created or existing directory
     response_rates_list = list(rep(0.9, 3)),
     n_trials            = 10)
 
-  save_info      <- saveScenarios(scenarios_list)
-  scenarios_list <- loadScenarios(scenario_numbers = save_info$scenario_numbers,
-                                  load_path        = save_info$path)
+  save_info <- saveScenarios(
+    scenario_list = scenarios_list
+  )
+
+  scenarios_list_loaded <- loadScenarios(
+    scenario_numbers = save_info$scenario_numbers,
+    load_path        = save_info$path)
 }
 \seealso{
 \code{\link[bhmbasket]{simulateScenarios}}
 \code{\link[bhmbasket]{loadScenarios}}
-\code{\link[base]{tempfile}}
+\code{\link[base]{saveRDS}}
 }
 \author{
 Stephan Wojciekowski

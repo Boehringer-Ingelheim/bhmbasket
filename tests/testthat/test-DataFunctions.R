@@ -574,7 +574,7 @@ test_that("createTrial returns trial object with valid input", {
   with_mocked_bindings({
     result <- createTrial(n_subjects = c(10, 20), n_responders = c(5, 15))
     expect_true(!is.null(result))
-  }, simulateScenarios = function(n_subjects_list, response_rates_list, n_trials) {
+  }, simulateScenarios = function(n_subjects_list, response_rates_list, n_trials, endpoint = "binary", ...) {
     list(trial = "mocked_trial")
   })
 })
@@ -854,21 +854,29 @@ test_that("Only overall==TRUE rows are updated", {
   
   decisions$scenario_1$scenario_data$n_subjects <-
     matrix(c(0, 1), nrow = 1,
-           dimnames = list(NULL, c("rr_A", "rr_hist")))
+           dimnames = list(NULL, c("n_1", "n_2")))
   
   decisions$scenario_1$scenario_data$n_responders <-
     matrix(c(0, 1), nrow = 1,
-           dimnames = list(NULL, c("rr_A", "rr_hist")))
+           dimnames = list(NULL, c("r_1", "r_2")))
   
   decisions$scenario_1$decisions_list <-
     list(berry = data.frame(decision_1 = TRUE, decision_2 = TRUE, overall = TRUE))
   decisions$scenario_1$analysis_data$analysis_parameters$method_names <- "berry"
   
   testthat::with_mocked_bindings(
-    getScenario = function(n_subjects, response_rates, cohort_names, n_trials) {
+    getScenario = function(n_subjects, response_rates, cohort_names, n_trials, ...) {
       list(
-        n_subjects   = matrix(10, nrow = 1, dimnames = list(NULL, cohort_names)),
-        n_responders = matrix(5, nrow = 1, dimnames = list(NULL, cohort_names))
+        n_subjects = matrix(c(10, 1), nrow = 1,
+                            dimnames = list(NULL, c("n_1", "n_2"))),
+        n_responders = matrix(c(5, 1), nrow = 1,
+                              dimnames = list(NULL, c("r_1", "r_2"))),
+        response_rates = matrix(c(0.5, 1), nrow = 1,
+                                dimnames = list(NULL, c("rr_A", "rr_hist"))),
+        previous_analyses = list(),
+        n_trials = n_trials,
+        endpoint = "binary",
+        scenario_number = 1
       )
     }, {
       out <- continueRecruitment(
@@ -877,10 +885,8 @@ test_that("Only overall==TRUE rows are updated", {
         method_name         = "berry"
       )
       
-      expect_equal(unname(out$scenario_1$n_subjects[, "rr_A"]), 10)
-      expect_equal(unname(out$scenario_1$n_responders[, "rr_A", drop = TRUE]), 5)
-      expect_equal(unname(out$scenario_1$n_subjects[, "rr_hist"]), 1)
-      expect_equal(unname(out$scenario_1$n_responders[, "rr_hist", drop = TRUE]), 1)
+      expect_equal(unname(as.numeric(out$scenario_1$n_subjects)), c(10, 1))
+      expect_equal(unname(as.numeric(out$scenario_1$n_responders)), c(5, 1))
     }
   )
 })

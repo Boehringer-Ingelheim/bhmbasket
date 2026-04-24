@@ -17,34 +17,19 @@ loadAnalyses(
 Default: \code{rep(1, length(scenario_numbers))}}
 
 \item{load_path}{A string providing a path where the scenarios are being stored,
-Default: \code{\link[base]{tempfile}}}
+Default: \code{\link[base]{tempdir}}}
 }
 \value{
 Returns an object of class \code{analysis_list}
 }
 \description{
-This function loads an analysis performed with
-\code{\link[bhmbasket]{performAnalyses}}
-}
-\examples{
-  trial_data <- createTrial(
-    n_subjects   = c(10, 20, 30),
-    n_responders = c(1, 2, 3))
-
-  analysis_list <- performAnalyses(
-    scenario_list      = trial_data,
-    target_rates       = rep(0.5, 3),
-    n_mcmc_iterations  = 100)
-
-  save_info     <- saveAnalyses(analysis_list)
-  analysis_list <- loadAnalyses(scenario_numbers = save_info$scenario_numbers,
-                                analysis_numbers = save_info$analysis_numbers,
-                                load_path        = save_info$path)
+This function loads one or more analyses previously saved with
+\code{\link[bhmbasket]{saveAnalyses}}.
 }
 \seealso{
 \code{\link[bhmbasket]{performAnalyses}}
 \code{\link[bhmbasket]{saveAnalyses}}
-\code{\link[base]{tempfile}}
+\code{\link[base]{tempdir}}
 }
 \author{
 Stephan Wojciekowski

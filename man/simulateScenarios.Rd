@@ -6,8 +6,11 @@
 \usage{
 simulateScenarios(
   n_subjects_list,
-  response_rates_list,
-  scenario_numbers = seq_along(response_rates_list),
+  response_rates_list = NULL,
+  means_list = NULL,
+  sds_list = NULL,
+  endpoint = c("binary", "normal"),
+  scenario_numbers = NULL,
   n_trials = 10000
 )
 }
@@ -17,12 +20,23 @@ the number of subjects per cohort.
 A single vector can be provided if all scenarios should have the same number of subjects.}
 
 \item{response_rates_list}{A list that contains for each scenario a vector for
-the response rates per cohort.}
+the response rates per cohort. Used for binary endpoints.}
+
+\item{means_list}{A list that contains for each scenario a vector for
+the true cohort means. Used for continuous endpoints.}
+
+\item{sds_list}{A list that contains for each scenario a vector for
+the true cohort standard deviations. Used for continuous endpoints.
+Historical continuous cohorts can be represented by standard deviation \code{0}.}
+
+\item{endpoint}{A string indicating the endpoint type. Must be one of \code{"binary"} or \code{"normal"},
+Default: \code{"binary"}}
 
 \item{scenario_numbers}{A vector of positive integers naming the scenarios,
-Default: \code{seq_along(response_rates_list)}}
+Default: \code{seq_along(response_rates_list)} for binary endpoints and
+\code{seq_along(means_list)} for continuous endpoints.}
 
-\item{n_trials}{An integer indicating the number of trial simulations per response rates,
+\item{n_trials}{An integer indicating the number of trial simulations per scenario,
 Default: \code{10000}. If \code{n_trials} is present in \code{.GlobalEnv} and \code{missing(n_trials)},
 the globally available value will be used.}
 }
@@ -34,8 +48,11 @@ This function creates scenarios for the analysis with
 \code{\link[bhmbasket]{performAnalyses}}.
 }
 \details{
-The function simulates trials with binary outcome for each scenario.
-Integer values for the response rates will be treated as observed outcomes.
+For binary endpoints, the function simulates trials with binary outcomes.
+Integer values for the response rates are treated as observed outcomes.
+
+For continuous endpoints, the function simulates cohort-level sample means.
+Cohorts with standard deviation \code{0} are treated as historical cohorts with fixed observed means.
 }
 \examples{
   n_subjects     <- c(10, 20, 30)

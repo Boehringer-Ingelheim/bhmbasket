@@ -4,12 +4,27 @@
 \alias{createTrial}
 \title{createTrial}
 \usage{
-createTrial(n_subjects, n_responders)
+createTrial(
+  n_subjects,
+  n_responders = NULL,
+  means = NULL,
+  sds = NULL,
+  endpoint = c("binary", "normal")
+)
 }
 \arguments{
 \item{n_subjects}{A vector of integers for the number of subjects in the trial outcome}
 
-\item{n_responders}{A vector of integers for the number of responders in the trial outcome}
+\item{n_responders}{A vector of integers for the number of responders in the trial outcome.
+Used for binary endpoints.}
+
+\item{means}{A numeric vector of cohort means. Used for continuous endpoints.}
+
+\item{sds}{A numeric vector of cohort standard deviations. Used for continuous endpoints.
+Historical continuous cohorts can be represented by \code{sds = 0}.}
+
+\item{endpoint}{A string indicating the endpoint type. Must be one of \code{"binary"} or \code{"normal"},
+Default: \code{"binary"}}
 }
 \value{
 An object of class \code{scenario_list} with the scenario data for a single trial outcome.
@@ -20,17 +35,15 @@ for a single trial outcome, which can subsequently be analyzed with other functi
 \code{bhmbasket}, e.g. \code{\link[bhmbasket]{performAnalyses}}
 }
 \details{
-This function is a wrapper for \code{\link[bhmbasket]{simulateScenarios}} with
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{simulateScenarios(
- n_subjects_list     = list(n_subjects),
- response_rates_list = list(n_responders),
- n_trials            = 1)
-}\if{html}{\out{</div>}}
+For binary endpoints, this function is a wrapper for \code{\link[bhmbasket]{simulateScenarios}}
+using \code{response_rates_list}.
+For continuous endpoints, it is a wrapper using \code{means_list} and \code{sds_list}.
 }
 \examples{
- trial_outcome <- createTrial(n_subjects   = c(10, 20, 30, 40),
-                              n_responders = c( 1,  2,  3,  4))
+ trial_outcome <- createTrial(
+   n_subjects   = c(10, 20, 30, 40),
+   n_responders = c(1, 2, 3, 4)
+ )
 }
 \seealso{
 \code{\link[bhmbasket]{simulateScenarios}}

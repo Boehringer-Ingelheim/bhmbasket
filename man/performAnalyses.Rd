@@ -7,14 +7,17 @@
 performAnalyses(
   scenario_list,
   evidence_levels = c(0.025, 0.05, 0.5, 0.8, 0.9, 0.95, 0.975),
-  method_names = c("berry", "exnex", "exnex_adj", "pooled", "stratified"),
+  method_names = NULL,
   target_rates = NULL,
+  target_means = NULL,
   prior_parameters_list = NULL,
   calc_differences = NULL,
   n_mcmc_iterations = 10000,
   n_cores = 1,
   seed = 1,
-  verbose = TRUE
+  verbose = TRUE,
+  nbins = 5,
+  bin_breaks = NULL
 )
 }
 \arguments{
@@ -22,17 +25,27 @@ performAnalyses(
 as e.g. created with \code{\link[bhmbasket]{simulateScenarios}}}
 
 \item{evidence_levels}{A vector of numerics in \verb{(0, 1)} for the
-\code{1-evidence_levels}-quantiles of the posterior response rates to be saved.
+\code{1-evidence_levels}-quantiles of the posterior distributions to be saved.
 Default: \code{c(0.025, 0.05, 0.5, 0.8, 0.9, 0.95, 0.975)}}
 
-\item{method_names}{A vector of strings for the names of the methods to be used. Must
-be one of the default values, Default: \code{c("berry", "exnex", "exnex_adj", "pooled", "stratified")}}
+\item{method_names}{Either \code{NULL} or a vector of strings for the names of the methods
+to be used. If \code{NULL}, endpoint-specific defaults are used.
+For endpoint \code{"binary"}, the default is \code{c("berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix", "pooled", "stratified", "stratified_mix")}.
+For endpoint \code{"normal"}, the default and only supported method is \code{"normal"}.}
 
 \item{target_rates}{A vector of numerics in \verb{(0, 1)} for the
-target rates of each cohort, Default: \code{NULL}}
+target rates of each cohort. Only used for endpoint \code{"binary"}, Default: \code{NULL}}
+
+\item{target_means}{A numeric vector of target means for each cohort.
+Only used for endpoint \code{"normal"} when \code{prior_parameters_list} is \code{NULL}.
+If \code{prior_parameters_list} is provided for method \code{"normal"}, the target means
+stored there are used and this argument is ignored. Default: \code{NULL}}
 
 \item{prior_parameters_list}{An object of class \code{prior_parameters_list},
-as e.g. created with \code{\link[bhmbasket]{getPriorParameters}}}
+as e.g. created with \code{\link[bhmbasket]{getPriorParameters}}.
+For endpoint \code{"normal"}, this can be used instead of \code{target_means} to fully
+specify the prior parameters. If \code{prior_parameters_list} contains an entry
+named \code{"normal"}, its \code{target_means} component is used by the model.}
 
 \item{calc_differences}{A matrix of positive integers with 2 columns.
 For each row the differences will be calculated.
@@ -54,6 +67,12 @@ Default: \code{1}}
 A numeric for the random seed, Default: \code{1}}
 
 \item{verbose}{A logical indicating whether messages should be printed, Default: \code{TRUE}}
+
+\item{nbins}{A positive integer for the number of bins used to group similar trial realizations
+for endpoint \code{"normal"}. Ignored for endpoint \code{"binary"}, Default: \code{5}}
+
+\item{bin_breaks}{Either \code{NULL} or a named list of numeric break vectors used instead of \code{nbins}
+for endpoint \code{"normal"}. Ignored for endpoint \code{"binary"}, Default: \code{NULL}}
 }
 \value{
 An object of class \code{analysis_list}.
@@ -61,7 +80,9 @@ An object of class \code{analysis_list}.
 \description{
 This function performs the analysis of simulated or observed trial data with the
 specified methods
-and returns the quantiles of the posterior response rates
+and returns the quantiles of the posterior distributions.
+For binary endpoints, posterior response rates are returned.
+For normal endpoints, posterior cohort means are returned.
 }
 \details{
 This function applies the following analysis models to (simulated) scenarios of class
@@ -72,7 +93,27 @@ This function applies the following analysis models to (simulated) scenarios of 
 \item BHM that combines above approaches: \code{"exnex_adj"}
 \item Pooled beta-binomial approach: \code{"pooled"}
 \item Stratified beta-binomial approach: \code{"stratified"}
+\item BHM with mixture prior on the Nex component: \code{"exnex_mix"}
+\item Adjusted BHM with mixture prior on the Nex component: \code{"exnex_adj_mix"}
+\item Stratified beta-binomial approach with mixture beta prior: \code{"stratified_mix"}
+\item Adjusted ExNex hierarchical normal model for continuous endpoints: \code{"normal"}
 }
+For endpoint \code{"binary"}, the posterior distributions are those of the cohort-specific
+response rates.
+For endpoint \code{"normal"}, the posterior distributions are those of the cohort-specific
+adjusted means.
+
+For endpoint \code{"normal"}, the target means can be supplied in two ways:
+\itemize{
+\item via the argument \code{target_means}, in which case default prior parameters
+for method \code{"normal"} are constructed internally
+\item via \code{prior_parameters_list[["normal"]]}, in which case the
+\code{target_means} stored in that object are used by the model
+}
+
+If both are supplied, the values in \code{prior_parameters_list[["normal"]]}
+take precedence.
+
 The posterior distributions of the BHMs are approximated with Markov chain Monte Carlo (MCMC)
 methods implemented in JAGS.
 Two independent chains are used with each \code{n_mcmc_iterations} number of MCMC iterations.
@@ -87,6 +128,12 @@ it should definitively be increased for the analysis of a single trial's outcome
 
 The analysis models will only be applied to the unique trial realizations across
 all simulated scenarios.
+For endpoint \code{"binary"}, uniqueness is determined exactly from the response counts and
+sample sizes.
+For endpoint \code{"normal"}, similar trial realizations are grouped by binning the observed
+cohort means before analysis, in order to reduce repeated MCMC evaluations.
+These grouped realizations are then mapped back to the original trial realizations.
+
 The models can be applied in parallel by registering a parallel backend for the 'foreach'
 framework, e.g. with \code{doFuture::registerDoFuture()} and \code{future::plan(future::multisession)}.
 The parallelization is nested, so that the resources of a HPC environment can be used
@@ -97,6 +144,13 @@ determined with \code{foreach::getDoParWorkers()}.
 
 The JAGS code for the BHM \code{"exnex"} was taken from Neuenschwander et al. (2016).
 The JAGS code for the BHM \code{"exnex_adj"} is based on the JAGS code for \code{"exnex"}.
+The JAGS code for the BHM \code{"exnex_mix"} extends the \code{"exnex"} model by using
+a mixture prior for the Nex component.
+The JAGS code for the BHM \code{"exnex_adj_mix"} extends the \code{"exnex_adj"} model by using
+a mixture prior for the Nex component.
+The JAGS code for the model \code{"normal"} is an adjusted ExNex hierarchical normal model
+for continuous endpoints, where the likelihood is defined on observed cohort means and
+the cohort-specific target means are used as additive offsets.
 }
 \examples{
  trial_data <- createTrial(

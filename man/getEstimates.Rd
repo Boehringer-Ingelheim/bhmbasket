@@ -28,20 +28,24 @@ Only values corresponding to quantiles saved in \code{\link[bhmbasket]{performAn
 will work, Default: \code{0.05}}
 }
 \value{
-A named list of matrices of estimates of response rates and credible intervals.
-Estimates of bias and MSE are included for response rate estimates of simulated trials.
+A named list of matrices of estimates of cohort-level parameters and credible intervals.
+Estimates of bias and MSE are included for cohort-level posterior estimates of simulated trials.
 }
 \description{
 This function calculates the point estimates and credible intervals per cohort,
 as well as estimates of the biases and the mean squared errors of the point estimates per cohort.
 }
 \details{
-Bias and MSE will only be calculated for response rate estimates of simulated trials.
+For binary endpoints, bias and MSE will only be calculated for posterior response-rate
+estimates of simulated trials.
+For continuous endpoints, bias and MSE will only be calculated for posterior cohort-mean
+estimates of simulated trials.
 For additional parameters, bias and MSE will not be calculated.
 
-Possible additional parameters are for the Bayesian hierarchical models are
-\code{c('mu', 'tau')} for \code{'berry'}, \code{'exnex'}, and \code{'exnex_adj'}.
-The latter two models can also access the posterior weights
+Possible additional parameters for the Bayesian hierarchical models are
+\code{c('mu', 'tau')} for \code{'berry'}, \code{'exnex'}, \code{'exnex_mix'}, \code{'exnex_adj'},
+and \code{'exnex_adj_mix'}.
+The ExNex-based models can also access posterior weights.
 \code{paste0("w_", seq_len(n_cohorts))}.
 }
 \examples{
@@ -74,6 +78,25 @@ The latter two models can also access the posterior weights
   getEstimates(outcome_analysis)
   getEstimates(analyses_list  = outcome_analysis,
                add_parameters = c("mu", "w_1", "w_2", "w_3"))
+
+  normal_scenarios <- simulateScenarios(
+    n_subjects_list = list(c(30, 30, 30)),
+    means_list      = list(c(5.0, 5.5, 6.0)),
+    sds_list        = list(c(1, 1, 1)),
+    n_trials        = 10,
+    endpoint        = "normal")
+
+  normal_analyses <- performAnalyses(
+    scenario_list      = normal_scenarios,
+    method_names       = "normal",
+    target_means       = c(5, 5, 5),
+    calc_differences   = matrix(c(3, 2, 2, 1), ncol = 2),
+    n_mcmc_iterations  = 100)
+
+  getEstimates(normal_analyses)
+  getEstimates(analyses_list   = normal_analyses,
+               point_estimator = "mean",
+               alpha_level     = 0.1)
 }
 \seealso{
 \code{\link[bhmbasket]{createTrial}}

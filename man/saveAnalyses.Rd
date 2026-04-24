@@ -11,38 +11,76 @@ saveAnalyses(analyses_list, save_path = tempdir(), analysis_numbers = NULL)
 as created with \code{\link[bhmbasket]{performAnalyses}}}
 
 \item{save_path}{A string for the path where the scenarios are being stored,
-Default: \code{\link[base]{tempfile}}}
+Default: \code{\link[base]{tempdir}}}
 
 \item{analysis_numbers}{A positive integer naming the analysis number.
 If \code{NULL}, the function will look for the number of saved analyses of the scenario
-in the directory and add 1, Default: \code{NULL}}
+in the directory and add \code{1}, Default: \code{NULL}}
 }
 \value{
-A named list of length 3 of vectors with scenario and analysis numbers and
-the \code{save_path}
+A named list of length \code{3} containing the scenario numbers,
+analysis numbers, and the \code{save_path}
 }
 \description{
 This function saves an object of class \code{analysis_list}
 }
+\details{
+This function saves objects of class \code{analysis_list} as created with
+\code{\link[bhmbasket]{performAnalyses}}.
+It supports analyses for both binary and normal endpoints.
+
+Each scenario in \code{analyses_list} is saved as a separate \code{.rds} file with file name
+pattern \verb{analysis_data_<scenario_number>_<analysis_number>.rds}.
+
+If \code{analysis_numbers = NULL}, the function determines the next available analysis
+number for each scenario from the files already present in \code{save_path}.
+}
 \examples{
-  trial_data <- createTrial(
-    n_subjects   = c(10, 20, 30),
-    n_responders = c(1, 2, 3))
+## Binary endpoint example
+trial_data_bin <- createTrial(
+  n_subjects   = c(10, 20, 30),
+  n_responders = c(1, 2, 3)
+)
 
-  analysis_list <- performAnalyses(
-    scenario_list      = trial_data,
-    target_rates       = rep(0.5, 3),
-    n_mcmc_iterations  = 100)
+analysis_list_bin <- performAnalyses(
+  scenario_list      = trial_data_bin,
+  target_rates       = rep(0.5, 3),
+  n_mcmc_iterations  = 100
+)
 
-  save_info     <- saveAnalyses(analysis_list)
-  analysis_list <- loadAnalyses(scenario_numbers = save_info$scenario_numbers,
-                                analysis_numbers = save_info$analysis_numbers,
-                                load_path        = save_info$path)
+save_info_bin <- saveAnalyses(analysis_list_bin)
+loaded_bin <- loadAnalyses(
+  scenario_numbers = save_info_bin$scenario_numbers,
+  analysis_numbers = save_info_bin$analysis_numbers,
+  load_path        = save_info_bin$path
+)
+
+## Normal endpoint example
+trial_data_norm <- createTrial(
+  n_subjects = c(20, 20, 20),
+  means      = c(5.0, 5.4, 5.8),
+  sds        = c(1, 1, 1),
+  endpoint   = "normal"
+)
+
+analysis_list_norm <- performAnalyses(
+  scenario_list      = trial_data_norm,
+  method_names       = "normal",
+  target_means       = c(5, 5, 5),
+  n_mcmc_iterations  = 100
+)
+
+save_info_norm <- saveAnalyses(analysis_list_norm)
+loaded_norm <- loadAnalyses(
+  scenario_numbers = save_info_norm$scenario_numbers,
+  analysis_numbers = save_info_norm$analysis_numbers,
+  load_path        = save_info_norm$path
+)
 }
 \seealso{
 \code{\link[bhmbasket]{performAnalyses}}
 \code{\link[bhmbasket]{loadAnalyses}}
-\code{\link[base]{tempfile}}
+\code{\link[base]{tempdir}}
 }
 \author{
 Stephan Wojciekowski

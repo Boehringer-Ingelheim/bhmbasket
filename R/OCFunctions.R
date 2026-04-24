@@ -668,28 +668,25 @@ getGoDecisions <- function (
   
   check_boundary_rules <- tryCatch({
     x <- stats::runif(n = length(cohort_names), min = 0.001, max = 0.999)
+    
+    n_cohorts <- sum(grepl("^(p|theta)_[0-9]+$", colnames(analyses_list[[1]]$quantiles_list[[1]][[1]])))
+    
     if (is.list(boundary_rules)) {
       for (i in seq_along(boundary_rules)) {
-        if (!is.language(boundary_rules[[i]]))                                   stop()
-        if (!identical(boundary_rules[[i]][1], quote(c())))                      stop()
-        if (!identical(
-          length(boundary_rules[[i]]) - 1L,
-          ncol(analyses_list$scenario_1$scenario_data$n_subjects)
-        )) stop()
+        if (!is.language(boundary_rules[[i]])) stop()
+        if (!identical(boundary_rules[[i]][1], quote(c()))) stop()
+        if (!identical(length(boundary_rules[[i]]) - 1L, n_cohorts)) stop()
         eval(boundary_rules[[i]])
       }
     } else {
-      if (!is.language(boundary_rules))                                          stop()
-      if (!identical(boundary_rules[1], quote(c())))                             stop()
-      ## fix number of decisions to number of cohorts (endpoint-independent)
-      if (!identical(
-        length(boundary_rules) - 1L,
-        ncol(analyses_list$scenario_1$scenario_data$n_subjects)
-      )) stop()
+      if (!is.language(boundary_rules)) stop()
+      if (!identical(boundary_rules[1], quote(c()))) stop()
+      if (!identical(length(boundary_rules) - 1L, n_cohorts)) stop()
       eval(boundary_rules)
     }
-    rm(x)
-  }, error = function (e) e)
+    
+    rm(x, n_cohorts)
+  }, error = function(e) e)
   
   if (inherits(check_boundary_rules, "error")) {
     stop(error_boundary_rules)

@@ -130,12 +130,23 @@ getPriorParameters <- function (
   w_j          = 0.5,
   endpoint     = c("binary", "normal"),
   
-  sigma_shape = 1,
-  sigma_rate  = 1
+  sigma_shape  = NULL,
+  sigma_rate   = NULL
   
 ) {
   
   endpoint <- match.arg(endpoint)
+  
+  if (is.null(method_names)) {
+    if (endpoint == "binary") {
+      method_names <- c(
+        "berry", "exnex", "exnex_adj", "exnex_mix",
+        "exnex_adj_mix", "pooled", "stratified", "stratified_mix"
+      )
+    } else {
+      method_names <- "normal"
+    }
+  }
   
   if (endpoint == "normal") {
     

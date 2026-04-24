@@ -10,14 +10,16 @@ getGoProbabilities(go_decisions_list, nogo_decisions_list = NULL)
 \item{go_decisions_list}{An object of class \code{decision_list},
 as returned by \code{\link[bhmbasket]{getGoDecisions}}}
 
-\item{nogo_decisions_list}{An object of class \code{decision_list},
+\item{nogo_decisions_list}{Either \code{NULL} or an object of class \code{decision_list},
 as returned by \code{\link[bhmbasket]{getGoDecisions}}, Default: \code{NULL}}
 }
 \value{
-A list of matrices of Go (and Consider and NoGo) probabilities
+A list of matrices of Go probabilities.
+If both \code{go_decisions_list} and \code{nogo_decisions_list} are provided,
+the returned matrices additionally contain Consider and NoGo probabilities.
 }
 \description{
-Calculates the Go probabilities for given decisions
+Calculates the Go probabilities for given decisions.
 }
 \details{
 If only \code{go_decisions_list} is provided
@@ -25,6 +27,9 @@ If only \code{go_decisions_list} is provided
 only Go probabilities will be calculated.
 If both \code{go_decisions_list} and \code{nogo_decisions_list} are provided,
 Go, Consider, and NoGo probabilities will be calculated.
+
+This function works for decision rules derived from analyses with binary endpoints
+as well as for decision rules derived from analyses with continuous endpoints.
 }
 \examples{
 scenarios_list <- simulateScenarios(
