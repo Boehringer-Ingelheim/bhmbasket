@@ -166,7 +166,7 @@ getPostQuantiles <- function (
   ## Scenario data
   scenario_data,
   
-  ## Scenario data
+  ## Differences between cohorts
   calc_differences  = NULL,
   
   ## JAGS parameters
@@ -177,7 +177,7 @@ getPostQuantiles <- function (
   ## MCMC Parameters
   n_mcmc_iterations = 1e4,
   
-  ## Where to save one of the posterior response rates approximations provided by JAGS
+  ## Where to save one of the posterior sample approximations provided by JAGS
   save_path         = NULL,
   save_trial        = NULL
   
@@ -200,7 +200,7 @@ getPostQuantiles <- function (
     if (is.null(dim(scenario_data$y))) {
       scenario_data$y          <- t(convertVector2Matrix(scenario_data$y))
       scenario_data$n_subjects <- t(convertVector2Matrix(scenario_data$n_subjects))
-      #TODO why sd optional
+      
       if (!is.null(scenario_data$sds_observed)) {
         scenario_data$sds_observed <- t(convertVector2Matrix(scenario_data$sds_observed))
       }
@@ -295,6 +295,9 @@ getPostQuantilesOfTrial <- function (
   
   endpoint <- match.arg(endpoint)
   
+  ## For endpoint = "normal", 'sds' is currently optional and only passed through
+  ## if supplied. The current normal model uses y and n, but not sds directly.
+  
   if (endpoint == "binary") {
     
     j_data$r <- n_responders
@@ -319,7 +322,7 @@ getPostQuantilesOfTrial <- function (
       
     } else {
       
-      ## Get posterior response rates per indication
+      ## Get posterior samples from the specified model
       posterior_samples <- getPosteriors(
         j_parameters      = j_parameters,
         j_model_file      = j_model_file,
@@ -327,7 +330,7 @@ getPostQuantilesOfTrial <- function (
         n_mcmc_iterations = n_mcmc_iterations
       )
       
-      ## Calculate differences between response rates of cohorts
+      ## Calculate differences between cohort-level posterior parameters
       if (!is.null(calc_differences)) {
         posterior_samples <- calcDiffsMCMC(
           posterior_samples = posterior_samples,
@@ -335,8 +338,8 @@ getPostQuantilesOfTrial <- function (
         )
       }
       
-      ## Save posterior response rates per indication for one randomly selected simulation,
-      ## due to time and storage space constraints only one simulation
+      ## Save posterior samples for one randomly selected trial realization,
+      ## due to time and storage space constraints only one trial is saved
       if (!is.null(save_path)) {
         if (trial_index == save_trial) {
           saveRDS(
@@ -667,7 +670,7 @@ getUniqueRows <- function (
   
   unique_rows <- stats::aggregate(
     id ~ .,
-    data = cbind(id = seq_along(n_rows), matrix),
+    data = cbind(id = seq_len(n_rows), matrix),
     FUN  = length
   )
   
@@ -1026,14 +1029,21 @@ mapUniqueTrials <- function (
 #' @param evidence_levels A vector of numerics in `(0, 1)` for the
 #' `1-evidence_levels`-quantiles of the posterior distributions to be saved.
 #' Default: `c(0.025, 0.05, 0.5, 0.8, 0.9, 0.95, 0.975)`
-#' @param method_names A vector of strings for the names of the methods to be used.
-#' For endpoint `"binary"`, this must be one of the default values, Default:
-#' `c("berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix", "pooled", "stratified", "stratified_mix")`.
-#' For endpoint `"normal"`, the only supported method is `"normal"`.
+#' @param method_names Either `NULL` or a vector of strings for the names of the methods 
+#' to be used. If `NULL`, endpoint-specific defaults are used.
+#' For endpoint `"binary"`, the default is `c("berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix", "pooled", "stratified", "stratified_mix")`.
+#' For endpoint `"normal"`, the default and only supported method is `"normal"`.
 #' @param target_rates A vector of numerics in `(0, 1)` for the
 #' target rates of each cohort. Only used for endpoint `"binary"`, Default: `NULL`
+#' @param target_means A numeric vector of target means for each cohort.
+#' Only used for endpoint `"normal"` when `prior_parameters_list` is `NULL`.
+#' If `prior_parameters_list` is provided for method `"normal"`, the target means
+#' stored there are used and this argument is ignored. Default: `NULL`
 #' @param prior_parameters_list An object of class `prior_parameters_list`,
-#' as e.g. created with \code{\link[bhmbasket]{getPriorParameters}}
+#' as e.g. created with \code{\link[bhmbasket]{getPriorParameters}}.
+#' For endpoint `"normal"`, this can be used instead of `target_means` to fully
+#' specify the prior parameters. If `prior_parameters_list` contains an entry
+#' named `"normal"`, its `target_means` component is used by the model.
 #' @param calc_differences A matrix of positive integers with 2 columns.
 #' For each row the differences will be calculated.
 #' Also a vector of positive integers can be provided for a single difference.
@@ -1073,6 +1083,16 @@ mapUniqueTrials <- function (
 #' response rates.
 #' For endpoint `"normal"`, the posterior distributions are those of the cohort-specific
 #' adjusted means.
+#'
+#' For endpoint `"normal"`, the target means can be supplied in two ways:
+#' \itemize{
+#'   \item via the argument `target_means`, in which case default prior parameters
+#'   for method `"normal"` are constructed internally
+#'   \item via `prior_parameters_list[["normal"]]`, in which case the
+#'   `target_means` stored in that object are used by the model
+#' }
+#' If both are supplied, the values in `prior_parameters_list[["normal"]]`
+#' take precedence.
 #'
 #' The posterior distributions of the BHMs are approximated with Markov chain Monte Carlo (MCMC)
 #' methods implemented in JAGS.
@@ -1143,7 +1163,7 @@ performAnalyses <- function (
   scenario_list,
   evidence_levels       = c(0.025, 0.05, 0.5, 0.8, 0.9, 0.95, 0.975),
   
-  method_names          = c("berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix", "pooled", "stratified", "stratified_mix"),
+  method_names          = NULL,
   target_rates          = NULL,
   target_means          = NULL,
   prior_parameters_list = NULL,
@@ -1161,37 +1181,75 @@ performAnalyses <- function (
 ) {
   
   error_scenario_list <-
-    "Please provide an object of class scenario_list for the argument 'scenario_list'"
+    "Please provide an object of class 'scenario_list' for the argument 'scenario_list'"
+  
   error_evidence_levels <-
     "Please provide a vector of numerics in (0, 1) for the argument 'evidence_levels'"
-  error_method_names <-
-    paste("Please provide a (vector of) strings for the argument 'method_names'\n",
-          "Must be one of 'berry', 'exnex', 'exnex_mix', 'exnex_adj', 'exnex_adj_mix', 'pooled', 'stratified', 'stratified_mix', 'normal'")
+  
+  error_method_names_binary <-
+    paste(
+      "Please provide a (vector of) strings for the argument 'method_names'.",
+      "For endpoint = 'binary', method_names must be one of",
+      "'berry', 'exnex', 'exnex_mix', 'exnex_adj', 'exnex_adj_mix',",
+      "'pooled', 'stratified', 'stratified_mix'"
+    )
+  
+  error_method_names_normal <-
+    "For endpoint = 'normal', method_names must be 'normal'"
+  
   error_target_rates <-
-    paste("Please provide either 'NULL' or a vector of numerics in (0, 1)",
-          "for the argument 'target_rates'")
+    paste(
+      "Please provide either 'NULL' or a vector of numerics in (0, 1)",
+      "for the argument 'target_rates'"
+    )
+  
+  error_target_means <-
+    "For endpoint = 'normal', please provide either 'NULL' or a numeric vector for the argument 'target_means'"
+  
   error_prior_parameters_list <-
     "Please provide either 'NULL' or an object of class 'prior_parameters_list'"
+  
   error_calc_differences <-
-    paste("Please provide either 'NULL' or a matrix of integers with ncol = 2.",
-          "The values of the integers must be less than or equal to the number of cohorts")
+    paste(
+      "Please provide either 'NULL' or a matrix of integers with ncol = 2.",
+      "The values of the integers must be less than or equal to the number of cohorts"
+    )
+  
   error_n_mcmc_iterations <-
     "Please provide a positive integer for the argument 'n_mcmc_iterations'"
+  
   error_verbose <-
     "Please provide a logical for the argument 'verbose'"
   
   error_need_target_rates_for_methods <-
     "Please provide 'target_rates' when using the methods 'berry', 'exnex_adj' and/or 'exnex_adj_mix'"
+  
   error_need_one_of_prior_or_target <-
     "Please provide at least one of 'prior_parameters_list' or 'target_rates'"
+  
+  error_need_one_of_prior_or_target_means <-
+    "For endpoint = 'normal', please provide at least one of 'prior_parameters_list' or 'target_means'"
+  
   error_target_length <-
     "The length of 'target_rates' does not match the number of cohorts"
+  
+  error_target_means_length <-
+    "The length of 'target_means' does not match the number of cohorts"
+  
   error_prior_methods_mismatch <-
-    paste("Not all specified methods in 'method_names'",
-          "have prior parameters specified in 'prior_parameters_list'")
+    paste(
+      "Not all specified methods in 'method_names'",
+      "have prior parameters specified in 'prior_parameters_list'"
+    )
+  
   error_prior_cohorts_mismatch <-
-    paste("The number of cohorts specified in 'prior_parameters_list' does not match",
-          "the number of cohorts specified in 'scenario_list'")
+    paste(
+      "The number of cohorts specified in 'prior_parameters_list' does not match",
+      "the number of cohorts specified in 'scenario_list'"
+    )
+  
+  error_prior_normal_structure <-
+    "The prior parameters specified for method 'normal' are incomplete or do not match the number of cohorts"
   
   warning_n_cores <- "The argument 'n_cores' is deprecated as of version 0.9.3."
   warning_seed    <- "The argument 'seed' is deprecated as of version 0.9.3."
@@ -1207,11 +1265,28 @@ performAnalyses <- function (
   
   endpoint <- if (!is.null(scenario_list[[1]]$endpoint)) scenario_list[[1]]$endpoint else "binary"
   
+  if (is.null(method_names)) {
+    
+    if (endpoint == "binary") {
+      
+      method_names <- c(
+        "berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix",
+        "pooled", "stratified", "stratified_mix"
+      )
+      
+    } else {
+      
+      method_names <- "normal"
+      
+    }
+  }
+  
   checkmate::assertNumeric(
     evidence_levels,
     any.missing = FALSE,
     .var.name   = error_evidence_levels
   )
+  
   checkmate::assertTRUE(
     all(evidence_levels > 0 & evidence_levels < 1),
     .var.name = error_evidence_levels
@@ -1221,7 +1296,7 @@ performAnalyses <- function (
     method_names,
     any.missing = FALSE,
     min.len     = 1,
-    .var.name   = error_method_names
+    .var.name   = if (endpoint == "binary") error_method_names_binary else error_method_names_normal
   )
   
   if (endpoint == "binary") {
@@ -1229,11 +1304,12 @@ performAnalyses <- function (
     method_names <- tryCatch(
       match.arg(
         method_names,
-        choices    = c("berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix", "pooled", "stratified", "stratified_mix"),
+        choices    = c("berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix",
+                       "pooled", "stratified", "stratified_mix"),
         several.ok = TRUE
       ),
       error = function(e) {
-        stop(error_method_names, call. = FALSE)
+        stop(error_method_names_binary, call. = FALSE)
       }
     )
     
@@ -1272,6 +1348,7 @@ performAnalyses <- function (
     } else {
       
       n_coh <- ncol(scenario_list[[1]]$n_subjects)
+      
       checkmate::assertTRUE(
         identical(length(target_rates), n_coh),
         .var.name = error_target_length
@@ -1289,8 +1366,7 @@ performAnalyses <- function (
       
       inconsistent_cohorts <- any(
         sapply(
-          intersect(names(prior_parameters_list),
-                    c("exnex", "exnex_adj", "stratified")),
+          intersect(names(prior_parameters_list), c("exnex", "exnex_adj", "stratified")),
           function(name) {
             max(sapply(prior_parameters_list[[name]], length)) != n_coh
           }
@@ -1338,11 +1414,11 @@ performAnalyses <- function (
     method_names <- tryCatch(
       match.arg(
         method_names,
-        choices    = c("normal"),
+        choices    = "normal",
         several.ok = TRUE
       ),
       error = function(e) {
-        stop("For endpoint = 'normal', method_names must be 'normal'", call. = FALSE)
+        stop(error_method_names_normal, call. = FALSE)
       }
     )
     
@@ -1350,36 +1426,84 @@ performAnalyses <- function (
       stop("For endpoint = 'normal', 'target_rates' is not used.", call. = FALSE)
     }
     
+    n_coh <- ncol(scenario_list[[1]]$n_subjects)
+    
     if (!is.null(target_means)) {
       checkmate::assertNumeric(
         target_means,
         any.missing = FALSE,
-        .var.name   = "For endpoint = 'normal', 'target_means' must be a numeric vector"
+        .var.name   = error_target_means
       )
-      
-      n_coh <- ncol(scenario_list[[1]]$n_subjects)
       checkmate::assertTRUE(
         length(target_means) == n_coh,
-        .var.name = "The length of 'target_means' does not match the number of cohorts"
+        .var.name = error_target_means_length
       )
     }
     
-    if (!is.null(prior_parameters_list)) {
+    if (is.null(prior_parameters_list)) {
+      
+      checkmate::assertTRUE(
+        !is.null(target_means),
+        .var.name = error_need_one_of_prior_or_target_means
+      )
+      
+    } else {
+      
       checkmate::assertClass(
         prior_parameters_list,
         "prior_parameters_list",
         .var.name = error_prior_parameters_list
       )
+      
       checkmate::assertTRUE(
         "normal" %in% names(prior_parameters_list),
-        .var.name = "For endpoint = 'normal', prior_parameters_list must contain entry named 'normal'"
+        .var.name = "For endpoint = 'normal', prior_parameters_list must contain an entry named 'normal'"
+      )
+      
+      pp <- prior_parameters_list[["normal"]]
+      
+      needed_names <- c(
+        "mu_mean", "mu_sd", "tau_scale",
+        "mu_j", "tau_j", "w_j",
+        "target_means", "sigma_shape", "sigma_rate"
+      )
+      
+      checkmate::assertTRUE(
+        all(needed_names %in% names(pp)),
+        .var.name = error_prior_normal_structure
+      )
+      
+      checkmate::assertTRUE(
+        length(pp$mu_j) == n_coh &&
+          length(pp$tau_j) == n_coh &&
+          length(pp$target_means) == n_coh,
+        .var.name = error_prior_normal_structure
+      )
+      
+      checkmate::assertTRUE(
+        is.numeric(pp$mu_mean) && length(pp$mu_mean) == 1 &&
+          is.numeric(pp$mu_sd) && length(pp$mu_sd) == 1 && pp$mu_sd > 0 &&
+          is.numeric(pp$tau_scale) && length(pp$tau_scale) == 1 && pp$tau_scale > 0 &&
+          is.numeric(pp$w_j) && length(pp$w_j) == 1 && pp$w_j >= 0 && pp$w_j <= 1 &&
+          is.numeric(pp$sigma_shape) && length(pp$sigma_shape) == 1 && pp$sigma_shape > 0 &&
+          is.numeric(pp$sigma_rate) && length(pp$sigma_rate) == 1 && pp$sigma_rate > 0 &&
+          all(pp$tau_j > 0),
+        .var.name = error_prior_normal_structure
       )
     }
     
     if (!is.null(bin_breaks)) {
-      checkmate::assertList(bin_breaks, any.missing = FALSE, .var.name = "'bin_breaks' must be a list or NULL")
+      checkmate::assertList(
+        bin_breaks,
+        any.missing = FALSE,
+        .var.name = "'bin_breaks' must be a list or NULL"
+      )
     } else {
-      checkmate::assertInt(nbins, lower = 1, .var.name = "'nbins' must be a positive integer")
+      checkmate::assertInt(
+        nbins,
+        lower = 1,
+        .var.name = "'nbins' must be a positive integer"
+      )
     }
   }
   
@@ -1414,6 +1538,7 @@ performAnalyses <- function (
       .var.name = error_calc_differences
     )
   }
+  
   rm(n_cohorts_min)
   
   if ("n_mcmc_iterations" %in% ls(envir = .GlobalEnv) && missing(n_mcmc_iterations)) {
@@ -1438,7 +1563,9 @@ performAnalyses <- function (
   }
   
   if (verbose) message(format(Sys.time(), "%d-%h-%Y"), " Performing Analyses")
-  
+
+####### ########## ######### ########### ########### ########## ############ ###  
+
   method_names <- sort(method_names)
   quantiles    <- sort(unique(round(1 - c(0.025, 0.05, 0.5, 0.8, 0.9, 0.95, 0.975,
                                           evidence_levels), 9)))

@@ -3,9 +3,9 @@
 # Does not install Jags
 on:
   push:
-    branches: [test]
+    branches: [continuous_endpoint]
   pull_request:
-    branches: [test]
+    branches: [continuous_endpoint]
   workflow_dispatch:
 
 name: Mac

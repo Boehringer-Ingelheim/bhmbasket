@@ -1,6 +1,6 @@
 ## Bayesian Hierarchical Model: ExNex ADJ – Normal Endpoint
 ## Adapted from Neuenschwander et al. (2016), Pharmaceutical Statistics
-## Modfied for Normal endpoint
+## Modified for Normal endpoint
 
 model {
 

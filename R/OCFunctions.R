@@ -28,6 +28,46 @@ getAllCohortNames <- function (
   
 }
 
+#' @title getAverageNSubjects
+#' @md
+#' @description This function calculates the average number of subjects per scenario.
+#' @param scenario_list An object of class `scenario_list`,
+#' as created with \code{\link[bhmbasket]{simulateScenarios}} or
+#' \code{\link[bhmbasket]{continueRecruitment}}
+#' @details This function can be useful to assess decision rules with regard to the average number
+#' of subjects across scenarios when performing interim analyses.
+#' It can be applied to scenarios with binary endpoints as well as to scenarios with
+#' continuous endpoints.
+#' @return A named list of vectors for the average number of subjects in each scenario.
+#' @rdname getAverageNSubjects
+#' @seealso
+#'  \code{\link[bhmbasket]{simulateScenarios}}
+#'  \code{\link[bhmbasket]{continueRecruitment}}
+#' @examples
+#' interim_scenarios <- simulateScenarios(
+#'   n_subjects_list     = list(c(10, 20, 30)),
+#'   response_rates_list = list(rep(0.9, 3)),
+#'   n_trials            = 10)
+#'
+#' interim_analyses <- performAnalyses(
+#'   scenario_list       = interim_scenarios,
+#'   target_rates        = rep(0.5, 3),
+#'   n_mcmc_iterations   = 100)
+#'
+#' interim_gos <- getGoDecisions(
+#'   analyses_list       = interim_analyses,
+#'   cohort_names        = c("p_1", "p_2", "p_3"),
+#'   evidence_levels     = c(0.5, 0.8, 0.5),
+#'   boundary_rules      = quote(c(x[1] > 0.8, x[2] > 0.6, x[3] > 0.7)))
+#'
+#' scenarios_list <- continueRecruitment(
+#'   n_subjects_add_list = list(c(30, 20, 10)),
+#'   decisions_list      = interim_gos,
+#'   method_name         = "exnex_adj")
+#'
+#' getAverageNSubjects(scenarios_list)
+#'
+#' @author Stephan Wojciekowski
 #' @export
 getAverageNSubjects <- function (
     
@@ -64,22 +104,73 @@ getAverageNSubjects <- function (
 #' Only values corresponding to quantiles saved in \code{\link[bhmbasket]{performAnalyses}}
 #' will work, Default: `0.05`
 #' @details
-#' For binary endpoints, bias and MSE are calculated for posterior response-rate estimates.
-#' For continuous endpoints, bias and MSE are calculated for posterior cohort-mean estimates.
-#' For additional parameters, bias and MSE are not calculated.
+#' For binary endpoints, bias and MSE will only be calculated for posterior response-rate
+#' estimates of simulated trials.
+#' For continuous endpoints, bias and MSE will only be calculated for posterior cohort-mean
+#' estimates of simulated trials.
+#' For additional parameters, bias and MSE will not be calculated.
 #'
 #' Possible additional parameters for the Bayesian hierarchical models are
 #' `c('mu', 'tau')` for `'berry'`, `'exnex'`, `'exnex_mix'`, `'exnex_adj'`,
 #' and `'exnex_adj_mix'`.
-#' The ExNex-based models can also access posterior weights
+#' The ExNex-based models can also access posterior weights.
 #' `paste0("w_", seq_len(n_cohorts))`.
 #' @return A named list of matrices of estimates of cohort-level parameters and credible intervals.
-#' Estimates of bias and MSE are included for simulated trial outcomes.
+#' Estimates of bias and MSE are included for cohort-level posterior estimates of simulated trials.
 #' @rdname getEstimates
 #' @seealso
 #'  \code{\link[bhmbasket]{createTrial}}
 #'  \code{\link[bhmbasket]{simulateScenarios}}
 #'  \code{\link[bhmbasket]{performAnalyses}}
+#' @examples
+#'   scenarios_list <- simulateScenarios(
+#'     n_subjects_list     = list(c(10, 20, 30)),
+#'     response_rates_list = list(c(0.1, 0.2, 3)),
+#'     n_trials            = 10)
+#'
+#'   analyses_list <- performAnalyses(
+#'     scenario_list       = scenarios_list,
+#'     target_rates        = c(0.1, 0.1, 0.1),
+#'     calc_differences    = matrix(c(3, 2, 2, 1), ncol = 2),
+#'     n_mcmc_iterations   = 100)
+#'
+#'   getEstimates(analyses_list)
+#'   getEstimates(analyses_list   = analyses_list,
+#'                add_parameters  = c("mu", "tau", "w_1", "w_2", "w_3"),
+#'                point_estimator = "mean",
+#'                alpha_level     = 0.1)
+#'
+#'   outcome <- createTrial(
+#'     n_subjects          = c(10, 20, 30),
+#'     n_responders        = c( 1,  2,  3))
+#'
+#'   outcome_analysis <- performAnalyses(
+#'     scenario_list       = outcome,
+#'     target_rates        = c(0.1, 0.1, 0.1),
+#'     n_mcmc_iterations   = 100)
+#'
+#'   getEstimates(outcome_analysis)
+#'   getEstimates(analyses_list  = outcome_analysis,
+#'                add_parameters = c("mu", "w_1", "w_2", "w_3"))
+#'
+#'   normal_scenarios <- simulateScenarios(
+#'     n_subjects_list = list(c(30, 30, 30)),
+#'     means_list      = list(c(5.0, 5.5, 6.0)),
+#'     sds_list        = list(c(1, 1, 1)),
+#'     n_trials        = 10,
+#'     endpoint        = "normal")
+#'
+#'   normal_analyses <- performAnalyses(
+#'     scenario_list      = normal_scenarios,
+#'     method_names       = "normal",
+#'     target_means       = c(5, 5, 5),
+#'     calc_differences   = matrix(c(3, 2, 2, 1), ncol = 2),
+#'     n_mcmc_iterations  = 100)
+#'
+#'   getEstimates(normal_analyses)
+#'   getEstimates(analyses_list   = normal_analyses,
+#'                point_estimator = "mean",
+#'                alpha_level     = 0.1)
 #' @author Stephan Wojciekowski
 #' @export
 getEstimates <- function (
@@ -360,6 +451,142 @@ getGoBoundaries <- function (
   
 ) {"dummy function"}
 
+#' @title getGoDecisions
+#' @md
+#' @description This function applies decision rules to analyzed trial outcomes.
+#' The resulting \code{decision_list} can be further processed with
+#' \code{\link[bhmbasket]{getGoProbabilities}} or
+#' \code{\link[bhmbasket]{continueRecruitment}}.
+#' @param analyses_list An object of class \code{analysis_list},
+#' as created with \code{\link[bhmbasket]{performAnalyses}}
+#' @param cohort_names A vector of strings with the names of the cohort-level posterior
+#' parameters to be assessed, e.g. \code{c('p_1', 'p_2')} for binary endpoints or
+#' \code{c('theta_1', 'theta_2')} for continuous endpoints
+#' @param evidence_levels A vector of numerics in \code{(0, 1)} for the
+#' posterior probability thresholds for the cohorts.
+#' Will be recycled to match the number of methods in the \code{analyses_list}
+#' @param boundary_rules A quote of a vector for the boundary rules,
+#' \code{quote(c(...))}, see details.
+#' The number of decisions to be taken must match the number of cohorts.
+#' Will be recycled to match the number of methods in the \code{analyses_list}
+#' @param overall_min_gos A positive integer for the minimum number of
+#' cohort-wise go decisions required for an overall go decision,
+#' Default: \code{1}
+#' @return An object of class \code{decision_list}
+#' @details This function applies decision rules to posterior summaries obtained from
+#' \code{\link[bhmbasket]{performAnalyses}}.
+#'
+#' For binary endpoints, the rules are applied to posterior response rates \eqn{p_j}.
+#' A rule of the form
+#' \deqn{P(p_j \mid data > p_{B,j}) > \gamma}
+#' can equivalently be written as
+#' \deqn{q_{1-\gamma,j} > p_{B,j},}
+#' where \eqn{q_{1-\gamma,j}} is the \eqn{1-\gamma}-quantile of the posterior
+#' response rate of cohort \eqn{j}.
+#'
+#' For continuous endpoints, the same logic is applied to posterior cohort means \eqn{\theta_j}.
+#' A rule of the form
+#' \deqn{P(\theta_j \mid data > \theta_{B,j}) > \gamma}
+#' can equivalently be written as
+#' \deqn{q_{1-\gamma,j} > \theta_{B,j},}
+#' where \eqn{q_{1-\gamma,j}} is the \eqn{1-\gamma}-quantile of the posterior
+#' cohort mean of cohort \eqn{j}.
+#'
+#' The arguments \code{cohort_names} and \code{evidence_levels} determine the posterior
+#' quantities to be extracted, where the entries of \code{cohort_names} and
+#' \code{evidence_levels} are matched according to their order.
+#'
+#' The argument \code{boundary_rules} provides the rules that describe what should happen
+#' with the extracted posterior quantiles.
+#' The first posterior quantity determined by the first items of
+#' \code{cohort_names} and \code{evidence_levels} is referred to as \code{x[1]},
+#' the second as \code{x[2]}, etc.
+#' Using the \code{quote(c(...))}-notation,
+#' many different rules can be implemented.
+#'
+#' A decision rule for only one cohort would be
+#' \code{boundary_rules = quote(c(x[1] > 0.1))},
+#' \code{cohort_names = 'p_1'}, and \code{evidence_levels = 0.5},
+#' which implements the rule \eqn{P(p_1 \mid data > 0.1) > 0.5}.
+#' For a continuous endpoint an analogous rule would be
+#' \code{boundary_rules = quote(c(x[1] > 5.0))},
+#' \code{cohort_names = 'theta_1'}, and \code{evidence_levels = 0.8},
+#' which implements the rule \eqn{P(\theta_1 \mid data > 5.0) > 0.8}.
+#'
+#' The number of decisions to be taken must match the number of cohorts, i.e.
+#' for each cohort there must be one decision rule in the vector separated by commas.
+#' See the example section for decision rules for more than one cohort and
+#' the example of \code{\link[bhmbasket]{negateGoDecisions}}
+#' for the implementation of a more complex decision rule.
+#' @seealso
+#'  \code{\link[bhmbasket]{performAnalyses}}
+#'  \code{\link[bhmbasket]{getGoProbabilities}}
+#'  \code{\link[bhmbasket]{negateGoDecisions}}
+#'  \code{\link[bhmbasket]{continueRecruitment}}
+#' @rdname getGoDecisions
+#' @examples
+#' scenarios_list <- simulateScenarios(
+#'   n_subjects_list     = list(c(10, 20, 30)),
+#'   response_rates_list = list(c(0.1, 0.1, 0.9)),
+#'   n_trials            = 10)
+#'
+#' analyses_list <- performAnalyses(
+#'   scenario_list      = scenarios_list,
+#'   target_rates       = rep(0.5, 3),
+#'   n_mcmc_iterations  = 100)
+#'
+#' ## Decision rule for more than one cohort
+#' decisions_list <- getGoDecisions(
+#'   analyses_list   = analyses_list,
+#'   cohort_names    = c("p_1", "p_2", "p_3"),
+#'   evidence_levels = c(0.5, 0.5, 0.8),
+#'   boundary_rules  = quote(c(x[1] > 0.7, x[2] < 0.3, x[3] < 0.6)))
+#'
+#' ## Decision rule for only two of the three cohorts
+#' decisions_list <- getGoDecisions(
+#'   analyses_list   = analyses_list,
+#'   cohort_names    = c("p_1", "p_3"),
+#'   evidence_levels = c(0.5, 0.8),
+#'   boundary_rules  = quote(c(x[1] > 0.7, TRUE, x[2] < 0.6)),
+#'   overall_min_gos = 2L)
+#'
+#' ## Different decision rules for each method
+#' ## This works the same way for the different evidence_levels
+#' decisions_list <- getGoDecisions(
+#'   analyses_list   = analyses_list,
+#'   cohort_names    = c("p_1", "p_2", "p_3"),
+#'   evidence_levels = c(0.5, 0.5, 0.8),
+#'   boundary_rules  = list(
+#'     quote(c(x[1] > 0.1,  x[2] < 0.5,  x[3] < 0.1)),   # "berry"
+#'     quote(c(x[1] > 0.2,  x[2] < 0.4,  x[3] < 0.2)),   # "exnex"
+#'     quote(c(x[1] > 0.25, x[2] < 0.35, x[3] < 0.25)),  # "exnex_adj"
+#'     quote(c(x[1] > 0.3,  x[2] < 0.3,  x[3] < 0.3)),   # "exnex_adj_mix"
+#'     quote(c(x[1] > 0.35, x[2] < 0.25, x[3] < 0.35)),  # "exnex_mix"
+#'     quote(c(x[1] > 0.4,  x[2] < 0.2,  x[3] < 0.4)),   # "pooled"
+#'     quote(c(x[1] > 0.45, x[2] < 0.15, x[3] < 0.45)),  # "stratified"
+#'     quote(c(x[1] > 0.5,  x[2] < 0.1,  x[3] < 0.5))    # "stratified_mix"
+#'   ))
+#'
+#' ## Continuous-endpoint decision rule
+#' normal_scenarios <- simulateScenarios(
+#'   n_subjects_list = list(c(30, 30, 30)),
+#'   means_list      = list(c(5.0, 5.3, 5.8)),
+#'   sds_list        = list(c(1, 1, 1)),
+#'   n_trials        = 10,
+#'   endpoint        = "normal")
+#'
+#' normal_analyses <- performAnalyses(
+#'   scenario_list      = normal_scenarios,
+#'   method_names       = "normal",
+#'   target_means       = c(5, 5, 5),
+#'   n_mcmc_iterations  = 100)
+#'
+#' normal_decisions <- getGoDecisions(
+#'   analyses_list   = normal_analyses,
+#'   cohort_names    = c("theta_1", "theta_2", "theta_3"),
+#'   evidence_levels = c(0.8, 0.8, 0.8),
+#'   boundary_rules  = quote(c(x[1] > 5.0, x[2] > 5.2, x[3] > 5.5)))
+#' @author Stephan Wojciekowski
 #' @export
 getGoDecisions <- function (
     
@@ -604,6 +831,53 @@ getGoDecisionsByCohort <- function (
   
 }
 
+#' @title getGoProbabilities
+#' @md
+#' @description Calculates the Go probabilities for given decisions.
+#' @param go_decisions_list An object of class `decision_list`,
+#' as returned by \code{\link[bhmbasket]{getGoDecisions}}
+#' @param nogo_decisions_list Either `NULL` or an object of class `decision_list`,
+#' as returned by \code{\link[bhmbasket]{getGoDecisions}}, Default: `NULL`
+#' @return A list of matrices of Go probabilities.
+#' If both `go_decisions_list` and `nogo_decisions_list` are provided,
+#' the returned matrices additionally contain Consider and NoGo probabilities.
+#' @details If only `go_decisions_list` is provided
+#' (i.e. `nogo_decisions_list` is `NULL`),
+#' only Go probabilities will be calculated.
+#' If both `go_decisions_list` and `nogo_decisions_list` are provided,
+#' Go, Consider, and NoGo probabilities will be calculated.
+#'
+#' This function works for decision rules derived from analyses with binary endpoints
+#' as well as for decision rules derived from analyses with continuous endpoints.
+#' @seealso
+#'  \code{\link[bhmbasket]{getGoDecisions}}
+#' @rdname getGoProbabilities
+#' @examples
+#' scenarios_list <- simulateScenarios(
+#'   n_subjects_list     = list(c(10, 20)),
+#'   response_rates_list = list(rep(0.9, 2)),
+#'   n_trials            = 10)
+#'
+#' analyses_list <- performAnalyses(
+#'   scenario_list       = scenarios_list,
+#'   target_rates        = rep(0.5, 2),
+#'   n_mcmc_iterations   = 100)
+#'
+#' go_decisions_list <- getGoDecisions(
+#'   analyses_list       = analyses_list,
+#'   cohort_names        = c("p_1", "p_2"),
+#'   evidence_levels     = c(0.5, 0.8),
+#'   boundary_rules      = quote(c(x[1] > 0.8, x[2] > 0.6)))
+#'
+#' nogo_decisions_list <- getGoDecisions(
+#'   analyses_list       = analyses_list,
+#'   cohort_names        = c("p_1", "p_2"),
+#'   evidence_levels     = c(0.5, 0.8),
+#'   boundary_rules      = quote(c(x[1] < 0.5, x[2] < 0.3)))
+#'
+#' getGoProbabilities(go_decisions_list)
+#' getGoProbabilities(go_decisions_list, nogo_decisions_list)
+#' @author Stephan Wojciekowski
 #' @export
 getGoProbabilities <- function (
     
@@ -620,7 +894,7 @@ getGoProbabilities <- function (
     "for the argument 'nogo_decisions_list'"
   )
   error_format_mismatch <- paste(
-    "The decision_lists 'go_decisions_list' and 'go_decisions_list'",
+    "The decision_lists 'go_decisions_list' and 'nogo_decisions_list'",
     "do not follow the same format"
   )
   
@@ -909,23 +1183,29 @@ is.decision_list <- function (x) {
 #' an overall NoGo decision, Default: `all`
 #' @return A list of NoGo decisions of class `decision_list`
 #' @details This function is intended for implementing decision rules with a
-#' consider zone as
-#' e.g. proposed in "Bayesian design of proof-of-concept trials" by
-#' Fisch et al. (2015).
+#' consider zone, as e.g. proposed in "Bayesian design of proof-of-concept trials"
+#' by Fisch et al. (2015).
+#'
 #' This approach involves two criteria, Significance and Relevance.
 #' \itemize{
 #'   \item Significance: high evidence that the treatment effect is greater
-#'   than some smaller value (e.g. treatment effect under H0)
+#'   than some smaller value (e.g. treatment effect under \eqn{H_0})
 #'   \item Relevance: moderate evidence that the treatment effect is greater
 #'   than some larger value (e.g. treatment effect under a certain alternative)
 #' }
+#'
 #' The decision for a cohort is then taken as follows:
 #' \itemize{
 #'   \item Go decision: Significance and Relevance
 #'   \item Consider decision: either Significance, or Relevance, but not both
 #'   \item NoGo decision: no Significance and no Relevance
 #' }
-#' In the example below, the following criteria for are implemented for each of
+#'
+#' This function operates on decision lists and can therefore be used for
+#' decision rules derived from analyses with binary endpoints as well as for
+#' decision rules derived from analyses with continuous endpoints.
+#'
+#' In the example below, the following criteria are implemented for each of
 #' the three cohorts:
 #' \itemize{
 #'   \item Significance: \eqn{P(p_j > 0.4) > 0.95}

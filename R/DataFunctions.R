@@ -80,6 +80,7 @@ continueRecruitment <- function (
     
     if (n_methods > 1) {
       stop(error_method_name)
+      
     } else {
       method_name <- names(decisions_list$scenario_1$decisions_list)
     }
@@ -103,7 +104,9 @@ continueRecruitment <- function (
   }
   
   if (!is.list(n_subjects_add_list)) {
+    
     n_subjects_add_list <- rep(list(n_subjects_add_list), length(decisions_list))
+    
   }
   
   checkmate::assert_list(
@@ -557,6 +560,8 @@ getScenario <- function(
     .var.name = "cohort_names must match length of n_subjects"
   )
   
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### 
+  
   cohort_names_chr <- as.character(cohort_names)
   
   if (endpoint == "binary") {
@@ -569,6 +574,7 @@ getScenario <- function(
     new_cohorts  <- FALSE
     hist_cohorts <- FALSE
     
+    # New cohorts:0 < rr < 1
     if (any(response_rates < 1 & response_rates > 0)) {
       new_cohorts <- TRUE
       index_new   <- which(response_rates < 1 & response_rates > 0)
@@ -586,6 +592,7 @@ getScenario <- function(
       )
     }
     
+    # Historical cohorts: rr >= 1 OR rr == 0
     if (any(response_rates >= 1 | response_rates == 0)) {
       hist_cohorts <- TRUE
       index_hist   <- which(response_rates >= 1 | response_rates == 0)
@@ -854,6 +861,47 @@ print.scenario_list <- function(x, ...) {
   cat("  -", n_unique_realizations, "unique trial realizations overall\n")
 }
 
+#' @title saveScenarios
+#' @md
+#' @description This function saves one or more scenario objects of class `scenario_list`
+#' to a newly created or existing directory.
+#' @param scenario_list An object of class `scenario_list`,
+#' as e.g. created with \code{\link[bhmbasket]{simulateScenarios}}
+#' or \code{\link[bhmbasket]{createTrial}}
+#' @param save_path A string providing the path of the directory in which the scenario data
+#' should be saved, Default: \code{\link[base]{tempdir}}
+#' @return A named list of length 2 containing:
+#' \itemize{
+#'   \item `scenario_numbers`: the scenario numbers of the saved scenarios
+#'   \item `path`: the directory in which the scenario data were saved
+#' }
+#' @details
+#' Each scenario in `scenario_list` is saved separately as an `.rds` file with file name
+#' pattern `scenario_data_<scenario_number>.rds`.
+#'
+#' If the directory specified by `save_path` does not yet exist, it is created automatically.
+#' Existing files with the same scenario number will be overwritten.
+#' @author Stephan Wojciekowski
+#' @seealso
+#'  \code{\link[bhmbasket]{simulateScenarios}}
+#'  \code{\link[bhmbasket]{createTrial}}
+#'  \code{\link[bhmbasket]{loadScenarios}}
+#'  \code{\link[base]{saveRDS}}
+#' @examples
+#'   scenarios_list <- simulateScenarios(
+#'     n_subjects_list     = list(c(10, 20, 30)),
+#'     response_rates_list = list(rep(0.9, 3)),
+#'     n_trials            = 10)
+#'
+#'   save_info <- saveScenarios(
+#'     scenario_list = scenarios_list
+#'   )
+#'
+#'   scenarios_list_loaded <- loadScenarios(
+#'     scenario_numbers = save_info$scenario_numbers,
+#'     load_path        = save_info$path)
+#' @rdname saveScenarios
+#' @export
 saveScenarios <- function (
     
   scenario_list,
@@ -1130,7 +1178,9 @@ simulateScenarios <- function (
     positive = TRUE,
     .var.name = error_n_trials
   )
-  
+
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###  ### ### 
+
   scenario_list <- vector(mode = "list", length = length(scenario_numbers))
   
   for (s in seq_along(scenario_numbers)) {

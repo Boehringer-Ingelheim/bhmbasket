@@ -2,12 +2,13 @@
 #' @md
 #' @description This function provides default prior parameters for the analysis methods
 #' that can be used in \code{\link[bhmbasket]{performAnalyses}}.
-#' @param method_names A vector of strings for the names of the methods to be used.
+#' @param method_names Either `NULL` or a vector of strings for the names of the methods to be used.
 #'
 #' For endpoint `"binary"`, available methods are
 #' `c("berry", "exnex", "exnex_adj", "exnex_mix", "exnex_adj_mix", "pooled", "stratified", "stratified_mix")`.
 #'
 #' For endpoint `"normal"`, the available method is `"normal"`.
+#' If `NULL`, endpoint-specific defaults are used.
 #' @param target_rates A vector of numerics in `(0, 1)` for the
 #' target rate of each cohort. Only used for endpoint `"binary"`.
 #' @param target_means A numeric vector of target means for each cohort.
@@ -21,10 +22,11 @@
 #' `"exnex_mix"`, `"exnex_adj"`, `"exnex_adj_mix"`, and `"normal"`, Default: `0.5`
 #' @param endpoint A string indicating the endpoint type. Must be one of `"binary"` or `"normal"`,
 #' Default: `"binary"`
-#' @param sigma_shape A positive numeric for the Gamma shape prior of the residual precision
-#' in the normal model, Default: `1`
-#' @param sigma_rate A positive numeric for the Gamma rate prior of the residual precision
-#' in the normal model, Default: `1`
+#' @param sigma_shape Either `NULL` or a positive numeric for the Gamma shape prior of the
+#' residual precision in the normal model. If `NULL`, a default value is chosen automatically.
+#' @param sigma_rate Either `NULL` or a positive numeric for the Gamma rate prior of the
+#' residual precision in the normal model. If `NULL`, a scale-adaptive default based on
+#' `stats::sd(target_means)^2` is used.
 #' @return A list with prior parameters of class `prior_parameters_list`
 #' @details
 #' For endpoint `"binary"`, the default prior parameters are:
@@ -305,14 +307,20 @@ getPriorParameters <- function (
 #' @param list_of_prior_parameters A list of items with class `prior_parameters_list`
 #' @return A list with prior parameters of class `prior_parameters_list`
 #' @details
-#' This function is intended to combine the prior parameters set with the functions
+#' This function is intended to combine prior parameters set with the functions
 #' \code{\link[bhmbasket]{setPriorParametersBerry}},
 #' \code{\link[bhmbasket]{setPriorParametersExNex}},
 #' \code{\link[bhmbasket]{setPriorParametersExNexAdj}},
-#' \code{\link[bhmbasket]{setPriorParametersPooled}}, or
+#' \code{\link[bhmbasket]{setPriorParametersPooled}},
 #' \code{\link[bhmbasket]{setPriorParametersStratified}},
+#' \code{\link[bhmbasket]{setPriorParametersStratifiedMix}}, and
+#' \code{\link[bhmbasket]{setPriorParametersNormal}},
 #' in case more than one analysis method should be applied with
 #' \code{\link[bhmbasket]{performAnalyses}}.
+#'
+#' Each element of `list_of_prior_parameters` must itself be an object of class
+#' `prior_parameters_list` and should usually contain the prior parameters for one method.
+#' The combined object is returned as a single `prior_parameters_list`, with one entry per method.
 #' @author Stephan Wojciekowski
 #' @examples
 #'  prior_parameters_stratified <- setPriorParametersStratified(c(1, 2), c(3, 4))
@@ -329,6 +337,8 @@ getPriorParameters <- function (
 #'  \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 #'  \code{\link[bhmbasket]{setPriorParametersPooled}}
 #'  \code{\link[bhmbasket]{setPriorParametersStratified}}
+#'  \code{\link[bhmbasket]{setPriorParametersStratifiedMix}}
+#'  \code{\link[bhmbasket]{setPriorParametersNormal}}
 #'  \code{\link[bhmbasket]{getPriorParameters}}
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @export
@@ -338,14 +348,24 @@ combinePriorParameters <- function (
   
 ) {
   
-  error_list <- "Providing a list of items with class 'prior_parameters_list'"
+  error_list <-
+    "Providing a list of items with class 'prior_parameters_list'"
+  error_duplicate_methods <-
+    "The supplied prior parameter lists must refer to different methods"
   
   checkmate::assertList(
-    list_of_prior_parameters, types = "list", any.missing = FALSE, .var.name = error_list
+    list_of_prior_parameters,
+    types       = "list",
+    any.missing = FALSE,
+    .var.name   = error_list
   )
   
   checkmate::assertTRUE(
-    all(vapply(list_of_prior_parameters, function(x) inherits(x, "prior_parameters_list"), logical(1))),
+    all(vapply(
+      list_of_prior_parameters,
+      function(x) inherits(x, "prior_parameters_list"),
+      logical(1)
+    )),
     .var.name = error_list
   )
   
@@ -355,21 +375,20 @@ combinePriorParameters <- function (
   
   checkmate::assertTRUE(
     length(unique(method_names)) == length(method_names),
+    .var.name = error_duplicate_methods
   )
   
-  prior_parameters_list <- vector(mode = "list", length(method_names))
+  prior_parameters_list <- vector(mode = "list", length = length(method_names))
   names(prior_parameters_list) <- method_names
   
   for (n in seq_along(method_names)) {
-    
     prior_parameters_list[[n]] <- list_of_prior_parameters[[n]][[1]]
-    
   }
   
   prior_parameters_list <- prior_parameters_list[sort(names(prior_parameters_list))]
   class(prior_parameters_list) <- "prior_parameters_list"
   
-  return (prior_parameters_list)
+  return(prior_parameters_list)
   
 }
 
@@ -1464,8 +1483,8 @@ getPriorParametersNormal <- function (
   tau_scale   = 1,
   n_worth     = 1,
   w_j         = 0.5,
-  sigma_shape = 1,
-  sigma_rate  = 1
+  sigma_shape = NULL,
+  sigma_rate  = NULL
   
 ) {
   
@@ -1478,9 +1497,9 @@ getPriorParametersNormal <- function (
   error_w_j <-
     "Providing a numeric in (0, 1) for the argument 'w_j'"
   error_sigma_shape <-
-    "Providing a positive numeric for the argument 'sigma_shape'"
+    "Providing either NULL or a positive numeric for the argument 'sigma_shape'"
   error_sigma_rate <-
-    "Providing a positive numeric for the argument 'sigma_rate'"
+    "Providing either NULL or a positive numeric for the argument 'sigma_rate'"
   
   checkmate::assertNumeric(
     target_means,
@@ -1511,23 +1530,36 @@ getPriorParametersNormal <- function (
     .var.name = error_w_j
   )
   
-  checkmate::assertNumber(
-    sigma_shape,
-    .var.name = error_sigma_shape
-  )
-  checkmate::assertTRUE(
-    sigma_shape > 0,
-    .var.name = error_sigma_shape
-  )
+  if (!is.null(sigma_shape)) {
+    checkmate::assertNumber(
+      sigma_shape,
+      .var.name = error_sigma_shape
+    )
+    checkmate::assertTRUE(
+      sigma_shape > 0,
+      .var.name = error_sigma_shape
+    )
+  }
   
-  checkmate::assertNumber(
-    sigma_rate,
-    .var.name = error_sigma_rate
-  )
-  checkmate::assertTRUE(
-    sigma_rate > 0,
-    .var.name = error_sigma_rate
-  )
+  if (!is.null(sigma_rate)) {
+    checkmate::assertNumber(
+      sigma_rate,
+      .var.name = error_sigma_rate
+    )
+    checkmate::assertTRUE(
+      sigma_rate > 0,
+      .var.name = error_sigma_rate
+    )
+  }
+  
+  if (is.null(sigma_shape) || is.null(sigma_rate)) {
+    scale_ref <- stats::sd(target_means)
+    if (!is.finite(scale_ref) || scale_ref <= 0) {
+      scale_ref <- 1
+    }
+    if (is.null(sigma_shape)) sigma_shape <- 1
+    if (is.null(sigma_rate))  sigma_rate  <- scale_ref^2
+  }
   
   prior_parameters <- list(
     mu_mean      = 0,
@@ -1567,7 +1599,9 @@ getPriorParametersNormal <- function (
 #' The method `"normal"` is an adjusted ExNex hierarchical normal model for continuous endpoints.
 #' The prior parameters specify the Ex component, the cohort-specific Nex components,
 #' the Ex/Nex mixture weight, the target means used for adjustment, and the residual
-#' precision prior.
+#' precision prior. In applications with continuous endpoints on very different scales,
+#' the residual precision prior should be chosen with regard to the endpoint scale.
+#' 
 #' @author Stephan Wojciekowski
 #' @examples
 #' prior_parameters_normal <- setPriorParametersNormal(
