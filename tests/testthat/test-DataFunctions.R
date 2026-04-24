@@ -890,3 +890,206 @@ test_that("Only overall==TRUE rows are updated", {
     }
   )
 })
+
+# ------------------------------------------------------------------
+# Test: createTrial supports continuous endpoints and defaults sds to 0
+# Input:
+#   - n_subjects = c(10,20), means = c(1.5,2.5), sds omitted, endpoint="normal"
+# Behaviour:
+#   - createTrial() should call simulateScenarios() with means_list and
+#     an sds_list of zeros of matching length.
+# Expectations:
+#   - Returned object is not NULL.
+#   - Mocked simulateScenarios() sees endpoint = "normal" and sds_list = c(0,0).
+# Why:
+#   - Covers the continuous wrapper path and the default handling of missing sds.
+# ------------------------------------------------------------------
+test_that("createTrial supports normal endpoint and defaults sds to zero", {
+  with_mocked_bindings({
+    result <- createTrial(
+      n_subjects = c(10, 20),
+      means      = c(1.5, 2.5),
+      endpoint   = "normal"
+    )
+    expect_true(!is.null(result))
+  }, simulateScenarios = function(n_subjects_list, means_list, sds_list, n_trials, endpoint = "normal", ...) {
+    expect_equal(n_subjects_list[[1]], c(10L, 20L))
+    expect_equal(means_list[[1]], c(1.5, 2.5))
+    expect_equal(sds_list[[1]], c(0, 0))
+    expect_identical(endpoint, "normal")
+    list(trial = "mocked_normal_trial")
+  })
+})
+
+
+# ------------------------------------------------------------------
+# Test: getScenario returns correct structure for continuous endpoints
+# Input:
+#   - n_subjects = c(10,20), means = c(1,2), sds = c(0.5,0)
+# Behaviour:
+#   - getScenario() should return a scenario object containing
+#     y, means, sds, sds_observed, n_subjects, previous_analyses, etc.
+# Expectations:
+#   - endpoint is "normal"
+#   - historical cohort (sd = 0) is fixed across trials
+#   - recruiting cohort has expected column names
+# Why:
+#   - Adds direct coverage for the continuous branch of getScenario().
+# ------------------------------------------------------------------
+test_that("getScenario has correct structure for normal endpoint", {
+  out <- getScenario(
+    n_subjects    = c(10, 20),
+    means         = matrix(c(1, 2), nrow = 1),
+    sds           = matrix(c(0.5, 0), nrow = 1),
+    cohort_names  = c("A", "B"),
+    n_trials      = 4,
+    endpoint      = "normal"
+  )
+  
+  expect_type(out, "list")
+  expect_equal(out$endpoint, "normal")
+  expect_true(is.matrix(out$y))
+  expect_true(is.matrix(out$n_subjects))
+  expect_true(is.matrix(out$means))
+  expect_true(is.matrix(out$sds))
+  expect_true(is.matrix(out$sds_observed))
+  
+  expect_equal(colnames(out$y), c("y_A", "y_B"))
+  expect_equal(colnames(out$n_subjects), c("n_A", "n_B"))
+  expect_equal(colnames(out$means), c("mean_A", "mean_B"))
+  expect_equal(colnames(out$sds), c("sd_A", "sd_B"))
+  expect_equal(colnames(out$sds_observed), c("sd_A", "sd_B"))
+  
+  expect_equal(nrow(out$y), 4)
+  expect_true(all(out$y[, "y_B"] == 2))
+})
+
+# ------------------------------------------------------------------
+# Test: simulateScenarios works for continuous endpoints
+# Input:
+#   - two scenarios with means_list and sds_list, endpoint = "normal"
+# Behaviour:
+#   - simulateScenarios() should return a scenario_list with normal-endpoint data.
+# Expectations:
+#   - Class "scenario_list"
+#   - Each scenario has endpoint "normal"
+#   - Historical cohort (sd = 0) stays fixed across trials
+# Why:
+#   - Adds coverage for the top-level continuous simulation workflow.
+# ------------------------------------------------------------------
+test_that("simulateScenarios works for normal endpoint", {
+  scenarios <- simulateScenarios(
+    n_subjects_list = list(c(10, 20), c(10, 20)),
+    means_list      = list(
+      matrix(c(1, 2), nrow = 1),
+      matrix(c(3, 4), nrow = 1)
+    ),
+    sds_list        = list(
+      matrix(c(0.5, 0), nrow = 1),
+      matrix(c(1.0, 0), nrow = 1)
+    ),
+    scenario_numbers = c(1, 2),
+    n_trials        = 5,
+    endpoint        = "normal"
+  )
+  
+  expect_s3_class(scenarios, "scenario_list")
+  expect_equal(names(scenarios), c("scenario_1", "scenario_2"))
+  expect_equal(scenarios[[1]]$endpoint, "normal")
+  expect_equal(scenarios[[2]]$endpoint, "normal")
+  
+  expect_true(all(scenarios[[1]]$y[, "y_2"] == 2))
+  expect_true(all(scenarios[[2]]$y[, "y_2"] == 4))
+})
+
+
+# ------------------------------------------------------------------
+# Test: continueRecruitment updates continuous endpoints by weighted averaging
+# Input:
+#   - one scenario with one recruiting cohort and one historical cohort,
+#     overall go decision TRUE, mocked getScenario() returns one added mean.
+# Behaviour:
+#   - continueRecruitment() should update y and n_subjects for the recruiting cohort
+#     by weighted averaging, while leaving the historical cohort unchanged.
+# Expectations:
+#   - updated recruiting mean = (old_mean*old_n + add_mean*add_n)/(old_n + add_n)
+#   - updated recruiting n_subjects increases accordingly
+#   - historical cohort unchanged
+# Why:
+#   - Covers the continuous recruitment-update branch, which is currently less tested.
+# ------------------------------------------------------------------
+test_that("continueRecruitment updates normal endpoint by weighted averaging", {
+  normal_decisions <- structure(list(
+    scenario_1 = list(
+      scenario_data = list(
+        n_subjects = matrix(c(10, 20), nrow = 1, dimnames = list(NULL, c("n_1", "n_2"))),
+        y          = matrix(c(5, 8),  nrow = 1, dimnames = list(NULL, c("y_1", "y_2"))),
+        means      = matrix(c(5, 8),  nrow = 1, dimnames = list(NULL, c("mean_1", "mean_2"))),
+        sds        = matrix(c(1, 0),  nrow = 1, dimnames = list(NULL, c("sd_1", "sd_2"))),
+        sds_observed = matrix(c(1, 0), nrow = 1, dimnames = list(NULL, c("sd_1", "sd_2"))),
+        n_trials   = 1,
+        endpoint   = "normal",
+        scenario_number = 1
+      ),
+      analysis_data = list(
+        analysis_parameters = list(method_names = "normal"),
+        quantiles_list = list(normal = list())
+      ),
+      decisions_list = list(
+        normal = data.frame(decision_1 = TRUE, decision_2 = TRUE, overall = TRUE)
+      )
+    )
+  ), class = "decision_list")
+  
+  testthat::with_mocked_bindings(
+    getScenario = function(n_subjects, means, sds, cohort_names, n_trials, endpoint = "normal", ...) {
+      list(
+        n_subjects = matrix(5, nrow = 1, dimnames = list(NULL, "n_1")),
+        y          = matrix(7, nrow = 1, dimnames = list(NULL, "y_1")),
+        means      = matrix(7, nrow = 1, dimnames = list(NULL, "mean_1")),
+        sds        = matrix(1, nrow = 1, dimnames = list(NULL, "sd_1")),
+        sds_observed = matrix(1, nrow = 1, dimnames = list(NULL, "sd_1")),
+        n_trials   = n_trials,
+        endpoint   = endpoint,
+        scenario_number = 1
+      )
+    }, {
+      out <- continueRecruitment(
+        n_subjects_add_list = list(c(5)),
+        decisions_list      = normal_decisions,
+        method_name         = "normal"
+      )
+      
+      expect_equal(unname(as.numeric(out$scenario_1$n_subjects)), c(15, 20))
+      expect_equal(unname(as.numeric(out$scenario_1$y)), c((5 * 10 + 7 * 5) / 15, 8))
+    }
+  )
+})
+
+
+# ------------------------------------------------------------------
+# Test: print.scenario_list works for continuous endpoints
+# Input:
+#   - scenario_list with one normal-endpoint scenario and two cohorts.
+# Behaviour:
+#   - print.scenario_list() should print true means, true sds,
+#     and average number of subjects.
+# Expectations:
+#   - Output contains "true means:" and "true sds:"
+# Why:
+#   - Adds direct coverage for the normal branch of print.scenario_list().
+# ------------------------------------------------------------------
+test_that("print.scenario_list prints normal endpoint summaries", {
+  scenarios <- simulateScenarios(
+    n_subjects_list = list(c(10, 20)),
+    means_list      = list(matrix(c(1.5, 2.5), nrow = 1)),
+    sds_list        = list(matrix(c(0.5, 0), nrow = 1)),
+    scenario_numbers = 1,
+    n_trials        = 3,
+    endpoint        = "normal"
+  )
+  
+  expect_output(print(scenarios), "true means:")
+  expect_output(print(scenarios), "true sds:")
+  expect_output(print(scenarios), "average number of subjects:")
+})

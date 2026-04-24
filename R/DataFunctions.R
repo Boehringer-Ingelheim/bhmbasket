@@ -527,15 +527,21 @@ getResponders <- function (
     
   } else {
     
-    y <- t(replicate(n = n_trials, {
+    y <- replicate(n = n_trials, {
       
       stats::rnorm(
         n    = length(n_subjects),
-        mean = means,
-        sd   = sds / sqrt(n_subjects)
+        mean = as.numeric(means),
+        sd   = as.numeric(sds) / sqrt(n_subjects)
       )
       
-    }))
+    })
+    
+    y <- t(y)
+    
+    if (length(n_subjects) == 1L) {
+      y <- matrix(y, ncol = 1)
+    }
     
     return(y)
   }

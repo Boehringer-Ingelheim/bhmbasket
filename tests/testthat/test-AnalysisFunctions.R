@@ -1843,3 +1843,280 @@ test_that("saveAnalyses: save_path must be a character vector of length 1", {
     ignore.case = TRUE
   )
 })
+
+# ------------------------------------------------------------------
+# Test: applicablePreviousTrials works for normal endpoint when theta_* columns exist
+# Input:
+#   - scenario_list with previous normal posterior quantiles
+# Behaviour:
+#   - Returns TRUE if method names, quantiles, and theta_* columns match.
+# Expectations:
+#   - TRUE.
+# Why:
+#   - Covers normal-endpoint branch in applicablePreviousTrials().
+# ------------------------------------------------------------------
+test_that("applicablePreviousTrials returns TRUE for normal endpoint when all conditions are met", {
+  qmat <- matrix(
+    c(
+      4.8, 5.2,
+      5.0, 5.4,
+      5.2, 5.6,
+      5.0, 5.4,
+      0.2, 0.3
+    ),
+    ncol = 2,
+    byrow = TRUE,
+    dimnames = list(
+      c("2.5%", "50%", "97.5%", "Mean", "SD"),
+      c("theta_1", "theta_2")
+    )
+  )
+  
+  normal_scen <- list(
+    scenario_1 = list(
+      scenario_number = 1,
+      endpoint = "normal",
+      previous_analyses = list(
+        go_decisions = cbind(overall = TRUE),
+        post_quantiles = list(normal = list(qmat))
+      )
+    )
+  )
+  class(normal_scen) <- "scenario_list"
+  
+  res <- applicablePreviousTrials(
+    scenario_list    = normal_scen,
+    method_names     = "normal",
+    quantiles        = c(0.025, 0.5, 0.975),
+    n_cohorts        = 2,
+    calc_differences = NULL,
+    endpoint         = "normal"
+  )
+  
+  expect_true(is.logical(res))
+  expect_length(res, 1L)
+  expect_true(res)
+})
+
+# ------------------------------------------------------------------
+# Test: calcDiffsMCMC creates theta_diff_* columns for normal endpoint
+# Input:
+#   - posterior_samples with theta_1 and theta_2
+# Behaviour:
+#   - Adds theta_diff_12 = theta_1 - theta_2.
+# Expectations:
+#   - Correct name and values.
+# Why:
+#   - Covers normal-endpoint branch in calcDiffsMCMC().
+# ------------------------------------------------------------------
+test_that("calcDiffsMCMC adds theta_diff columns for normal endpoint", {
+  posterior_samples <- cbind(
+    theta_1 = c(5.0, 5.5, 6.0),
+    theta_2 = c(4.0, 4.5, 5.0),
+    mu      = c(0.1, 0.2, 0.3)
+  )
+  
+  calc_differences <- matrix(c(1, 2), ncol = 2)
+  
+  out <- calcDiffsMCMC(
+    posterior_samples = posterior_samples,
+    calc_differences  = calc_differences,
+    endpoint          = "normal"
+  )
+  
+  expect_true("theta_diff_12" %in% colnames(out))
+  expect_equal(out[, "theta_diff_12"], posterior_samples[, "theta_1"] - posterior_samples[, "theta_2"])
+})
+
+# ------------------------------------------------------------------
+# Test: getUniqueTrials returns unique rows for normal endpoint
+# Input:
+#   - scenario_list with repeated normal trial means
+# Behaviour:
+#   - Groups repeated/near-identical y rows and returns unique rows.
+# Expectations:
+#   - Output is a matrix with attributes for normal grouping.
+# Why:
+#   - Covers normal-endpoint branch in getUniqueTrials().
+# ------------------------------------------------------------------
+test_that("getUniqueTrials works for normal endpoint and stores grouping attributes", {
+  normal_scen <- list(
+    scenario_1 = list(
+      scenario_number = 1,
+      endpoint = "normal",
+      y = rbind(
+        c(5.0, 6.0),
+        c(5.0, 6.0),
+        c(5.2, 6.1)
+      ),
+      n_subjects = rbind(
+        c(10, 10),
+        c(10, 10),
+        c(10, 10)
+      ),
+      previous_analyses = list(
+        go_decisions = cbind(overall = c(TRUE, TRUE, TRUE))
+      )
+    )
+  )
+  class(normal_scen) <- "scenario_list"
+  
+  out <- getUniqueTrials(
+    scenario_list = normal_scen,
+    endpoint      = "normal",
+    nbins         = 4
+  )
+  
+  expect_true(is.matrix(out) || is.data.frame(out))
+  expect_true(nrow(out) >= 1)
+  
+  expect_false(is.null(attr(out, "bin_breaks")))
+  expect_false(is.null(attr(out, "group_levels")))
+  expect_false(is.null(attr(out, "group_sizes")))
+  expect_false(is.null(attr(out, "rep_matrix")))
+})
+
+# ------------------------------------------------------------------
+# Test: performAnalyses works for normal endpoint and stores normal method
+# Input:
+#   - normal scenario_list with method "normal"
+# Behaviour:
+#   - Returns analysis_list with quantiles_list$normal and stored endpoint.
+# Expectations:
+#   - Class analysis_list, method_names = "normal", scenario_data unchanged.
+# Why:
+#   - Covers main normal-endpoint branch in performAnalyses().
+# ------------------------------------------------------------------
+test_that("performAnalyses works for normal endpoint", {
+  skip_if_not_installed("rjags")
+  
+  normal_trial <- createTrial(
+    n_subjects = c(20, 20),
+    means      = c(5.0, 5.5),
+    sds        = c(1, 1),
+    endpoint   = "normal"
+  )
+  
+  res <- performAnalyses(
+    scenario_list      = normal_trial,
+    method_names       = "normal",
+    target_means       = c(5, 5),
+    n_mcmc_iterations  = 100,
+    verbose            = FALSE
+  )
+  
+  expect_s3_class(res, "analysis_list")
+  expect_identical(res[[1]]$analysis_parameters$method_names, "normal")
+  expect_true("normal" %in% names(res[[1]]$quantiles_list))
+  expect_identical(res[[1]]$scenario_data$endpoint, "normal")
+})
+
+# ------------------------------------------------------------------
+# Test: performAnalyses errors for normal endpoint if target_means missing
+# Input:
+#   - normal scenario_list, prior_parameters_list = NULL, target_means = NULL
+# Behaviour:
+#   - Should reject missing normal target specification.
+# Expectations:
+#   - Error mentioning target_means/prior_parameters_list requirement.
+# Why:
+#   - Covers an important validation branch in performAnalyses().
+# ------------------------------------------------------------------
+test_that("performAnalyses errors for normal endpoint when target_means and priors are missing", {
+  normal_trial <- createTrial(
+    n_subjects = c(20, 20),
+    means      = c(5.0, 5.5),
+    sds        = c(1, 1),
+    endpoint   = "normal"
+  )
+  
+  expect_error(
+    performAnalyses(
+      scenario_list      = normal_trial,
+      method_names       = "normal",
+      target_means       = NULL,
+      prior_parameters_list = NULL,
+      n_mcmc_iterations  = 50,
+      verbose            = FALSE
+    ),
+    "target_means|prior_parameters_list"
+  )
+})
+
+# ------------------------------------------------------------------
+# Test: prepareAnalysis builds correct normal j_data
+# Input:
+#   - normal prior parameters from getPriorParameters()
+# Behaviour:
+#   - Returns j_data with target_means, sigma_shape/rate, and theta parameters.
+# Expectations:
+#   - Correct fields and model file exists.
+# Why:
+#   - Covers normal branch in prepareAnalysis().
+# ------------------------------------------------------------------
+test_that("prepareAnalysis builds correct j_data for normal endpoint", {
+  priors <- getPriorParameters(
+    method_names = "normal",
+    endpoint     = "normal",
+    target_means = c(5, 6)
+  )
+  
+  prep <- prepareAnalysis(
+    method_name      = "normal",
+    prior_parameters = priors[["normal"]],
+    target_rates     = NULL
+  )
+  
+  expect_equal(prep$j_data$Nstrata, 2)
+  expect_equal(prep$j_data$target_means, c(5, 6))
+  expect_true(prep$j_data$sigma_shape > 0)
+  expect_true(prep$j_data$sigma_rate > 0)
+  expect_identical(prep$j_parameters, c("theta", "mu", "tau", "exch", "prec_sigma"))
+  expect_true(file.exists(prep$j_model_file))
+})
+
+# ------------------------------------------------------------------
+# Test: saveAnalyses works for normal endpoint analysis_list
+# Input:
+#   - normal endpoint analysis_list
+# Behaviour:
+#   - Saves and loads successfully.
+# Expectations:
+#   - Loaded object has class analysis_list and endpoint "normal".
+# Why:
+#   - Covers save/load path for normal analyses.
+# ------------------------------------------------------------------
+test_that("saveAnalyses and loadAnalyses work for normal endpoint analyses", {
+  skip_if_not_installed("rjags")
+  
+  normal_trial <- createTrial(
+    n_subjects = c(20, 20),
+    means      = c(5.0, 5.5),
+    sds        = c(1, 1),
+    endpoint   = "normal"
+  )
+  
+  analyses_norm <- performAnalyses(
+    scenario_list      = normal_trial,
+    method_names       = "normal",
+    target_means       = c(5, 5),
+    n_mcmc_iterations  = 100,
+    verbose            = FALSE
+  )
+  
+  tmp_dir <- tempdir()
+  
+  info <- saveAnalyses(
+    analyses_list = analyses_norm,
+    save_path     = tmp_dir
+  )
+  
+  loaded <- loadAnalyses(
+    scenario_numbers = info$scenario_numbers,
+    analysis_numbers = info$analysis_numbers,
+    load_path        = info$path
+  )
+  
+  expect_s3_class(loaded, "analysis_list")
+  expect_identical(loaded[[1]]$scenario_data$endpoint, "normal")
+})
