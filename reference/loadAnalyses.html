@@ -83,13 +83,20 @@ Default: <code>rep(1, length(scenario_numbers))</code></p></dd>
 
 
 <dt id="arg-load-path">load_path<a class="anchor" aria-label="anchor" href="#arg-load-path"></a></dt>
-<dd><p>A string providing a path where the scenarios are being stored,
+<dd><p>A string providing a path where the analyses are being stored,
 Default: <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></code></p></dd>
 
 </dl></div>
     <div id="value">
     <h2>Value</h2>
     <p>Returns an object of class <code>analysis_list</code></p>
+    </div>
+    <div id="details">
+    <h2>Details</h2>
+    <p>This function can load analyses for both binary and normal endpoints, provided they were
+previously saved with <code><a href="saveAnalyses.html">saveAnalyses</a></code>.</p>
+<p>The files are expected to follow the naming pattern
+<code>analysis_data_&lt;scenario_number&gt;_&lt;analysis_number&gt;.rds</code>.</p>
     </div>
     <div id="see-also">
     <h2>See also</h2>
@@ -102,6 +109,78 @@ Default: <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-li
     <p>Stephan Wojciekowski</p>
     </div>
 
+    <div id="ref-examples">
+    <h2>Examples</h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">## Binary endpoint example</span></span></span>
+<span class="r-in"><span><span class="va">trial_data_bin</span> <span class="op">&lt;-</span> <span class="fu"><a href="createTrial.html">createTrial</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  n_subjects   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span>, <span class="fl">30</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  n_responders <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">analysis_list_bin</span> <span class="op">&lt;-</span> <span class="fu"><a href="performAnalyses.html">performAnalyses</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  scenario_list      <span class="op">=</span> <span class="va">trial_data_bin</span>,</span></span>
+<span class="r-in"><span>  target_rates       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">3</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  n_mcmc_iterations  <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Caution: No parallel backend detected for the 'foreach' framework. For execution in parallel, register a parallel backend, e.g. with:</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    doFuture::registerDoFuture()</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    future::plan(future::multisession)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 20-May-2026 Performing Analyses</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>          Analyzing 1 scenario (1 unique trial realization)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Berry ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Exnex ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Exnex_adj .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Exnex_adj_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Exnex_mix .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Pooled ..........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Stratified ......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Stratified_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>          Processing scenarios ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">save_info_bin</span> <span class="op">&lt;-</span> <span class="fu"><a href="saveAnalyses.html">saveAnalyses</a></span><span class="op">(</span><span class="va">analysis_list_bin</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">loaded_bin</span> <span class="op">&lt;-</span> <span class="fu">loadAnalyses</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  scenario_numbers <span class="op">=</span> <span class="va">save_info_bin</span><span class="op">$</span><span class="va">scenario_numbers</span>,</span></span>
+<span class="r-in"><span>  analysis_numbers <span class="op">=</span> <span class="va">save_info_bin</span><span class="op">$</span><span class="va">analysis_numbers</span>,</span></span>
+<span class="r-in"><span>  load_path        <span class="op">=</span> <span class="va">save_info_bin</span><span class="op">$</span><span class="va">path</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## Normal endpoint example</span></span></span>
+<span class="r-in"><span><span class="va">trial_data_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="createTrial.html">createTrial</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  n_subjects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">20</span>, <span class="fl">20</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  means      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5.0</span>, <span class="fl">5.4</span>, <span class="fl">5.8</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  sds        <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  endpoint   <span class="op">=</span> <span class="st">"normal"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">analysis_list_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="performAnalyses.html">performAnalyses</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  scenario_list      <span class="op">=</span> <span class="va">trial_data_norm</span>,</span></span>
+<span class="r-in"><span>  method_names       <span class="op">=</span> <span class="st">"normal"</span>,</span></span>
+<span class="r-in"><span>  target_means       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">5</span>, <span class="fl">5</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  n_mcmc_iterations  <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Caution: No parallel backend detected for the 'foreach' framework. For execution in parallel, register a parallel backend, e.g. with:</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    doFuture::registerDoFuture()</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    future::plan(future::multisession)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 20-May-2026 Performing Analyses</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>          Analyzing 1 scenario (1 unique trial realization)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Normal ..........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>          Processing scenarios ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">save_info_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="saveAnalyses.html">saveAnalyses</a></span><span class="op">(</span><span class="va">analysis_list_norm</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">loaded_norm</span> <span class="op">&lt;-</span> <span class="fu">loadAnalyses</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  scenario_numbers <span class="op">=</span> <span class="va">save_info_norm</span><span class="op">$</span><span class="va">scenario_numbers</span>,</span></span>
+<span class="r-in"><span>  analysis_numbers <span class="op">=</span> <span class="va">save_info_norm</span><span class="op">$</span><span class="va">analysis_numbers</span>,</span></span>
+<span class="r-in"><span>  load_path        <span class="op">=</span> <span class="va">save_info_norm</span><span class="op">$</span><span class="va">path</span><span class="op">)</span></span></span>
+</code></pre></div>
+    </div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top"><h2 data-toc-skip>Contents</h2>

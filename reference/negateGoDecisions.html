@@ -134,22 +134,22 @@ the three cohorts:</p><ul><li><p>Significance: \(P(p_j &gt; 0.4) &gt; 0.95\)</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>    doFuture::registerDoFuture()</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>    future::plan(future::multisession)</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> 20-May-2026 Performing Analyses</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>          Analyzing 1 scenario (10 unique trial realizations)</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:42 - with Berry ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>          Analyzing 1 scenario (9 unique trial realizations)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Berry ...........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:42 - with Exnex ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Exnex ...........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:42 - with Exnex_adj .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Exnex_adj .......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:42 - with Exnex_adj_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Exnex_adj_mix ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:42 - with Exnex_mix .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Exnex_mix .......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:42 - with Pooled ..........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Pooled ..........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Stratified ......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:42 - with Stratified ......</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:42 - with Stratified_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Stratified_mix ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>          Processing scenarios ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
@@ -194,9 +194,9 @@ the three cohorts:</p><ul><li><p>Significance: \(P(p_j &gt; 0.4) &gt; 0.95\)</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj$scenario_1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          overall decision_1 decision_2 decision_3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Go             1        0.8          1          1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Consider       0        0.2          0          0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NoGo           0        0.0          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Go             1          1          1          1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Consider       0          0          0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NoGo           0          0          0          0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $exnex_adj_mix</span>
@@ -226,17 +226,17 @@ the three cohorts:</p><ul><li><p>Significance: \(P(p_j &gt; 0.4) &gt; 0.95\)</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $stratified</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $stratified$scenario_1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          overall decision_1 decision_2 decision_3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Go             1        0.6        0.9          1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Consider       0        0.4        0.1          0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NoGo           0        0.0        0.0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Go             1          1          1        0.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Consider       0          0          0        0.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NoGo           0          0          0        0.0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $stratified_mix</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $stratified_mix$scenario_1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          overall decision_1 decision_2 decision_3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Go             1        0.6        0.9          1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Consider       0        0.4        0.1          0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> NoGo           0        0.0        0.0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Go             1          1          1        0.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Consider       0          0          0        0.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NoGo           0          0          0        0.0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>

@@ -122,10 +122,19 @@ For continuous endpoints, it is a wrapper using <code>means_list</code> and <cod
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span> <span class="va">trial_outcome</span> <span class="op">&lt;-</span> <span class="fu">createTrial</span><span class="op">(</span></span></span>
-<span class="r-in"><span>   n_subjects   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span>, <span class="fl">30</span>, <span class="fl">40</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>   n_responders <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">4</span><span class="op">)</span></span></span>
-<span class="r-in"><span> <span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">## Binary endpoint example</span></span></span>
+<span class="r-in"><span><span class="va">trial_outcome_bin</span> <span class="op">&lt;-</span> <span class="fu">createTrial</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  n_subjects   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span>, <span class="fl">30</span>, <span class="fl">40</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  n_responders <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">4</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## Normal endpoint example</span></span></span>
+<span class="r-in"><span><span class="va">trial_outcome_norm</span> <span class="op">&lt;-</span> <span class="fu">createTrial</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  n_subjects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">15</span>, <span class="fl">20</span>, <span class="fl">20</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  means      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5.1</span>, <span class="fl">5.4</span>, <span class="fl">6.0</span>, <span class="fl">6.3</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  sds        <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.2</span>, <span class="fl">1.1</span>, <span class="fl">1.5</span>, <span class="fl">1.4</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  endpoint   <span class="op">=</span> <span class="st">"normal"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>
   </div>
