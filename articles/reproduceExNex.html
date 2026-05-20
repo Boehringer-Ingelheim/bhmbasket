@@ -78,7 +78,7 @@ al. (2016)</h1>
                         <h4 data-toc-skip class="author">Stephan
 Wojciekowski</h4>
             
-            <h4 data-toc-skip class="date">April 24, 2026</h4>
+            <h4 data-toc-skip class="date">May 20, 2026</h4>
       
 
       <div class="hidden name"><code>reproduceExNex.Rmd</code></div>
@@ -320,7 +320,7 @@ warrants further explanation. Generally, a simple decision rule for a go
 in a single cohort
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
 can be written as
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>p</mi><mi>j</mi></msub><mo stretchy="false" form="prefix">|</mo><mtext mathvariant="normal">data</mtext><mo>&gt;</mo><msub><mover><mi>p</mi><mo accent="true">‾</mo></mover><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>&gt;</mo><msub><mi>γ</mi><mi>j</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">P(p_j|\text{data} &gt; \bar{p}_{j}) &gt; \gamma_j,</annotation></semantics></math>
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>p</mi><mi>j</mi></msub><mo stretchy="false" form="prefix">|</mo><mtext mathvariant="normal">data</mtext><mo>&gt;</mo><msub><mover><mi>p</mi><mo accent="true">‾</mo></mover><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><msub><mi>γ</mi><mi>j</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">P(p_j|\text{data} &gt; \bar{p}_{j}) &gt; \gamma_j,</annotation></semantics></math>
 where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>j</mi></msub><mo stretchy="false" form="prefix">|</mo><mtext mathvariant="normal">data</mtext></mrow><annotation encoding="application/x-tex">p_j|\text{data}</annotation></semantics></math>
 is the posterior response rate,
@@ -335,7 +335,7 @@ for setting up the decision rules correspond to these three parts:
 <code>boundary_rules</code> specifies the boundary response rates and
 type of comparison, and <code>evidence_levels</code> provides the
 posterior evidence levels. For example, the decision rule
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">|</mo><mtext mathvariant="normal">data</mtext><mo>&gt;</mo><mn>0.1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>&gt;</mo><mn>0.9</mn></mrow><annotation encoding="application/x-tex">P(p_1|\text{data} &gt; 0.1) &gt; 0.9</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">|</mo><mtext mathvariant="normal">data</mtext><mo>&gt;</mo><mn>0.1</mn><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mn>0.9</mn></mrow><annotation encoding="application/x-tex">P(p_1|\text{data} &gt; 0.1) &gt; 0.9</annotation></semantics></math>
 would then be implemented as</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cohort_names</span>    <span class="op">=</span> <span class="st">"p_1"</span></span>
@@ -349,7 +349,7 @@ utilized.</p>
 <p>It is possible to implement combined decision criteria, such as
 utilized by <span class="citation">Neuenschwander et al. (2016)</span>
 who require in Section 3.1 for a go decision in the first cohort that
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">|</mo><mtext mathvariant="normal">data</mtext><mo>&gt;</mo><mn>0.1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>&gt;</mo><mn>0.9</mn><mspace width="1.0em"></mspace><mo>∧</mo><mspace width="1.0em"></mspace><mtext mathvariant="normal">Mean</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">|</mo><mtext mathvariant="normal">data</mtext><mo stretchy="true" form="postfix">)</mo></mrow><mo>&gt;</mo><mn>0.2</mn></mrow><annotation encoding="application/x-tex">P(p_1|\text{data} &gt; 0.1) &gt; 0.9 \quad\land\quad \text{Mean}(p_1|\text{data}) &gt; 0.2</annotation></semantics></math>
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">|</mo><mtext mathvariant="normal">data</mtext><mo>&gt;</mo><mn>0.1</mn><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mn>0.9</mn><mspace width="1.0em"></mspace><mo>∧</mo><mspace width="1.0em"></mspace><mtext mathvariant="normal">Mean</mtext><mo stretchy="false" form="prefix">(</mo><msub><mi>p</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">|</mo><mtext mathvariant="normal">data</mtext><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mn>0.2</mn></mrow><annotation encoding="application/x-tex">P(p_1|\text{data} &gt; 0.1) &gt; 0.9 \quad\land\quad \text{Mean}(p_1|\text{data}) &gt; 0.2</annotation></semantics></math>
 holds true. This combined decision rule would then be implemented as</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cohort_names</span>    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"p_1"</span>, <span class="st">"p_1"</span><span class="op">)</span></span>
@@ -399,13 +399,12 @@ see that the results differ at most by 1 percentage point.</p>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-chugh2009" class="csl-entry">
-Chugh, Rashmi, J. Kyle Wathen, Robert G. Maki, Robert S. Benjamin,
-Shreyaskumar R. Patel, Paul A. Myers, Dennis A. Priebat, et al. 2009.
-<span>“Phase II Multicenter Trial of Imatinib in 10 Histologic Subtypes
-of Sarcoma Using a Bayesian Hierarchical Statistical Model.”</span>
-<em>Journal of Clinical Oncology</em> 27 (19): 3148–53. <a href="https://doi.org/10.1200/JCO.2008.20.5054" class="external-link">https://doi.org/10.1200/JCO.2008.20.5054</a>.
+Chugh, Rashmi, J. Kyle Wathen, Robert G. Maki, et al. 2009. <span>“Phase
+II Multicenter Trial of Imatinib in 10 Histologic Subtypes of Sarcoma
+Using a Bayesian Hierarchical Statistical Model.”</span> <em>Journal of
+Clinical Oncology</em> 27 (19): 3148–53. <a href="https://doi.org/10.1200/JCO.2008.20.5054" class="external-link">https://doi.org/10.1200/JCO.2008.20.5054</a>.
 </div>
 <div id="ref-exnex2016" class="csl-entry">
 Neuenschwander, Beat, Simon Wandel, Satrajit Roychoudhury, and Stuart
