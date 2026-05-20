@@ -40,10 +40,19 @@ using \code{response_rates_list}.
 For continuous endpoints, it is a wrapper using \code{means_list} and \code{sds_list}.
 }
 \examples{
- trial_outcome <- createTrial(
-   n_subjects   = c(10, 20, 30, 40),
-   n_responders = c(1, 2, 3, 4)
- )
+## Binary endpoint example
+trial_outcome_bin <- createTrial(
+  n_subjects   = c(10, 20, 30, 40),
+  n_responders = c(1, 2, 3, 4)
+)
+
+## Normal endpoint example
+trial_outcome_norm <- createTrial(
+  n_subjects = c(15, 15, 20, 20),
+  means      = c(5.1, 5.4, 6.0, 6.3),
+  sds        = c(1.2, 1.1, 1.5, 1.4),
+  endpoint   = "normal"
+)
 }
 \seealso{
 \code{\link[bhmbasket]{simulateScenarios}}

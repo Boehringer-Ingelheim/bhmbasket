@@ -1,5 +1,3 @@
-## Returns cohort-level posterior parameter names common to all scenarios and methods.
-## For binary endpoints these are of the form "p_j", for continuous endpoints "theta_j".
 getAllCohortNames <- function (
     
   analyses_list

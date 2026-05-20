@@ -30,11 +30,12 @@ Default: \code{c(0.025, 0.05, 0.5, 0.8, 0.9, 0.95, 0.975)}}
 
 \item{method_names}{Either \code{NULL} or a vector of strings for the names of the methods
 to be used. If \code{NULL}, endpoint-specific defaults are used.
-For endpoint \code{"binary"}, the default is \code{c("berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix", "pooled", "stratified", "stratified_mix")}.
+For endpoint \code{"binary"}, the default is
+\code{c("berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix", "pooled", "stratified", "stratified_mix")}.
 For endpoint \code{"normal"}, the default and only supported method is \code{"normal"}.}
 
-\item{target_rates}{A vector of numerics in \verb{(0, 1)} for the
-target rates of each cohort. Only used for endpoint \code{"binary"}, Default: \code{NULL}}
+\item{target_rates}{A vector of numerics in \verb{(0, 1)} for the target rates of each cohort.
+Only used for endpoint \code{"binary"}, Default: \code{NULL}}
 
 \item{target_means}{A numeric vector of target means for each cohort.
 Only used for endpoint \code{"normal"} when \code{prior_parameters_list} is \code{NULL}.
@@ -48,11 +49,14 @@ specify the prior parameters. If \code{prior_parameters_list} contains an entry
 named \code{"normal"}, its \code{target_means} component is used by the model.}
 
 \item{calc_differences}{A matrix of positive integers with 2 columns.
-For each row the differences will be calculated.
+For each row the difference between the corresponding cohort-level posterior
+parameters will be calculated.
 Also a vector of positive integers can be provided for a single difference.
 The integers are the numbers for the cohorts to be subtracted from one another.
 E.g. providing \code{c(2, 1)} calculates the difference between cohort \code{2} and cohort \code{1}.
-If \code{NULL}, no subtractions are performed, Default: \code{NULL}}
+For binary endpoints this corresponds to posterior response-rate differences.
+For normal endpoints this corresponds to posterior cohort-mean differences.
+If \code{NULL}, no differences are calculated, Default: \code{NULL}}
 
 \item{n_mcmc_iterations}{A positive integer for the number of MCMC iterations,
 see Details, Default: \code{10000}.
@@ -79,14 +83,12 @@ An object of class \code{analysis_list}.
 }
 \description{
 This function performs the analysis of simulated or observed trial data with the
-specified methods
-and returns the quantiles of the posterior distributions.
+specified methods and returns posterior quantiles.
 For binary endpoints, posterior response rates are returned.
 For normal endpoints, posterior cohort means are returned.
 }
 \details{
-This function applies the following analysis models to (simulated) scenarios of class
-\code{scenario_list}:
+This function applies the following analysis models to scenarios of class \code{scenario_list}:
 \itemize{
 \item Bayesian hierarchical model (BHM) proposed by Berry et al. (2013): \code{"berry"}
 \item BHM proposed by Neuenschwander et al. (2016): \code{"exnex"}
@@ -98,6 +100,7 @@ This function applies the following analysis models to (simulated) scenarios of 
 \item Stratified beta-binomial approach with mixture beta prior: \code{"stratified_mix"}
 \item Adjusted ExNex hierarchical normal model for continuous endpoints: \code{"normal"}
 }
+
 For endpoint \code{"binary"}, the posterior distributions are those of the cohort-specific
 response rates.
 For endpoint \code{"normal"}, the posterior distributions are those of the cohort-specific
@@ -123,8 +126,8 @@ No thinning is applied.
 Note that the value for \code{n_mcmc_iterations} required for a good approximation of the posterior
 distributions depends on the analysis model, the investigated scenarios, and the use case.
 The default value might be a good compromise between run-time and approximation for
-the estimation of decision probabilities, but
-it should definitively be increased for the analysis of a single trial's outcome.
+the estimation of decision probabilities, but it should be increased for the
+analysis of a single trial's outcome.
 
 The analysis models will only be applied to the unique trial realizations across
 all simulated scenarios.
@@ -153,15 +156,30 @@ for continuous endpoints, where the likelihood is defined on observed cohort mea
 the cohort-specific target means are used as additive offsets.
 }
 \examples{
- trial_data <- createTrial(
-   n_subjects   = c(10, 20, 30),
-   n_responders = c(1, 2, 3))
+## Binary endpoint example
+trial_data_bin <- createTrial(
+  n_subjects   = c(10, 20, 30),
+  n_responders = c(1, 2, 3))
 
- analysis_list <- performAnalyses(
-   scenario_list      = trial_data,
-   target_rates       = rep(0.5, 3),
-   calc_differences   = matrix(c(3, 2, 1, 1), ncol = 2),
-   n_mcmc_iterations  = 100)
+analysis_list_bin <- performAnalyses(
+  scenario_list      = trial_data_bin,
+  target_rates       = rep(0.5, 3),
+  calc_differences   = matrix(c(3, 2, 1, 1), ncol = 2),
+  n_mcmc_iterations  = 100)
+
+## Normal endpoint example
+trial_data_norm <- createTrial(
+  n_subjects = c(20, 20, 20),
+  means      = c(5.0, 5.4, 5.8),
+  sds        = c(1, 1, 1),
+  endpoint   = "normal")
+
+analysis_list_norm <- performAnalyses(
+  scenario_list      = trial_data_norm,
+  method_names       = "normal",
+  target_means       = c(5, 5, 5),
+  calc_differences   = matrix(c(3, 2, 2, 1), ncol = 2),
+  n_mcmc_iterations  = 100)
 }
 \references{
 Berry, Scott M., et al. "Bayesian hierarchical modeling of patient subpopulations:

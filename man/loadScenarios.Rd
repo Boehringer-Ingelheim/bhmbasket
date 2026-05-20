@@ -10,7 +10,7 @@ loadScenarios(scenario_numbers, load_path = tempdir())
 \item{scenario_numbers}{A vector of integers naming the scenario to be loaded}
 
 \item{load_path}{A string for the directory where the scenarios are being stored,
-Default: \code{\link[base]{tempfile}}}
+Default: \code{\link[base]{tempdir}}}
 }
 \value{
 Returns an object of class \code{scenario_list}

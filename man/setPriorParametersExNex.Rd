@@ -45,8 +45,8 @@ one row per Nex mixture component and one column per cohort.}
 A list with prior parameters of class \code{prior_parameters_list}
 }
 \description{
-This function sets prior parameters for the analysis method \code{"exnex"}
-for use in \code{\link[bhmbasket]{performAnalyses}}.
+This function sets prior parameters for the binary-endpoint analysis
+method \code{"exnex"} for use in \code{\link[bhmbasket]{performAnalyses}}.
 
 It supports two specifications for the Nex part:
 \itemize{
@@ -55,9 +55,13 @@ It supports two specifications for the Nex part:
 }
 }
 \details{
-This function sets the prior parameters for the method proposed by Neuenschwander et al. (2016).
-If \code{w_nex}, \code{mean_nex}, and \code{sd_nex} are all \code{NULL}, the standard ExNex formulation is used.
-Otherwise, the Nex part is specified as a finite mixture prior.
+This function sets the prior parameters for the binary-endpoint method proposed by
+Neuenschwander et al. (2016). If \code{w_nex}, \code{mean_nex}, and \code{sd_nex} are all \code{NULL},
+the standard ExNex formulation is used. Otherwise, the Nex part is specified as a
+finite mixture prior.
+
+This function is intended for binary endpoints only. For continuous endpoints,
+use \code{\link[bhmbasket]{setPriorParametersNormal}}.
 }
 \examples{
 ## standard ExNex
@@ -80,7 +84,6 @@ prior_parameters_exnex_mix <- setPriorParametersExNex(
   mean_nex  = rbind(c(4, 5), c(2, 3)),
   sd_nex    = rbind(c(6, 7), c(8, 9))
 )
-
 }
 \references{
 Neuenschwander, Beat, et al. "Robust exchangeability designs
@@ -95,6 +98,8 @@ for early phase clinical trials with multiple strata."
 \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 \code{\link[bhmbasket]{setPriorParametersPooled}}
 \code{\link[bhmbasket]{setPriorParametersStratified}}
+\code{\link[bhmbasket]{setPriorParametersStratifiedMix}}
+\code{\link[bhmbasket]{setPriorParametersNormal}}
 \code{\link[bhmbasket]{getMuVar}}
 }
 \author{

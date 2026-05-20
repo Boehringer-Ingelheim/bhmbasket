@@ -369,64 +369,6 @@ getPriorParameters <- function (
 #'  \code{\link[bhmbasket]{setPriorParametersNormal}}
 #'  \code{\link[bhmbasket]{getPriorParameters}}
 #'  \code{\link[bhmbasket]{getMuVar}}
-#' @export#' @title combinePriorParameters
-#' @md
-#' @description This function combines prior parameters from different sources and returns them
-#' for use in \code{\link[bhmbasket]{performAnalyses}}.
-#' @param list_of_prior_parameters A list of items with class `prior_parameters_list`
-#' @return A list with prior parameters of class `prior_parameters_list`
-#' @details
-#' This function is intended to combine prior parameters set with the functions
-#' \code{\link[bhmbasket]{setPriorParametersBerry}},
-#' \code{\link[bhmbasket]{setPriorParametersExNex}},
-#' \code{\link[bhmbasket]{setPriorParametersExNexAdj}},
-#' \code{\link[bhmbasket]{setPriorParametersPooled}},
-#' \code{\link[bhmbasket]{setPriorParametersStratified}},
-#' \code{\link[bhmbasket]{setPriorParametersStratifiedMix}}, and
-#' \code{\link[bhmbasket]{setPriorParametersNormal}},
-#' in case more than one analysis method should be applied with
-#' \code{\link[bhmbasket]{performAnalyses}}.
-#'
-#' Each element of `list_of_prior_parameters` must itself be an object of class
-#' `prior_parameters_list` and should usually contain the prior parameters for one method.
-#' The combined object is returned as a single `prior_parameters_list`, with one entry per method.
-#'
-#' Both binary-endpoint and continuous-endpoint prior parameter objects can be combined,
-#' as long as the supplied methods are distinct.
-#' @author Stephan Wojciekowski
-#' @examples
-#'  prior_parameters_stratified <- setPriorParametersStratified(c(1, 2), c(3, 4))
-#'  prior_parameters_berry      <- setPriorParametersBerry(0, 1, 2)
-#'
-#'  prior_parameters_list <- combinePriorParameters(
-#'    list(prior_parameters_berry,
-#'         prior_parameters_stratified))
-#'
-#'  prior_parameters_normal <- setPriorParametersNormal(
-#'    mu_mean      = 0,
-#'    mu_sd        = 1,
-#'    tau_scale    = 1,
-#'    mu_j         = c(0, 0),
-#'    tau_j        = c(1, 1),
-#'    w_j          = 0.5,
-#'    target_means = c(5, 5),
-#'    sigma_shape  = 1,
-#'    sigma_rate   = 1
-#'  )
-#'
-#'  combinePriorParameters(list(prior_parameters_normal))
-#' @rdname combinePriorParameters
-#' @seealso
-#'  \code{\link[bhmbasket]{performAnalyses}}
-#'  \code{\link[bhmbasket]{setPriorParametersBerry}}
-#'  \code{\link[bhmbasket]{setPriorParametersExNex}}
-#'  \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
-#'  \code{\link[bhmbasket]{setPriorParametersPooled}}
-#'  \code{\link[bhmbasket]{setPriorParametersStratified}}
-#'  \code{\link[bhmbasket]{setPriorParametersStratifiedMix}}
-#'  \code{\link[bhmbasket]{setPriorParametersNormal}}
-#'  \code{\link[bhmbasket]{getPriorParameters}}
-#'  \code{\link[bhmbasket]{getMuVar}}
 #' @export
 combinePriorParameters <- function (
     

@@ -24,6 +24,7 @@ It can be applied to scenarios with binary endpoints as well as to scenarios wit
 continuous endpoints.
 }
 \examples{
+## Binary endpoint example
 interim_scenarios <- simulateScenarios(
   n_subjects_list     = list(c(10, 20, 30)),
   response_rates_list = list(rep(0.9, 3)),
@@ -46,6 +47,33 @@ scenarios_list <- continueRecruitment(
   method_name         = "exnex_adj")
 
 getAverageNSubjects(scenarios_list)
+
+## Continuous endpoint example
+normal_scenarios <- simulateScenarios(
+  n_subjects_list = list(c(20, 20, 20)),
+  means_list      = list(c(5.0, 5.4, 5.8)),
+  sds_list        = list(c(1, 1, 1)),
+  n_trials        = 10,
+  endpoint        = "normal")
+
+normal_analyses <- performAnalyses(
+  scenario_list      = normal_scenarios,
+  method_names       = "normal",
+  target_means       = c(5, 5, 5),
+  n_mcmc_iterations  = 100)
+
+normal_gos <- getGoDecisions(
+  analyses_list       = normal_analyses,
+  cohort_names        = c("theta_1", "theta_2", "theta_3"),
+  evidence_levels     = c(0.8, 0.8, 0.8),
+  boundary_rules      = quote(c(x[1] > 5.1, x[2] > 5.3, x[3] > 5.5)))
+
+normal_scenarios_next <- continueRecruitment(
+  n_subjects_add_list = list(c(10, 10, 10)),
+  decisions_list      = normal_gos,
+  method_name         = "normal")
+
+getAverageNSubjects(normal_scenarios_next)
 
 }
 \seealso{

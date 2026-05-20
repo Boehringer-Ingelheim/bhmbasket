@@ -16,7 +16,7 @@ loadAnalyses(
 \item{analysis_numbers}{A (vector of) positive integer(s) for the analysis number(s),
 Default: \code{rep(1, length(scenario_numbers))}}
 
-\item{load_path}{A string providing a path where the scenarios are being stored,
+\item{load_path}{A string providing a path where the analyses are being stored,
 Default: \code{\link[base]{tempdir}}}
 }
 \value{
@@ -25,6 +25,49 @@ Returns an object of class \code{analysis_list}
 \description{
 This function loads one or more analyses previously saved with
 \code{\link[bhmbasket]{saveAnalyses}}.
+}
+\details{
+This function can load analyses for both binary and normal endpoints, provided they were
+previously saved with \code{\link[bhmbasket]{saveAnalyses}}.
+
+The files are expected to follow the naming pattern
+\verb{analysis_data_<scenario_number>_<analysis_number>.rds}.
+}
+\examples{
+## Binary endpoint example
+trial_data_bin <- createTrial(
+  n_subjects   = c(10, 20, 30),
+  n_responders = c(1, 2, 3))
+
+analysis_list_bin <- performAnalyses(
+  scenario_list      = trial_data_bin,
+  target_rates       = rep(0.5, 3),
+  n_mcmc_iterations  = 100)
+
+save_info_bin <- saveAnalyses(analysis_list_bin)
+loaded_bin <- loadAnalyses(
+  scenario_numbers = save_info_bin$scenario_numbers,
+  analysis_numbers = save_info_bin$analysis_numbers,
+  load_path        = save_info_bin$path)
+
+## Normal endpoint example
+trial_data_norm <- createTrial(
+  n_subjects = c(20, 20, 20),
+  means      = c(5.0, 5.4, 5.8),
+  sds        = c(1, 1, 1),
+  endpoint   = "normal")
+
+analysis_list_norm <- performAnalyses(
+  scenario_list      = trial_data_norm,
+  method_names       = "normal",
+  target_means       = c(5, 5, 5),
+  n_mcmc_iterations  = 100)
+
+save_info_norm <- saveAnalyses(analysis_list_norm)
+loaded_norm <- loadAnalyses(
+  scenario_numbers = save_info_norm$scenario_numbers,
+  analysis_numbers = save_info_norm$analysis_numbers,
+  load_path        = save_info_norm$path)
 }
 \seealso{
 \code{\link[bhmbasket]{performAnalyses}}

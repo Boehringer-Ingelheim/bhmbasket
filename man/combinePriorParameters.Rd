@@ -31,14 +31,31 @@ in case more than one analysis method should be applied with
 Each element of \code{list_of_prior_parameters} must itself be an object of class
 \code{prior_parameters_list} and should usually contain the prior parameters for one method.
 The combined object is returned as a single \code{prior_parameters_list}, with one entry per method.
+
+Both binary-endpoint and continuous-endpoint prior parameter objects can be combined,
+as long as the supplied methods are distinct.
 }
 \examples{
  prior_parameters_stratified <- setPriorParametersStratified(c(1, 2), c(3, 4))
  prior_parameters_berry      <- setPriorParametersBerry(0, 1, 2)
 
- prior_parameters_list       <- combinePriorParameters(
+ prior_parameters_list <- combinePriorParameters(
    list(prior_parameters_berry,
         prior_parameters_stratified))
+
+ prior_parameters_normal <- setPriorParametersNormal(
+   mu_mean      = 0,
+   mu_sd        = 1,
+   tau_scale    = 1,
+   mu_j         = c(0, 0),
+   tau_j        = c(1, 1),
+   w_j          = 0.5,
+   target_means = c(5, 5),
+   sigma_shape  = 1,
+   sigma_rate   = 1
+ )
+
+ combinePriorParameters(list(prior_parameters_normal))
 }
 \seealso{
 \code{\link[bhmbasket]{performAnalyses}}

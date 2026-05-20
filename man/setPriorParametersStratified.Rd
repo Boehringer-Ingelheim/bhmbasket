@@ -15,15 +15,19 @@ setPriorParametersStratified(a_j, b_j)
 A list with prior parameters of class \code{prior_parameters_list}
 }
 \description{
-This function sets prior parameters for the analysis method \code{"stratified"}
-for use in \code{\link[bhmbasket]{performAnalyses}}.
+This function sets prior parameters for the binary-endpoint analysis
+method \code{"stratified"} for use in \code{\link[bhmbasket]{performAnalyses}}.
 }
 \details{
-The method \code{"stratified"} is a beta-binomial model that assesses each cohort individually.
-The prior parameters are the scale parameters of the beta prior distributions.
+The method \code{"stratified"} is a beta-binomial model for binary endpoints that
+assesses each cohort individually. The prior parameters are the shape parameters
+of the beta prior distributions.
+
+This function is intended for binary endpoints only. For continuous endpoints,
+use \code{\link[bhmbasket]{setPriorParametersNormal}}.
 }
 \examples{
- prior_parameters_pooled <- setPriorParametersStratified(c(1, 2), c(3, 4))
+ prior_parameters_stratified <- setPriorParametersStratified(c(1, 2), c(3, 4))
 }
 \seealso{
 \code{\link[bhmbasket]{performAnalyses}}
@@ -33,6 +37,8 @@ The prior parameters are the scale parameters of the beta prior distributions.
 \code{\link[bhmbasket]{setPriorParametersExNex}}
 \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 \code{\link[bhmbasket]{setPriorParametersPooled}}
+\code{\link[bhmbasket]{setPriorParametersStratifiedMix}}
+\code{\link[bhmbasket]{setPriorParametersNormal}}
 \code{\link[bhmbasket]{getMuVar}}
 }
 \author{

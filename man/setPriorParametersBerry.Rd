@@ -17,12 +17,16 @@ setPriorParametersBerry(mu_mean, mu_sd, tau_scale)
 A list with prior parameters of class \code{prior_parameters_list}
 }
 \description{
-This function sets prior parameters for the analysis method \code{"berry"}
-for use in \code{\link[bhmbasket]{performAnalyses}}.
+This function sets prior parameters for the binary-endpoint analysis
+method \code{"berry"} for use in \code{\link[bhmbasket]{performAnalyses}}.
 }
 \details{
-This function sets the prior parameters for the method proposed by Berry et al. (2013).
-Note that the implemented distribution of \eqn{\tau} is half-normal.
+This function sets the prior parameters for the binary-endpoint method proposed
+by Berry et al. (2013). Note that the implemented distribution of \eqn{\tau}
+is half-normal.
+
+This function is intended for binary endpoints only. For continuous endpoints,
+use \code{\link[bhmbasket]{setPriorParametersNormal}}.
 }
 \examples{
  prior_parameters_berry <- setPriorParametersBerry(0, 1, 2)
@@ -40,6 +44,8 @@ efficient designs of phase II oncology clinical trials."
 \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 \code{\link[bhmbasket]{setPriorParametersPooled}}
 \code{\link[bhmbasket]{setPriorParametersStratified}}
+\code{\link[bhmbasket]{setPriorParametersStratifiedMix}}
+\code{\link[bhmbasket]{setPriorParametersNormal}}
 \code{\link[bhmbasket]{getMuVar}}
 }
 \author{

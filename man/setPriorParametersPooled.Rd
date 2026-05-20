@@ -15,12 +15,16 @@ setPriorParametersPooled(a, b)
 A list with prior parameters of class \code{prior_parameters_list}
 }
 \description{
-This function sets prior parameters for the analysis method \code{"pooled"}
-for use in \code{\link[bhmbasket]{performAnalyses}}.
+This function sets prior parameters for the binary-endpoint analysis
+method \code{"pooled"} for use in \code{\link[bhmbasket]{performAnalyses}}.
 }
 \details{
-The method \code{"pooled"} is a beta-binomial model that pools all cohorts.
-The prior parameters are the scale parameters of the beta prior distribution.
+The method \code{"pooled"} is a beta-binomial model for binary endpoints that pools
+all cohorts. The prior parameters are the shape parameters of the beta prior
+distribution.
+
+This function is intended for binary endpoints only. For continuous endpoints,
+use \code{\link[bhmbasket]{setPriorParametersNormal}}.
 }
 \examples{
  prior_parameters_pooled <- setPriorParametersPooled(1, 2)
@@ -33,6 +37,8 @@ The prior parameters are the scale parameters of the beta prior distribution.
 \code{\link[bhmbasket]{setPriorParametersExNex}}
 \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 \code{\link[bhmbasket]{setPriorParametersStratified}}
+\code{\link[bhmbasket]{setPriorParametersStratifiedMix}}
+\code{\link[bhmbasket]{setPriorParametersNormal}}
 \code{\link[bhmbasket]{getMuVar}}
 }
 \author{

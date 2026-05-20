@@ -10,7 +10,7 @@ saveAnalyses(analyses_list, save_path = tempdir(), analysis_numbers = NULL)
 \item{analyses_list}{An object of class \code{analysis_list},
 as created with \code{\link[bhmbasket]{performAnalyses}}}
 
-\item{save_path}{A string for the path where the scenarios are being stored,
+\item{save_path}{A string for the path where the analyses are being stored,
 Default: \code{\link[base]{tempdir}}}
 
 \item{analysis_numbers}{A positive integer naming the analysis number.

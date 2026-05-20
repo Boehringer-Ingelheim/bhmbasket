@@ -19,13 +19,16 @@ with rows per mixture component and columns per cohort.}
 A list with prior parameters of class \code{prior_parameters_list}
 }
 \description{
-This function sets prior parameters for the analysis method \code{"stratified_mix"}
-for use in \code{\link[bhmbasket]{performAnalyses}}.
+This function sets prior parameters for the binary-endpoint analysis
+method \code{"stratified_mix"} for use in \code{\link[bhmbasket]{performAnalyses}}.
 }
 \details{
-The method \code{"stratified_mix"} is a beta-binomial model that assesses each cohort
-individually with a finite mixture beta prior.
+The method \code{"stratified_mix"} is a beta-binomial model for binary endpoints that
+assesses each cohort individually with a finite mixture beta prior.
 See also the R package \code{RBesT}.
+
+This function is intended for binary endpoints only. For continuous endpoints,
+use \code{\link[bhmbasket]{setPriorParametersNormal}}.
 }
 \examples{
 prior_parameters_stratified_mix <- setPriorParametersStratifiedMix(
@@ -39,6 +42,7 @@ prior_parameters_stratified_mix <- setPriorParametersStratifiedMix(
 \code{\link[bhmbasket]{getPriorParameters}}
 \code{\link[bhmbasket]{combinePriorParameters}}
 \code{\link[bhmbasket]{setPriorParametersStratified}}
+\code{\link[bhmbasket]{setPriorParametersNormal}}
 }
 \author{
 Stephan Wojciekowski

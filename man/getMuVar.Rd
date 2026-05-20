@@ -26,6 +26,9 @@ Calculates the variance \code{mu_var} in
 \deqn{logit(p) = \theta ~ N(\mu, \tau),
 \mu ~ N(mu_mean, mu_var), \tau ~ HN(tau_scale),}
 for \code{n_worth} number of observations, as in Neuenschwander et al. (2016).
+
+This helper is used for binary-endpoint prior construction. It is not used for the
+continuous-endpoint \code{"normal"} model.
 }
 \examples{
   getMuVar(response_rate = 0.3,
