@@ -134,6 +134,8 @@ continueRecruitment <- function (
     .var.name = error_n_subjects_add_list
   )
   
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  
   scenario_numbers <- as.numeric(sub("scenario_", "", names(decisions_list)))
   
   scenario_list <- vector(mode = "list", length = length(decisions_list))
@@ -321,10 +323,19 @@ continueRecruitment <- function (
 #' @author Stephan Wojciekowski
 #' @rdname createTrial
 #' @examples
-#'  trial_outcome <- createTrial(
-#'    n_subjects   = c(10, 20, 30, 40),
-#'    n_responders = c(1, 2, 3, 4)
-#'  )
+#' ## Binary endpoint example
+#' trial_outcome_bin <- createTrial(
+#'   n_subjects   = c(10, 20, 30, 40),
+#'   n_responders = c(1, 2, 3, 4)
+#' )
+#'
+#' ## Normal endpoint example
+#' trial_outcome_norm <- createTrial(
+#'   n_subjects = c(15, 15, 20, 20),
+#'   means      = c(5.1, 5.4, 6.0, 6.3),
+#'   sds        = c(1.2, 1.1, 1.5, 1.4),
+#'   endpoint   = "normal"
+#' )
 #' @export
 #' @md
 createTrial <- function (
@@ -566,7 +577,7 @@ getScenario <- function(
     .var.name = "cohort_names must match length of n_subjects"
   )
   
-### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### 
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### 
   
   cohort_names_chr <- as.character(cohort_names)
   
@@ -772,7 +783,7 @@ is.scenario_list <- function (x) {
 #' @description This function loads scenarios saved with \code{\link[bhmbasket]{saveScenarios}}
 #' @param scenario_numbers A vector of integers naming the scenario to be loaded
 #' @param load_path A string for the directory where the scenarios are being stored,
-#' Default: \code{\link[base]{tempfile}}
+#' Default: \code{\link[base]{tempdir}}
 #' @return Returns an object of class `scenario_list`
 #' @rdname loadScenarios
 #' @author Stephan Wojciekowski
@@ -1207,7 +1218,7 @@ simulateScenarios <- function (
     .var.name = error_n_trials
   )
 
-### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###  ### ### 
+  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###  ### ### 
 
   scenario_list <- vector(mode = "list", length = length(scenario_numbers))
   

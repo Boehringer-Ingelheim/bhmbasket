@@ -332,14 +332,89 @@ getPriorParameters <- function (
 #' Each element of `list_of_prior_parameters` must itself be an object of class
 #' `prior_parameters_list` and should usually contain the prior parameters for one method.
 #' The combined object is returned as a single `prior_parameters_list`, with one entry per method.
+#'
+#' Both binary-endpoint and continuous-endpoint prior parameter objects can be combined,
+#' as long as the supplied methods are distinct.
 #' @author Stephan Wojciekowski
 #' @examples
 #'  prior_parameters_stratified <- setPriorParametersStratified(c(1, 2), c(3, 4))
 #'  prior_parameters_berry      <- setPriorParametersBerry(0, 1, 2)
 #'
-#'  prior_parameters_list       <- combinePriorParameters(
+#'  prior_parameters_list <- combinePriorParameters(
 #'    list(prior_parameters_berry,
 #'         prior_parameters_stratified))
+#'
+#'  prior_parameters_normal <- setPriorParametersNormal(
+#'    mu_mean      = 0,
+#'    mu_sd        = 1,
+#'    tau_scale    = 1,
+#'    mu_j         = c(0, 0),
+#'    tau_j        = c(1, 1),
+#'    w_j          = 0.5,
+#'    target_means = c(5, 5),
+#'    sigma_shape  = 1,
+#'    sigma_rate   = 1
+#'  )
+#'
+#'  combinePriorParameters(list(prior_parameters_normal))
+#' @rdname combinePriorParameters
+#' @seealso
+#'  \code{\link[bhmbasket]{performAnalyses}}
+#'  \code{\link[bhmbasket]{setPriorParametersBerry}}
+#'  \code{\link[bhmbasket]{setPriorParametersExNex}}
+#'  \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
+#'  \code{\link[bhmbasket]{setPriorParametersPooled}}
+#'  \code{\link[bhmbasket]{setPriorParametersStratified}}
+#'  \code{\link[bhmbasket]{setPriorParametersStratifiedMix}}
+#'  \code{\link[bhmbasket]{setPriorParametersNormal}}
+#'  \code{\link[bhmbasket]{getPriorParameters}}
+#'  \code{\link[bhmbasket]{getMuVar}}
+#' @export#' @title combinePriorParameters
+#' @md
+#' @description This function combines prior parameters from different sources and returns them
+#' for use in \code{\link[bhmbasket]{performAnalyses}}.
+#' @param list_of_prior_parameters A list of items with class `prior_parameters_list`
+#' @return A list with prior parameters of class `prior_parameters_list`
+#' @details
+#' This function is intended to combine prior parameters set with the functions
+#' \code{\link[bhmbasket]{setPriorParametersBerry}},
+#' \code{\link[bhmbasket]{setPriorParametersExNex}},
+#' \code{\link[bhmbasket]{setPriorParametersExNexAdj}},
+#' \code{\link[bhmbasket]{setPriorParametersPooled}},
+#' \code{\link[bhmbasket]{setPriorParametersStratified}},
+#' \code{\link[bhmbasket]{setPriorParametersStratifiedMix}}, and
+#' \code{\link[bhmbasket]{setPriorParametersNormal}},
+#' in case more than one analysis method should be applied with
+#' \code{\link[bhmbasket]{performAnalyses}}.
+#'
+#' Each element of `list_of_prior_parameters` must itself be an object of class
+#' `prior_parameters_list` and should usually contain the prior parameters for one method.
+#' The combined object is returned as a single `prior_parameters_list`, with one entry per method.
+#'
+#' Both binary-endpoint and continuous-endpoint prior parameter objects can be combined,
+#' as long as the supplied methods are distinct.
+#' @author Stephan Wojciekowski
+#' @examples
+#'  prior_parameters_stratified <- setPriorParametersStratified(c(1, 2), c(3, 4))
+#'  prior_parameters_berry      <- setPriorParametersBerry(0, 1, 2)
+#'
+#'  prior_parameters_list <- combinePriorParameters(
+#'    list(prior_parameters_berry,
+#'         prior_parameters_stratified))
+#'
+#'  prior_parameters_normal <- setPriorParametersNormal(
+#'    mu_mean      = 0,
+#'    mu_sd        = 1,
+#'    tau_scale    = 1,
+#'    mu_j         = c(0, 0),
+#'    tau_j        = c(1, 1),
+#'    w_j          = 0.5,
+#'    target_means = c(5, 5),
+#'    sigma_shape  = 1,
+#'    sigma_rate   = 1
+#'  )
+#'
+#'  combinePriorParameters(list(prior_parameters_normal))
 #' @rdname combinePriorParameters
 #' @seealso
 #'  \code{\link[bhmbasket]{performAnalyses}}
@@ -421,10 +496,14 @@ is.prior_parameters_list <- function(x) {
 #' @param n_worth An integer for the number of subjects the variance of \eqn{\mu} should be worth
 #' with regard to the variability of the distribution of the response rate, Default: `1`
 #' @return Returns a numeric for the variance of \eqn{\mu}
-#' @details Calculates the variance `mu_var` in
+#' @details
+#' Calculates the variance `mu_var` in
 #' \deqn{logit(p) = \theta ~ N(\mu, \tau),
 #' \mu ~ N(mu_mean, mu_var), \tau ~ HN(tau_scale),}
 #' for `n_worth` number of observations, as in Neuenschwander et al. (2016).
+#'
+#' This helper is used for binary-endpoint prior construction. It is not used for the
+#' continuous-endpoint `"normal"` model.
 #' @rdname getMuVar
 #' @author Stephan Wojciekowski
 #' @examples
@@ -516,15 +595,19 @@ getPriorParametersBerry <- function (
 
 #' @title setPriorParametersBerry
 #' @md
-#' @description This function sets prior parameters for the analysis method `"berry"`
-#' for use in \code{\link[bhmbasket]{performAnalyses}}.
+#' @description This function sets prior parameters for the binary-endpoint analysis
+#' method `"berry"` for use in \code{\link[bhmbasket]{performAnalyses}}.
 #' @param mu_mean A numeric for the mean of \eqn{\mu}
 #' @param mu_sd A positive numeric for the standard deviation of \eqn{\mu}
 #' @param tau_scale A positive numeric for the scale parameter of \eqn{\tau}
 #' @return A list with prior parameters of class `prior_parameters_list`
 #' @details
-#' This function sets the prior parameters for the method proposed by Berry et al. (2013).
-#' Note that the implemented distribution of \eqn{\tau} is half-normal.
+#' This function sets the prior parameters for the binary-endpoint method proposed
+#' by Berry et al. (2013). Note that the implemented distribution of \eqn{\tau}
+#' is half-normal.
+#'
+#' This function is intended for binary endpoints only. For continuous endpoints,
+#' use \code{\link[bhmbasket]{setPriorParametersNormal}}.
 #' @author Stephan Wojciekowski
 #' @examples
 #'  prior_parameters_berry <- setPriorParametersBerry(0, 1, 2)
@@ -537,6 +620,8 @@ getPriorParametersBerry <- function (
 #'  \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 #'  \code{\link[bhmbasket]{setPriorParametersPooled}}
 #'  \code{\link[bhmbasket]{setPriorParametersStratified}}
+#'  \code{\link[bhmbasket]{setPriorParametersStratifiedMix}}
+#'  \code{\link[bhmbasket]{setPriorParametersNormal}}
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @references Berry, Scott M., et al. "Bayesian hierarchical modeling of patient subpopulations:
 #' efficient designs of phase II oncology clinical trials."
@@ -665,8 +750,8 @@ getPriorParametersExNex <- function (
 
 #' @title setPriorParametersExNex
 #' @md
-#' @description This function sets prior parameters for the analysis method `"exnex"`
-#' for use in \code{\link[bhmbasket]{performAnalyses}}.
+#' @description This function sets prior parameters for the binary-endpoint analysis
+#' method `"exnex"` for use in \code{\link[bhmbasket]{performAnalyses}}.
 #'
 #' It supports two specifications for the Nex part:
 #' \itemize{
@@ -689,16 +774,16 @@ getPriorParametersExNex <- function (
 #'   mixture component and one column per cohort.
 #' @param sd_nex An optional positive numeric matrix of Nex mixture standard deviations with
 #'   one row per Nex mixture component and one column per cohort.
-#'
 #' @return A list with prior parameters of class `prior_parameters_list`
-#'
 #' @details
-#' This function sets the prior parameters for the method proposed by Neuenschwander et al. (2016).
-#' If `w_nex`, `mean_nex`, and `sd_nex` are all `NULL`, the standard ExNex formulation is used.
-#' Otherwise, the Nex part is specified as a finite mixture prior.
+#' This function sets the prior parameters for the binary-endpoint method proposed by
+#' Neuenschwander et al. (2016). If `w_nex`, `mean_nex`, and `sd_nex` are all `NULL`,
+#' the standard ExNex formulation is used. Otherwise, the Nex part is specified as a
+#' finite mixture prior.
 #'
+#' This function is intended for binary endpoints only. For continuous endpoints,
+#' use \code{\link[bhmbasket]{setPriorParametersNormal}}.
 #' @author Stephan Wojciekowski
-#'
 #' @examples
 #' ## standard ExNex
 #' prior_parameters_exnex <- setPriorParametersExNex(
@@ -720,7 +805,6 @@ getPriorParametersExNex <- function (
 #'   mean_nex  = rbind(c(4, 5), c(2, 3)),
 #'   sd_nex    = rbind(c(6, 7), c(8, 9))
 #' )
-#'
 #' @rdname setPriorParametersExNex
 #' @seealso
 #'  \code{\link[bhmbasket]{performAnalyses}}
@@ -730,6 +814,8 @@ getPriorParametersExNex <- function (
 #'  \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 #'  \code{\link[bhmbasket]{setPriorParametersPooled}}
 #'  \code{\link[bhmbasket]{setPriorParametersStratified}}
+#'  \code{\link[bhmbasket]{setPriorParametersStratifiedMix}}
+#'  \code{\link[bhmbasket]{setPriorParametersNormal}}
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @references Neuenschwander, Beat, et al. "Robust exchangeability designs
 #' for early phase clinical trials with multiple strata."
@@ -942,8 +1028,8 @@ getPriorParametersExNexAdj <- function (
 
 #' @title setPriorParametersExNexAdj
 #' @md
-#' @description This function sets prior parameters for the analysis method `"exnex_adj"`
-#' for use in \code{\link[bhmbasket]{performAnalyses}}.
+#' @description This function sets prior parameters for the binary-endpoint analysis
+#' method `"exnex_adj"` for use in \code{\link[bhmbasket]{performAnalyses}}.
 #'
 #' It supports two specifications for the Nex part:
 #' \itemize{
@@ -966,18 +1052,17 @@ getPriorParametersExNexAdj <- function (
 #'   mixture component and one column per cohort.
 #' @param sd_nex [numeric] Optional positive matrix of Nex mixture standard deviations with
 #'   one row per Nex mixture component and one column per cohort.
-#'
 #' @return A list with prior parameters of class `prior_parameters_list`
-#'
 #' @details
-#' This function sets prior parameters for the ExNex Adjusted method, which combines
-#' the approach proposed by Neuenschwander et al. (2016) and the approach proposed by
-#' Berry et al. (2013). If `w_nex`, `mean_nex`, and `sd_nex` are all `NULL`, the standard
-#' ExNex Adjusted formulation is used. Otherwise, the Nex part is specified as a finite
-#' mixture prior.
+#' This function sets prior parameters for the binary-endpoint ExNex Adjusted method,
+#' which combines the approach proposed by Neuenschwander et al. (2016) and the approach
+#' proposed by Berry et al. (2013). If `w_nex`, `mean_nex`, and `sd_nex` are all `NULL`,
+#' the standard ExNex Adjusted formulation is used. Otherwise, the Nex part is specified
+#' as a finite mixture prior.
 #'
+#' This function is intended for binary endpoints only. For continuous endpoints,
+#' use \code{\link[bhmbasket]{setPriorParametersNormal}}.
 #' @author Stephan Wojciekowski
-#'
 #' @examples
 #' ## standard ExNex Adjusted
 #' prior_parameters_exnex_adj <- setPriorParametersExNexAdj(
@@ -999,7 +1084,6 @@ getPriorParametersExNexAdj <- function (
 #'   mean_nex  = rbind(c(0, 0), c(-1, -1)),
 #'   sd_nex    = rbind(c(6, 7), c(8, 9))
 #' )
-#'
 #' @rdname setPriorParametersExNexAdj
 #' @seealso
 #'  \code{\link[bhmbasket]{performAnalyses}}
@@ -1009,6 +1093,8 @@ getPriorParametersExNexAdj <- function (
 #'  \code{\link[bhmbasket]{setPriorParametersExNex}}
 #'  \code{\link[bhmbasket]{setPriorParametersPooled}}
 #'  \code{\link[bhmbasket]{setPriorParametersStratified}}
+#'  \code{\link[bhmbasket]{setPriorParametersStratifiedMix}}
+#'  \code{\link[bhmbasket]{setPriorParametersNormal}}
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @references Neuenschwander, Beat, et al. "Robust exchangeability designs
 #' for early phase clinical trials with multiple strata."
@@ -1195,14 +1281,18 @@ getPriorParametersPooled <- function (
 
 #' @title setPriorParametersPooled
 #' @md
-#' @description This function sets prior parameters for the analysis method `"pooled"`
-#' for use in \code{\link[bhmbasket]{performAnalyses}}.
+#' @description This function sets prior parameters for the binary-endpoint analysis
+#' method `"pooled"` for use in \code{\link[bhmbasket]{performAnalyses}}.
 #' @param a A positive numeric for \eqn{\alpha}
 #' @param b A positive numeric for \eqn{\beta}
 #' @return A list with prior parameters of class `prior_parameters_list`
 #' @details
-#' The method `"pooled"` is a beta-binomial model that pools all cohorts.
-#' The prior parameters are the scale parameters of the beta prior distribution.
+#' The method `"pooled"` is a beta-binomial model for binary endpoints that pools
+#' all cohorts. The prior parameters are the shape parameters of the beta prior
+#' distribution.
+#'
+#' This function is intended for binary endpoints only. For continuous endpoints,
+#' use \code{\link[bhmbasket]{setPriorParametersNormal}}.
 #' @author Stephan Wojciekowski
 #' @examples
 #'  prior_parameters_pooled <- setPriorParametersPooled(1, 2)
@@ -1215,6 +1305,8 @@ getPriorParametersPooled <- function (
 #'  \code{\link[bhmbasket]{setPriorParametersExNex}}
 #'  \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 #'  \code{\link[bhmbasket]{setPriorParametersStratified}}
+#'  \code{\link[bhmbasket]{setPriorParametersStratifiedMix}}
+#'  \code{\link[bhmbasket]{setPriorParametersNormal}}
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @export
 setPriorParametersPooled <- function (
@@ -1293,17 +1385,21 @@ getPriorParametersStratified <- function (
 
 #' @title setPriorParametersStratified
 #' @md
-#' @description This function sets prior parameters for the analysis method `"stratified"`
-#' for use in \code{\link[bhmbasket]{performAnalyses}}.
+#' @description This function sets prior parameters for the binary-endpoint analysis
+#' method `"stratified"` for use in \code{\link[bhmbasket]{performAnalyses}}.
 #' @param a_j A vector of positive numerics for \eqn{\alpha}
 #' @param b_j A vector of positive numerics for \eqn{\beta}
 #' @return A list with prior parameters of class `prior_parameters_list`
 #' @details
-#' The method `"stratified"` is a beta-binomial model that assesses each cohort individually.
-#' The prior parameters are the scale parameters of the beta prior distributions.
+#' The method `"stratified"` is a beta-binomial model for binary endpoints that
+#' assesses each cohort individually. The prior parameters are the shape parameters
+#' of the beta prior distributions.
+#'
+#' This function is intended for binary endpoints only. For continuous endpoints,
+#' use \code{\link[bhmbasket]{setPriorParametersNormal}}.
 #' @author Stephan Wojciekowski
 #' @examples
-#'  prior_parameters_pooled <- setPriorParametersStratified(c(1, 2), c(3, 4))
+#'  prior_parameters_stratified <- setPriorParametersStratified(c(1, 2), c(3, 4))
 #' @rdname setPriorParametersStratified
 #' @seealso
 #'  \code{\link[bhmbasket]{performAnalyses}}
@@ -1313,6 +1409,8 @@ getPriorParametersStratified <- function (
 #'  \code{\link[bhmbasket]{setPriorParametersExNex}}
 #'  \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 #'  \code{\link[bhmbasket]{setPriorParametersPooled}}
+#'  \code{\link[bhmbasket]{setPriorParametersStratifiedMix}}
+#'  \code{\link[bhmbasket]{setPriorParametersNormal}}
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @export
 setPriorParametersStratified <- function (
@@ -1425,8 +1523,8 @@ getPriorParametersStratifiedMix <- function (
 
 #' @title setPriorParametersStratifiedMix
 #' @md
-#' @description This function sets prior parameters for the analysis method `"stratified_mix"`
-#' for use in \code{\link[bhmbasket]{performAnalyses}}.
+#' @description This function sets prior parameters for the binary-endpoint analysis
+#' method `"stratified_mix"` for use in \code{\link[bhmbasket]{performAnalyses}}.
 #' @param w A numeric vector of mixture weights in \eqn{[0,1]} summing to 1.
 #' @param a_j A positive numeric matrix of beta shape parameters \eqn{\alpha_j},
 #' with rows per mixture component and columns per cohort.
@@ -1434,9 +1532,12 @@ getPriorParametersStratifiedMix <- function (
 #' with rows per mixture component and columns per cohort.
 #' @return A list with prior parameters of class `prior_parameters_list`
 #' @details
-#' The method `"stratified_mix"` is a beta-binomial model that assesses each cohort
-#' individually with a finite mixture beta prior.
+#' The method `"stratified_mix"` is a beta-binomial model for binary endpoints that
+#' assesses each cohort individually with a finite mixture beta prior.
 #' See also the R package `RBesT`.
+#'
+#' This function is intended for binary endpoints only. For continuous endpoints,
+#' use \code{\link[bhmbasket]{setPriorParametersNormal}}.
 #' @author Stephan Wojciekowski
 #' @examples
 #' prior_parameters_stratified_mix <- setPriorParametersStratifiedMix(
@@ -1450,6 +1551,7 @@ getPriorParametersStratifiedMix <- function (
 #'  \code{\link[bhmbasket]{getPriorParameters}}
 #'  \code{\link[bhmbasket]{combinePriorParameters}}
 #'  \code{\link[bhmbasket]{setPriorParametersStratified}}
+#'  \code{\link[bhmbasket]{setPriorParametersNormal}}
 #' @export
 setPriorParametersStratifiedMix <- function(
     w,

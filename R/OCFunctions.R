@@ -1,3 +1,5 @@
+## Returns cohort-level posterior parameter names common to all scenarios and methods.
+## For binary endpoints these are of the form "p_j", for continuous endpoints "theta_j".
 getAllCohortNames <- function (
     
   analyses_list
@@ -44,6 +46,7 @@ getAllCohortNames <- function (
 #'  \code{\link[bhmbasket]{simulateScenarios}}
 #'  \code{\link[bhmbasket]{continueRecruitment}}
 #' @examples
+#' ## Binary endpoint example
 #' interim_scenarios <- simulateScenarios(
 #'   n_subjects_list     = list(c(10, 20, 30)),
 #'   response_rates_list = list(rep(0.9, 3)),
@@ -66,6 +69,33 @@ getAllCohortNames <- function (
 #'   method_name         = "exnex_adj")
 #'
 #' getAverageNSubjects(scenarios_list)
+#'
+#' ## Continuous endpoint example
+#' normal_scenarios <- simulateScenarios(
+#'   n_subjects_list = list(c(20, 20, 20)),
+#'   means_list      = list(c(5.0, 5.4, 5.8)),
+#'   sds_list        = list(c(1, 1, 1)),
+#'   n_trials        = 10,
+#'   endpoint        = "normal")
+#'
+#' normal_analyses <- performAnalyses(
+#'   scenario_list      = normal_scenarios,
+#'   method_names       = "normal",
+#'   target_means       = c(5, 5, 5),
+#'   n_mcmc_iterations  = 100)
+#'
+#' normal_gos <- getGoDecisions(
+#'   analyses_list       = normal_analyses,
+#'   cohort_names        = c("theta_1", "theta_2", "theta_3"),
+#'   evidence_levels     = c(0.8, 0.8, 0.8),
+#'   boundary_rules      = quote(c(x[1] > 5.1, x[2] > 5.3, x[3] > 5.5)))
+#'
+#' normal_scenarios_next <- continueRecruitment(
+#'   n_subjects_add_list = list(c(10, 10, 10)),
+#'   decisions_list      = normal_gos,
+#'   method_name         = "normal")
+#'
+#' getAverageNSubjects(normal_scenarios_next)
 #'
 #' @author Stephan Wojciekowski
 #' @export
@@ -123,54 +153,57 @@ getAverageNSubjects <- function (
 #'  \code{\link[bhmbasket]{simulateScenarios}}
 #'  \code{\link[bhmbasket]{performAnalyses}}
 #' @examples
-#'   scenarios_list <- simulateScenarios(
-#'     n_subjects_list     = list(c(10, 20, 30)),
-#'     response_rates_list = list(c(0.1, 0.2, 3)),
-#'     n_trials            = 10)
+#' ## Binary endpoint example
+#' scenarios_list <- simulateScenarios(
+#'   n_subjects_list     = list(c(10, 20, 30)),
+#'   response_rates_list = list(c(0.1, 0.2, 3)),
+#'   n_trials            = 10)
 #'
-#'   analyses_list <- performAnalyses(
-#'     scenario_list       = scenarios_list,
-#'     target_rates        = c(0.1, 0.1, 0.1),
-#'     calc_differences    = matrix(c(3, 2, 2, 1), ncol = 2),
-#'     n_mcmc_iterations   = 100)
+#' analyses_list <- performAnalyses(
+#'   scenario_list       = scenarios_list,
+#'   target_rates        = c(0.1, 0.1, 0.1),
+#'   calc_differences    = matrix(c(3, 2, 2, 1), ncol = 2),
+#'   n_mcmc_iterations   = 100)
 #'
-#'   getEstimates(analyses_list)
-#'   getEstimates(analyses_list   = analyses_list,
-#'                add_parameters  = c("mu", "tau", "w_1", "w_2", "w_3"),
-#'                point_estimator = "mean",
-#'                alpha_level     = 0.1)
+#' getEstimates(analyses_list)
+#' getEstimates(analyses_list   = analyses_list,
+#'              add_parameters  = c("mu", "tau", "w_1", "w_2", "w_3"),
+#'              point_estimator = "mean",
+#'              alpha_level     = 0.1)
 #'
-#'   outcome <- createTrial(
-#'     n_subjects          = c(10, 20, 30),
-#'     n_responders        = c( 1,  2,  3))
+#' outcome <- createTrial(
+#'   n_subjects   = c(10, 20, 30),
+#'   n_responders = c(1, 2, 3))
 #'
-#'   outcome_analysis <- performAnalyses(
-#'     scenario_list       = outcome,
-#'     target_rates        = c(0.1, 0.1, 0.1),
-#'     n_mcmc_iterations   = 100)
+#' outcome_analysis <- performAnalyses(
+#'   scenario_list       = outcome,
+#'   target_rates        = c(0.1, 0.1, 0.1),
+#'   n_mcmc_iterations   = 100)
 #'
-#'   getEstimates(outcome_analysis)
-#'   getEstimates(analyses_list  = outcome_analysis,
-#'                add_parameters = c("mu", "w_1", "w_2", "w_3"))
+#' getEstimates(outcome_analysis)
+#' getEstimates(analyses_list  = outcome_analysis,
+#'              add_parameters = c("mu", "w_1", "w_2", "w_3"))
 #'
-#'   normal_scenarios <- simulateScenarios(
-#'     n_subjects_list = list(c(30, 30, 30)),
-#'     means_list      = list(c(5.0, 5.5, 6.0)),
-#'     sds_list        = list(c(1, 1, 1)),
-#'     n_trials        = 10,
-#'     endpoint        = "normal")
+#' ## Continuous endpoint example
+#' normal_scenarios <- simulateScenarios(
+#'   n_subjects_list = list(c(30, 30, 30)),
+#'   means_list      = list(c(5.0, 5.5, 6.0)),
+#'   sds_list        = list(c(1, 1, 1)),
+#'   n_trials        = 10,
+#'   endpoint        = "normal")
 #'
-#'   normal_analyses <- performAnalyses(
-#'     scenario_list      = normal_scenarios,
-#'     method_names       = "normal",
-#'     target_means       = c(5, 5, 5),
-#'     calc_differences   = matrix(c(3, 2, 2, 1), ncol = 2),
-#'     n_mcmc_iterations  = 100)
+#' normal_analyses <- performAnalyses(
+#'   scenario_list      = normal_scenarios,
+#'   method_names       = "normal",
+#'   target_means       = c(5, 5, 5),
+#'   calc_differences   = matrix(c(3, 2, 2, 1), ncol = 2),
+#'   n_mcmc_iterations  = 100)
 #'
-#'   getEstimates(normal_analyses)
-#'   getEstimates(analyses_list   = normal_analyses,
-#'                point_estimator = "mean",
-#'                alpha_level     = 0.1)
+#' getEstimates(normal_analyses)
+#' getEstimates(normal_analyses,
+#'              point_estimator = "mean",
+#'              alpha_level     = 0.1)
+#'
 #' @author Stephan Wojciekowski
 #' @export
 getEstimates <- function (

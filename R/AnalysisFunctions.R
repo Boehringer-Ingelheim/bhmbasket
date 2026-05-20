@@ -800,22 +800,62 @@ is.analysis_list <- function (x) {
   inherits(x, "analysis_list")
 }
 
-
 #' @title loadAnalyses
 #' @md
 #' @description This function loads one or more analyses previously saved with
 #' \code{\link[bhmbasket]{saveAnalyses}}.
-#' @param load_path A string providing a path where the scenarios are being stored,
-#' Default: \code{\link[base]{tempdir}}
 #' @param scenario_numbers A (vector of) positive integer(s) for the scenario number(s)
 #' @param analysis_numbers A (vector of) positive integer(s) for the analysis number(s),
 #' Default: `rep(1, length(scenario_numbers))`
+#' @param load_path A string providing a path where the analyses are being stored,
+#' Default: \code{\link[base]{tempdir}}
 #' @return Returns an object of class `analysis_list`
+#' @details
+#' This function can load analyses for both binary and normal endpoints, provided they were
+#' previously saved with \code{\link[bhmbasket]{saveAnalyses}}.
+#'
+#' The files are expected to follow the naming pattern
+#' `analysis_data_<scenario_number>_<analysis_number>.rds`.
 #' @seealso
 #'  \code{\link[bhmbasket]{performAnalyses}}
 #'  \code{\link[bhmbasket]{saveAnalyses}}
 #'  \code{\link[base]{tempdir}}
 #' @rdname loadAnalyses
+#' @examples
+#' ## Binary endpoint example
+#' trial_data_bin <- createTrial(
+#'   n_subjects   = c(10, 20, 30),
+#'   n_responders = c(1, 2, 3))
+#'
+#' analysis_list_bin <- performAnalyses(
+#'   scenario_list      = trial_data_bin,
+#'   target_rates       = rep(0.5, 3),
+#'   n_mcmc_iterations  = 100)
+#'
+#' save_info_bin <- saveAnalyses(analysis_list_bin)
+#' loaded_bin <- loadAnalyses(
+#'   scenario_numbers = save_info_bin$scenario_numbers,
+#'   analysis_numbers = save_info_bin$analysis_numbers,
+#'   load_path        = save_info_bin$path)
+#'
+#' ## Normal endpoint example
+#' trial_data_norm <- createTrial(
+#'   n_subjects = c(20, 20, 20),
+#'   means      = c(5.0, 5.4, 5.8),
+#'   sds        = c(1, 1, 1),
+#'   endpoint   = "normal")
+#'
+#' analysis_list_norm <- performAnalyses(
+#'   scenario_list      = trial_data_norm,
+#'   method_names       = "normal",
+#'   target_means       = c(5, 5, 5),
+#'   n_mcmc_iterations  = 100)
+#'
+#' save_info_norm <- saveAnalyses(analysis_list_norm)
+#' loaded_norm <- loadAnalyses(
+#'   scenario_numbers = save_info_norm$scenario_numbers,
+#'   analysis_numbers = save_info_norm$analysis_numbers,
+#'   load_path        = save_info_norm$path)
 #' @author Stephan Wojciekowski
 #' @export
 loadAnalyses <- function (
@@ -1014,14 +1054,10 @@ mapUniqueTrials <- function (
   return(scenario_method_quantiles_list)
 }
 
-
-## Wrapper of getPostQuantiles() for specifying several scenarios
-## Returns a list of quantiles of posterior distributions according to supplied methods.
 #' @title performAnalyses
 #' @md
 #' @description This function performs the analysis of simulated or observed trial data with the
-#' specified methods
-#' and returns the quantiles of the posterior distributions.
+#' specified methods and returns posterior quantiles.
 #' For binary endpoints, posterior response rates are returned.
 #' For normal endpoints, posterior cohort means are returned.
 #' @param scenario_list An object of class `scenario_list`,
@@ -1029,12 +1065,13 @@ mapUniqueTrials <- function (
 #' @param evidence_levels A vector of numerics in `(0, 1)` for the
 #' `1-evidence_levels`-quantiles of the posterior distributions to be saved.
 #' Default: `c(0.025, 0.05, 0.5, 0.8, 0.9, 0.95, 0.975)`
-#' @param method_names Either `NULL` or a vector of strings for the names of the methods 
+#' @param method_names Either `NULL` or a vector of strings for the names of the methods
 #' to be used. If `NULL`, endpoint-specific defaults are used.
-#' For endpoint `"binary"`, the default is `c("berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix", "pooled", "stratified", "stratified_mix")`.
+#' For endpoint `"binary"`, the default is
+#' `c("berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix", "pooled", "stratified", "stratified_mix")`.
 #' For endpoint `"normal"`, the default and only supported method is `"normal"`.
-#' @param target_rates A vector of numerics in `(0, 1)` for the
-#' target rates of each cohort. Only used for endpoint `"binary"`, Default: `NULL`
+#' @param target_rates A vector of numerics in `(0, 1)` for the target rates of each cohort.
+#' Only used for endpoint `"binary"`, Default: `NULL`
 #' @param target_means A numeric vector of target means for each cohort.
 #' Only used for endpoint `"normal"` when `prior_parameters_list` is `NULL`.
 #' If `prior_parameters_list` is provided for method `"normal"`, the target means
@@ -1045,11 +1082,14 @@ mapUniqueTrials <- function (
 #' specify the prior parameters. If `prior_parameters_list` contains an entry
 #' named `"normal"`, its `target_means` component is used by the model.
 #' @param calc_differences A matrix of positive integers with 2 columns.
-#' For each row the differences will be calculated.
+#' For each row the difference between the corresponding cohort-level posterior
+#' parameters will be calculated.
 #' Also a vector of positive integers can be provided for a single difference.
 #' The integers are the numbers for the cohorts to be subtracted from one another.
 #' E.g. providing `c(2, 1)` calculates the difference between cohort `2` and cohort `1`.
-#' If `NULL`, no subtractions are performed, Default: `NULL`
+#' For binary endpoints this corresponds to posterior response-rate differences.
+#' For normal endpoints this corresponds to posterior cohort-mean differences.
+#' If `NULL`, no differences are calculated, Default: `NULL`
 #' @param n_mcmc_iterations A positive integer for the number of MCMC iterations,
 #' see Details, Default: `10000`.
 #' If `n_mcmc_iterations` is present in `.GlobalEnv` and `missing(n_mcmc_iterations)`,
@@ -1066,8 +1106,7 @@ mapUniqueTrials <- function (
 #' for endpoint `"normal"`. Ignored for endpoint `"binary"`, Default: `NULL`
 #' @return An object of class `analysis_list`.
 #' @details
-#' This function applies the following analysis models to (simulated) scenarios of class
-#' `scenario_list`:
+#' This function applies the following analysis models to scenarios of class `scenario_list`:
 #' \itemize{
 #'   \item Bayesian hierarchical model (BHM) proposed by Berry et al. (2013): `"berry"`
 #'   \item BHM proposed by Neuenschwander et al. (2016): `"exnex"`
@@ -1079,6 +1118,7 @@ mapUniqueTrials <- function (
 #'   \item Stratified beta-binomial approach with mixture beta prior: `"stratified_mix"`
 #'   \item Adjusted ExNex hierarchical normal model for continuous endpoints: `"normal"`
 #' }
+#'
 #' For endpoint `"binary"`, the posterior distributions are those of the cohort-specific
 #' response rates.
 #' For endpoint `"normal"`, the posterior distributions are those of the cohort-specific
@@ -1091,7 +1131,7 @@ mapUniqueTrials <- function (
 #'   \item via `prior_parameters_list[["normal"]]`, in which case the
 #'   `target_means` stored in that object are used by the model
 #' }
-#' 
+#'
 #' If both are supplied, the values in `prior_parameters_list[["normal"]]`
 #' take precedence.
 #'
@@ -1104,8 +1144,8 @@ mapUniqueTrials <- function (
 #' Note that the value for `n_mcmc_iterations` required for a good approximation of the posterior
 #' distributions depends on the analysis model, the investigated scenarios, and the use case.
 #' The default value might be a good compromise between run-time and approximation for
-#' the estimation of decision probabilities, but
-#' it should definitively be increased for the analysis of a single trial's outcome.
+#' the estimation of decision probabilities, but it should be increased for the
+#' analysis of a single trial's outcome.
 #'
 #' The analysis models will only be applied to the unique trial realizations across
 #' all simulated scenarios.
@@ -1139,15 +1179,30 @@ mapUniqueTrials <- function (
 #' @rdname performAnalyses
 #' @author Stephan Wojciekowski
 #' @examples
-#'  trial_data <- createTrial(
-#'    n_subjects   = c(10, 20, 30),
-#'    n_responders = c(1, 2, 3))
+#' ## Binary endpoint example
+#' trial_data_bin <- createTrial(
+#'   n_subjects   = c(10, 20, 30),
+#'   n_responders = c(1, 2, 3))
 #'
-#'  analysis_list <- performAnalyses(
-#'    scenario_list      = trial_data,
-#'    target_rates       = rep(0.5, 3),
-#'    calc_differences   = matrix(c(3, 2, 1, 1), ncol = 2),
-#'    n_mcmc_iterations  = 100)
+#' analysis_list_bin <- performAnalyses(
+#'   scenario_list      = trial_data_bin,
+#'   target_rates       = rep(0.5, 3),
+#'   calc_differences   = matrix(c(3, 2, 1, 1), ncol = 2),
+#'   n_mcmc_iterations  = 100)
+#'
+#' ## Normal endpoint example
+#' trial_data_norm <- createTrial(
+#'   n_subjects = c(20, 20, 20),
+#'   means      = c(5.0, 5.4, 5.8),
+#'   sds        = c(1, 1, 1),
+#'   endpoint   = "normal")
+#'
+#' analysis_list_norm <- performAnalyses(
+#'   scenario_list      = trial_data_norm,
+#'   method_names       = "normal",
+#'   target_means       = c(5, 5, 5),
+#'   calc_differences   = matrix(c(3, 2, 2, 1), ncol = 2),
+#'   n_mcmc_iterations  = 100)
 #' @references Berry, Scott M., et al. "Bayesian hierarchical modeling of patient subpopulations:
 #' efficient designs of phase II oncology clinical trials."
 #' \emph{Clinical Trials} 10.5 (2013): 720-734.
@@ -2008,7 +2063,7 @@ qbetaDiff <- function (
 #' @description This function saves an object of class `analysis_list`
 #' @param analyses_list An object of class `analysis_list`,
 #' as created with \code{\link[bhmbasket]{performAnalyses}}
-#' @param save_path A string for the path where the scenarios are being stored,
+#' @param save_path A string for the path where the analyses are being stored,
 #' Default: \code{\link[base]{tempdir}}
 #' @param analysis_numbers A positive integer naming the analysis number.
 #' If `NULL`, the function will look for the number of saved analyses of the scenario
