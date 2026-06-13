@@ -1093,3 +1093,105 @@ test_that("print.scenario_list prints normal endpoint summaries", {
   expect_output(print(scenarios), "true sds:")
   expect_output(print(scenarios), "average number of subjects:")
 })
+
+# ------------------------------------------------------------------
+# Test: getNSubjects converts recruitment rates and dates into subject counts
+# Input:
+#   - recruitment_per_month = c(30, 60)
+#   - start_date = "01/01/2026"
+#   - analysis_dates = c("01/31/2026", "03/02/2026")
+# Behaviour:
+#   - Converts monthly recruitment to daily recruitment using 12/365.
+#   - Calculates floor((analysis_date - start_date) * recruitment_per_day).
+#   - Returns a matrix with one row per analysis date and one column per cohort.
+# Expectations:
+#   - Output is a matrix.
+#   - Row names are formatted analysis dates.
+#   - Column names are cohort_1, cohort_2.
+#   - Values match the manual calculation.
+# Why:
+#   - Covers the full getNSubjects() calculation and output formatting branch.
+# ------------------------------------------------------------------
+
+test_that("getNSubjects calculates subject counts from dates and recruitment rates", {
+  
+  recruitment_per_month <- c(30, 60)
+  start_date <- "01/01/2026"
+  analysis_dates <- c("01/31/2026", "03/02/2026")
+  
+  out <- getNSubjects(
+    recruitment_per_month = recruitment_per_month,
+    start_date            = start_date,
+    analysis_dates        = analysis_dates
+  )
+  
+  expected <- floor(
+    (as.Date(analysis_dates, format = "%m/%d/%Y") -
+       as.Date(start_date, format = "%m/%d/%Y")) %o%
+      (recruitment_per_month * (12 / 365))
+  )
+  
+  rownames(expected) <- analysis_dates
+  colnames(expected) <- c("cohort_1", "cohort_2")
+  
+  expect_true(is.matrix(out))
+  expect_equal(out, expected)
+  expect_equal(rownames(out), analysis_dates)
+  expect_equal(colnames(out), c("cohort_1", "cohort_2"))
+  
+})
+
+# ------------------------------------------------------------------
+# Test: getRecruitment computes analysis dates and keeps historical cohorts fixed
+# Input:
+#   - n_subjects_required matrix with two recruitment scenarios
+#   - recruitment_per_month = c(30, 0, 60), where cohort 2 is historical
+#   - start_date = "01/01/2026"
+# Behaviour:
+#   - Calculates the required calendar time from non-historical cohorts only.
+#   - Uses getNSubjects() for recruiting cohorts.
+#   - Keeps historical cohort counts equal to n_subjects_required.
+#   - Returns a matrix with cohort names and date row names.
+# Expectations:
+#   - Output is a matrix with same dimensions as n_subjects_required.
+#   - Historical cohort column is unchanged.
+#   - Non-historical cohorts reach at least the required counts.
+#   - Column names are cohort_1, cohort_2, cohort_3.
+# Why:
+#   - Covers getRecruitment(), including historical cohort handling,
+#     call-through to getNSubjects(), and output reconstruction.
+# ------------------------------------------------------------------
+
+test_that("getRecruitment calculates recruitment matrix and preserves historical cohorts", {
+  
+  n_subjects_required <- matrix(
+    c(
+      12, 5, 24,
+      24, 7, 48
+    ),
+    nrow = 2,
+    byrow = TRUE
+  )
+  
+  recruitment_per_month <- c(30, 0, 60)
+  
+  out <- getRecruitment(
+    n_subjects_required   = n_subjects_required,
+    recruitment_per_month = recruitment_per_month,
+    start_date            = "01/01/2026"
+  )
+  
+  expect_true(is.matrix(out))
+  expect_equal(dim(out), dim(n_subjects_required))
+  expect_equal(colnames(out), paste0("cohort_", 1:3))
+  
+  ## cohort 2 has recruitment_per_month = 0, so it is historical and fixed
+  expect_equal(unname(out[, 2]), unname(n_subjects_required[, 2]))
+  
+  ## recruiting cohorts should reach at least the required counts
+  expect_true(all(out[, c(1, 3)] >= n_subjects_required[, c(1, 3)]))
+  
+  ## row names should be valid dates in the requested default format
+  expect_false(any(is.na(as.Date(rownames(out), format = "%m/%d/%Y"))))
+  
+})

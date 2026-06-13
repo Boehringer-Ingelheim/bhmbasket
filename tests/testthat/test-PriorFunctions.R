@@ -928,3 +928,247 @@ test_that("combinePriorParameters errors if any element is not prior_parameters_
   
   expect_error(combinePriorParameters(bad_input))
 })
+
+# ------------------------------------------------------------------
+# Test: getPriorParameters uses endpoint-specific defaults when method_names is NULL
+# Input:
+#   - binary endpoint with target_rates
+#   - normal endpoint with target_means
+# Behaviour:
+#   - For binary endpoint, returns all binary default prior methods.
+#   - For normal endpoint, returns only the normal prior.
+# Expectations:
+#   - Binary result contains berry, exnex, exnex_adj, exnex_mix,
+#     exnex_adj_mix, pooled, stratified, stratified_mix.
+#   - Normal result contains only normal.
+# Why:
+#   - Covers the method_names = NULL branch in getPriorParameters().
+# ------------------------------------------------------------------
+
+test_that("getPriorParameters uses endpoint-specific default methods", {
+  
+  pp_binary <- getPriorParameters(
+    method_names = NULL,
+    target_rates = c(0.2, 0.3, 0.4),
+    endpoint     = "binary"
+  )
+  
+  expect_s3_class(pp_binary, "prior_parameters_list")
+  expect_named(
+    pp_binary,
+    sort(c(
+      "berry", "exnex", "exnex_adj", "exnex_mix",
+      "exnex_adj_mix", "pooled", "stratified", "stratified_mix"
+    ))
+  )
+  
+  pp_normal <- getPriorParameters(
+    method_names  = NULL,
+    target_means  = c(0, 0.5, 1),
+    endpoint      = "normal"
+  )
+  
+  expect_s3_class(pp_normal, "prior_parameters_list")
+  expect_named(pp_normal, "normal")
+  
+})
+
+# ------------------------------------------------------------------
+# Test: getPriorParameters creates normal prior with custom sigma prior
+# Input:
+#   - endpoint = "normal"
+#   - target_means
+#   - custom sigma_shape and sigma_rate
+# Behaviour:
+#   - Calls getPriorParametersNormal().
+#   - Keeps user-provided sigma prior values.
+# Expectations:
+#   - Output has class prior_parameters_list and name normal.
+#   - sigma_shape and sigma_rate are preserved.
+#   - target_means are preserved.
+# Why:
+#   - Covers normal endpoint prior construction with explicit sigma_shape
+#     and sigma_rate branches.
+# ------------------------------------------------------------------
+
+test_that("getPriorParameters creates normal prior with custom sigma prior", {
+  
+  pp <- getPriorParameters(
+    endpoint     = "normal",
+    method_names = "normal",
+    target_means = c(1, 2, 3),
+    sigma_shape = 2,
+    sigma_rate  = 4
+  )
+  
+  expect_s3_class(pp, "prior_parameters_list")
+  expect_named(pp, "normal")
+  
+  expect_equal(pp$normal$target_means, c(1, 2, 3))
+  expect_equal(pp$normal$sigma_shape, 2)
+  expect_equal(pp$normal$sigma_rate, 4)
+  
+})
+
+# ------------------------------------------------------------------
+# Test: getPriorParameters returns binary mixture priors
+# Input:
+#   - method_names = c("exnex_mix", "exnex_adj_mix", "stratified_mix")
+#   - binary target_rates
+# Behaviour:
+#   - Builds mixture-based prior structures for the requested methods.
+# Expectations:
+#   - exnex_mix and exnex_adj_mix contain w_nex, mean_nex, sd_nex.
+#   - stratified_mix contains w, a_j, b_j.
+#   - Matrix dimensions match number of cohorts.
+# Why:
+#   - Covers the new binary mixture-prior paths in getPriorParameters().
+# ------------------------------------------------------------------
+
+test_that("getPriorParameters returns binary mixture priors", {
+  
+  target_rates <- c(0.2, 0.4, 0.6)
+  
+  pp <- getPriorParameters(
+    method_names = c("exnex_mix", "exnex_adj_mix", "stratified_mix"),
+    target_rates = target_rates,
+    endpoint     = "binary",
+    n_worth      = 2,
+    tau_scale    = 1,
+    w_j          = 0.5
+  )
+  
+  expect_s3_class(pp, "prior_parameters_list")
+  expect_named(pp, c("exnex_adj_mix", "exnex_mix", "stratified_mix"))
+  
+  expect_true(all(c("w_nex", "mean_nex", "sd_nex") %in% names(pp$exnex_mix)))
+  expect_true(all(c("w_nex", "mean_nex", "sd_nex") %in% names(pp$exnex_adj_mix)))
+  
+  expect_equal(ncol(pp$exnex_mix$mean_nex), length(target_rates))
+  expect_equal(ncol(pp$exnex_mix$sd_nex), length(target_rates))
+  expect_equal(ncol(pp$exnex_adj_mix$mean_nex), length(target_rates))
+  expect_equal(ncol(pp$exnex_adj_mix$sd_nex), length(target_rates))
+  
+  expect_true(all(c("w", "a_j", "b_j") %in% names(pp$stratified_mix)))
+  expect_equal(ncol(pp$stratified_mix$a_j), length(target_rates))
+  expect_equal(ncol(pp$stratified_mix$b_j), length(target_rates))
+  
+})
+
+# ------------------------------------------------------------------
+# Test: setPriorParametersStratifiedMix creates valid manual mixture prior
+# Input:
+#   - mixture weights w
+#   - matrix-valued a_j and b_j
+# Behaviour:
+#   - Validates dimensions and positivity.
+#   - Returns a stratified_mix prior_parameters_list.
+# Expectations:
+#   - Output has class prior_parameters_list and name stratified_mix.
+#   - w, a_j, and b_j are preserved.
+# Why:
+#   - Covers the manual stratified_mix prior setter, which is otherwise
+#     not reached by existing stratified prior tests.
+# ------------------------------------------------------------------
+
+test_that("setPriorParametersStratifiedMix creates valid manual mixture prior", {
+  
+  w <- c(0.7, 0.3)
+  a_j <- rbind(c(2, 3, 4), c(1, 1, 1))
+  b_j <- rbind(c(8, 7, 6), c(1, 1, 1))
+  
+  pp <- setPriorParametersStratifiedMix(
+    w   = w,
+    a_j = a_j,
+    b_j = b_j
+  )
+  
+  expect_s3_class(pp, "prior_parameters_list")
+  expect_named(pp, "stratified_mix")
+  
+  expect_equal(pp$stratified_mix$w, w)
+  expect_equal(pp$stratified_mix$a_j, a_j)
+  expect_equal(pp$stratified_mix$b_j, b_j)
+  
+})
+
+# ------------------------------------------------------------------
+# Test: setPriorParametersExNex supports Nex mixture prior
+# Input:
+#   - valid Ex component parameters
+#   - w_nex, mean_nex, sd_nex for two Nex mixture components
+# Behaviour:
+#   - Uses the mixed Nex branch instead of standard mu_j/tau_j branch.
+# Expectations:
+#   - Output has class prior_parameters_list and name exnex.
+#   - w_nex, mean_nex, and sd_nex are stored.
+# Why:
+#   - Covers the Nex-mixture branch in setPriorParametersExNex().
+# ------------------------------------------------------------------
+
+test_that("setPriorParametersExNex supports Nex mixture prior", {
+  
+  w_nex <- c(0.6, 0.4)
+  mean_nex <- rbind(c(0, 1), c(-1, 2))
+  sd_nex <- rbind(c(1, 1), c(2, 2))
+  
+  pp <- setPriorParametersExNex(
+    mu_mean  = 0,
+    mu_sd    = 1,
+    tau_scale = 1,
+    w_j      = 0.5,
+    w_nex    = w_nex,
+    mean_nex = mean_nex,
+    sd_nex   = sd_nex
+  )
+  
+  expect_s3_class(pp, "prior_parameters_list")
+  expect_named(pp, "exnex")
+  
+  expect_equal(pp$exnex$w_nex, w_nex)
+  expect_equal(pp$exnex$mean_nex, mean_nex)
+  expect_equal(pp$exnex$sd_nex, sd_nex)
+  
+})
+
+# ------------------------------------------------------------------
+# Test: setPriorParametersNormal creates valid normal prior structure
+# Input:
+#   - manually specified normal endpoint prior parameters
+# Behaviour:
+#   - Wraps all supplied values into a "normal" prior_parameters_list.
+# Expectations:
+#   - Output has class prior_parameters_list and name normal.
+#   - All supplied values are preserved in the normal prior entry.
+# Why:
+#   - Covers the return-object construction branch in setPriorParametersNormal().
+# ------------------------------------------------------------------
+
+test_that("setPriorParametersNormal creates valid normal prior structure", {
+  
+  pp <- setPriorParametersNormal(
+    mu_mean      = 0,
+    mu_sd        = 1,
+    tau_scale    = 2,
+    mu_j         = c(0, 0.5, 1),
+    tau_j        = c(1, 1, 1),
+    w_j          = 0.5,
+    target_means = c(2, 3, 4),
+    sigma_shape  = 1,
+    sigma_rate   = 2
+  )
+  
+  expect_s3_class(pp, "prior_parameters_list")
+  expect_named(pp, "normal")
+  
+  expect_equal(pp$normal$mu_mean, 0)
+  expect_equal(pp$normal$mu_sd, 1)
+  expect_equal(pp$normal$tau_scale, 2)
+  expect_equal(pp$normal$mu_j, c(0, 0.5, 1))
+  expect_equal(pp$normal$tau_j, c(1, 1, 1))
+  expect_equal(pp$normal$w_j, 0.5)
+  expect_equal(pp$normal$target_means, c(2, 3, 4))
+  expect_equal(pp$normal$sigma_shape, 1)
+  expect_equal(pp$normal$sigma_rate, 2)
+  
+})

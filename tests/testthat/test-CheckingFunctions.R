@@ -59,3 +59,17 @@ test_that("checkForParallelBackend is silent when backend registered", {
   expect_silent(checkForParallelBackend())
 })
 
+test_that("checkForParallelBackend gives message when no backend registered", {
+  
+  testthat::with_mocked_bindings(
+    getDoParRegistered = function() FALSE,
+    .package = "foreach",
+    {
+      expect_message(
+        checkForParallelBackend(),
+        "No parallel backend detected"
+      )
+    }
+  )
+  
+})

@@ -2120,3 +2120,342 @@ test_that("saveAnalyses and loadAnalyses work for normal endpoint analyses", {
   expect_s3_class(loaded, "analysis_list")
   expect_identical(loaded[[1]]$scenario_data$endpoint, "normal")
 })
+
+# ------------------------------------------------------------------
+# Test: getPostQuantilesStratified handles mixture priors with differences
+# Input:
+#   - stratified mixture prior data with matrix-valued a_j and b_j
+#   - mixture weights w
+#   - responder counts r and sample sizes n
+#   - one requested difference between cohort 2 and cohort 1
+# Behaviour:
+#   - Enters the mixture-prior branch.
+#   - Samples from the posterior beta-mixture components.
+#   - Calculates posterior summaries for each cohort.
+#   - Calculates posterior quantiles, mean, and SD for the difference p_2 - p_1.
+# Expectations:
+#   - Output is a matrix.
+#   - Output contains quantile rows plus Mean and SD.
+#   - Output contains cohort columns p_1, p_2, p_3 and difference column p_diff_21.
+#   - All returned values are finite.
+#   - Difference quantiles lie within the valid range [-1, 1].
+#   - The posterior SD of the difference is positive.
+# ------------------------------------------------------------------
+test_that("getPostQuantilesStratified handles mixture priors with differences", {
+  
+  set.seed(123)
+  
+  j_data <- list(
+    a_j = matrix(
+      c(
+        1, 2, 3,
+        4, 5, 6
+      ),
+      nrow = 2,
+      byrow = TRUE
+    ),
+    b_j = matrix(
+      c(
+        6, 5, 4,
+        3, 2, 1
+      ),
+      nrow = 2,
+      byrow = TRUE
+    ),
+    w = c(0.4, 0.6),
+    r = c(2, 4, 6),
+    n = c(10, 12, 14)
+  )
+  
+  quantiles <- c(0.025, 0.5, 0.975)
+  calc_differences <- matrix(c(2, 1), ncol = 2)
+  
+  out <- getPostQuantilesStratified(
+    j_data            = j_data,
+    quantiles         = quantiles,
+    calc_differences  = calc_differences,
+    n_mcmc_iterations = 2000
+  )
+  
+  expect_true(is.matrix(out))
+  
+  expect_equal(
+    rownames(out),
+    c("2.5%", "50%", "97.5%", "Mean", "SD")
+  )
+  
+  expect_equal(
+    colnames(out),
+    c("p_1", "p_2", "p_3", "p_diff_21")
+  )
+  
+  expect_equal(nrow(out), length(quantiles) + 2L)
+  expect_equal(ncol(out), 4L)
+  
+  expect_true(all(is.finite(out)))
+  
+  expect_true(all(out[rownames(out) %in% c("2.5%", "50%", "97.5%"), "p_diff_21"] >= -1))
+  expect_true(all(out[rownames(out) %in% c("2.5%", "50%", "97.5%"), "p_diff_21"] <= 1))
+  
+  expect_true(out["SD", "p_diff_21"] > 0)
+})
+
+# ------------------------------------------------------------------
+# Test: performAnalyses sets default normal method when method_names is NULL
+# Input:
+#   - normal endpoint scenario_list
+#   - method_names = NULL
+#   - missing target_means and prior_parameters_list
+# Behaviour:
+#   - Infers endpoint = "normal".
+#   - Sets method_names to "normal".
+#   - Then fails because normal endpoint needs target_means or priors.
+# Expectations:
+#   - Error requests one of prior_parameters_list or target_means.
+# Why:
+#   - Covers the normal default-method branch without running JAGS.
+# ------------------------------------------------------------------
+
+test_that("performAnalyses defaults method_names to normal for normal endpoint", {
+  
+  scen <- simulateScenarios(
+    n_subjects_list = list(c(10, 20, 30)),
+    means_list      = list(c(2, 3, 4)),
+    sds_list        = list(c(1, 1, 1)),
+    endpoint        = "normal",
+    n_trials        = 2
+  )
+  
+  expect_error(
+    performAnalyses(
+      scenario_list = scen,
+      method_names  = NULL,
+      verbose       = FALSE
+    ),
+    "target_means"
+  )
+})
+
+# ------------------------------------------------------------------
+# Test: performAnalyses checks invalid stratified_mix prior structure
+# Input:
+#   - binary endpoint scenario_list
+#   - prior_parameters_list containing malformed stratified_mix prior
+# Behaviour:
+#   - Enters stratified_mix prior validation branch.
+#   - Detects that a_j/b_j/w dimensions are inconsistent.
+# Expectations:
+#   - Error about prior cohort mismatch.
+# Why:
+#   - Covers stratified_mix structure validation in performAnalyses().
+# ------------------------------------------------------------------
+
+test_that("performAnalyses checks invalid stratified_mix prior structure", {
+  
+  scen <- simulateScenarios(
+    n_subjects_list     = list(c(10, 20, 30)),
+    response_rates_list = list(c(0.2, 0.3, 0.4)),
+    n_trials            = 2
+  )
+  
+  pp <- list(
+    stratified_mix = list(
+      a_j = matrix(c(1, 2, 3, 4), nrow = 2),   # wrong ncol: 2, should be 3
+      b_j = matrix(c(1, 2, 3, 4), nrow = 2),
+      w   = c(0.5, 0.5)
+    )
+  )
+  class(pp) <- "prior_parameters_list"
+  
+  expect_error(
+    performAnalyses(
+      scenario_list          = scen,
+      method_names           = "stratified_mix",
+      target_rates           = c(0.2, 0.3, 0.4),
+      prior_parameters_list  = pp,
+      verbose                = FALSE
+    ),
+    "number of cohorts|prior"
+  )
+})
+
+# ------------------------------------------------------------------
+# Test: performAnalyses checks invalid exnex_mix prior structure
+# Input:
+#   - binary endpoint scenario_list
+#   - prior_parameters_list containing malformed exnex_mix prior
+# Behaviour:
+#   - Enters exnex_mix prior validation branch.
+#   - Detects that mean_nex/sd_nex are not valid matching matrices.
+# Expectations:
+#   - Error about prior cohort mismatch.
+# Why:
+#   - Covers exnex_mix structure validation in performAnalyses().
+# ------------------------------------------------------------------
+
+test_that("performAnalyses checks invalid exnex_mix prior structure", {
+  
+  scen <- simulateScenarios(
+    n_subjects_list     = list(c(10, 20, 30)),
+    response_rates_list = list(c(0.2, 0.3, 0.4)),
+    n_trials            = 2
+  )
+  
+  pp <- list(
+    exnex_mix = list(
+      mean_nex = matrix(c(0, 0, 0, 0), nrow = 2),     # wrong ncol: 2, should be 3
+      sd_nex   = matrix(c(1, 1, 1, 1, 1, 1), nrow = 2)
+    )
+  )
+  class(pp) <- "prior_parameters_list"
+  
+  expect_error(
+    performAnalyses(
+      scenario_list          = scen,
+      method_names           = "exnex_mix",
+      target_rates           = c(0.2, 0.3, 0.4),
+      prior_parameters_list  = pp,
+      verbose                = FALSE
+    ),
+    "number of cohorts|prior"
+  )
+})
+
+# ------------------------------------------------------------------
+# Test: performAnalyses checks invalid exnex_adj_mix prior structure
+# Input:
+#   - binary endpoint scenario_list
+#   - prior_parameters_list containing malformed exnex_adj_mix prior
+# Behaviour:
+#   - Enters exnex_adj_mix prior validation branch.
+#   - Detects dimension mismatch between mean_nex and sd_nex.
+# Expectations:
+#   - Error about prior cohort mismatch.
+# Why:
+#   - Covers exnex_adj_mix structure validation in performAnalyses().
+# ------------------------------------------------------------------
+
+test_that("performAnalyses checks invalid exnex_adj_mix prior structure", {
+  
+  scen <- simulateScenarios(
+    n_subjects_list     = list(c(10, 20, 30)),
+    response_rates_list = list(c(0.2, 0.3, 0.4)),
+    n_trials            = 2
+  )
+  
+  pp <- list(
+    exnex_adj_mix = list(
+      mean_nex = matrix(c(0, 0, 0, 0, 0, 0), nrow = 2),
+      sd_nex   = matrix(c(1, 1, 1), nrow = 1)   # dimension mismatch
+    )
+  )
+  class(pp) <- "prior_parameters_list"
+  
+  expect_error(
+    performAnalyses(
+      scenario_list          = scen,
+      method_names           = "exnex_adj_mix",
+      target_rates           = c(0.2, 0.3, 0.4),
+      prior_parameters_list  = pp,
+      verbose                = FALSE
+    ),
+    "number of cohorts|prior"
+  )
+})
+
+# ------------------------------------------------------------------
+# Test: performAnalyses checks numeric validity of normal priors
+# Input:
+#   - normal endpoint scenario_list
+#   - normal prior with all required entries but invalid positive parameters
+# Behaviour:
+#   - Enters detailed normal prior validation.
+#   - Stops because mu_sd/tau_scale/tau_j/sigma parameters must be positive.
+# Expectations:
+#   - Error mentions incomplete prior parameters.
+# Why:
+#   - Covers the detailed numeric normal prior validation branch.
+# ------------------------------------------------------------------
+
+test_that("performAnalyses checks numeric validity of normal priors", {
+  
+  scen <- simulateScenarios(
+    n_subjects_list = list(c(10, 20, 30)),
+    means_list      = list(c(2, 3, 4)),
+    sds_list        = list(c(1, 1, 1)),
+    endpoint        = "normal",
+    n_trials        = 2
+  )
+  
+  pp <- list(
+    normal = list(
+      mu_mean      = 0,
+      mu_sd        = -1,
+      tau_scale    = 1,
+      mu_j         = c(2, 3, 4),
+      tau_j        = c(1, 1, 1),
+      w_j          = 0.5,
+      target_means = c(2, 3, 4),
+      sigma_shape  = 1,
+      sigma_rate   = 1
+    )
+  )
+  class(pp) <- "prior_parameters_list"
+  
+  expect_error(
+    performAnalyses(
+      scenario_list          = scen,
+      method_names           = "normal",
+      prior_parameters_list  = pp,
+      verbose                = FALSE
+    ),
+    "incomplete|prior parameters"
+  )
+})
+
+# ------------------------------------------------------------------
+# Test: performAnalyses accepts custom bin_breaks for normal endpoint
+# Input:
+#   - normal endpoint scenario_list
+#   - target_means supplied so default normal priors can be created
+#   - custom bin_breaks list
+# Behaviour:
+#   - Enters normal bin_breaks validation branch.
+#   - Runs analysis using user-defined bins.
+# Expectations:
+#   - Output has class analysis_list.
+#   - Output endpoint is normal.
+# Why:
+#   - Covers the custom bin_breaks branch for normal analyses.
+# ------------------------------------------------------------------
+
+test_that("performAnalyses accepts custom bin_breaks for normal endpoint", {
+  
+  scen <- simulateScenarios(
+    n_subjects_list = list(c(10, 20, 30)),
+    means_list      = list(c(2, 3, 4)),
+    sds_list        = list(c(1, 1, 1)),
+    endpoint        = "normal",
+    n_trials        = 2
+  )
+  
+  bin_breaks <- list(
+    y_1 = c(0, 2, 4),
+    y_2 = c(1, 3, 5),
+    y_3 = c(2, 4, 6)
+  )
+  
+  out <- performAnalyses(
+    scenario_list     = scen,
+    method_names      = "normal",
+    target_means      = c(2, 3, 4),
+    n_mcmc_iterations = 20,
+    bin_breaks        = bin_breaks,
+    verbose           = FALSE
+  )
+  
+  expect_s3_class(out, "analysis_list")
+  expect_equal(out$scenario_1$scenario_data$endpoint, "normal")
+})
+
+
