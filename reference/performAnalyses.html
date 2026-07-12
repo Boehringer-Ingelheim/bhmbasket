@@ -113,17 +113,15 @@ Only used for endpoint <code>"binary"</code>, Default: <code>NULL</code></p></dd
 
 <dt id="arg-target-means">target_means<a class="anchor" aria-label="anchor" href="#arg-target-means"></a></dt>
 <dd><p>A numeric vector of target means for each cohort.
-Only used for endpoint <code>"normal"</code> when <code>prior_parameters_list</code> is <code>NULL</code>.
-If <code>prior_parameters_list</code> is provided for method <code>"normal"</code>, the target means
-stored there are used and this argument is ignored. Default: <code>NULL</code></p></dd>
+Only used for endpoint <code>"normal"</code>, Default: <code>NULL</code></p></dd>
 
 
 <dt id="arg-prior-parameters-list">prior_parameters_list<a class="anchor" aria-label="anchor" href="#arg-prior-parameters-list"></a></dt>
 <dd><p>An object of class <code>prior_parameters_list</code>,
 as e.g. created with <code><a href="getPriorParameters.html">getPriorParameters</a></code>.
-For endpoint <code>"normal"</code>, this can be used instead of <code>target_means</code> to fully
-specify the prior parameters. If <code>prior_parameters_list</code> contains an entry
-named <code>"normal"</code>, its <code>target_means</code> component is used by the model.</p></dd>
+If <code>NULL</code>, default prior parameters are created internally using
+<code>target_rates</code> for endpoint <code>"binary"</code> or <code>target_means</code> for endpoint <code>"normal"</code>.
+Default: <code>NULL</code></p></dd>
 
 
 <dt id="arg-calc-differences">calc_differences<a class="anchor" aria-label="anchor" href="#arg-calc-differences"></a></dt>
@@ -269,23 +267,23 @@ Vol. 124. No. 125.10. 2003.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Caution: No parallel backend detected for the 'foreach' framework. For execution in parallel, register a parallel backend, e.g. with:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>    doFuture::registerDoFuture()</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>    future::plan(future::multisession)</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 20-May-2026 Performing Analyses</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 12-Jul-2026 Performing Analyses</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>          Analyzing 1 scenario (1 unique trial realization)</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Berry ...........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    15:54 - with Berry ...........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Exnex ...........</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Exnex_adj .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    15:54 - with Exnex ...........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.2 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Exnex_adj_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    15:54 - with Exnex_adj .......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Exnex_mix .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    15:54 - with Exnex_adj_mix ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Pooled ..........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    15:54 - with Exnex_mix .......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    15:54 - with Pooled ..........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Stratified ......</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    15:54 - with Stratified ......</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Stratified_mix ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    15:54 - with Stratified_mix ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>          Processing scenarios ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
@@ -307,9 +305,9 @@ Vol. 124. No. 125.10. 2003.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Caution: No parallel backend detected for the 'foreach' framework. For execution in parallel, register a parallel backend, e.g. with:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>    doFuture::registerDoFuture()</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>    future::plan(future::multisession)</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 20-May-2026 Performing Analyses</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 12-Jul-2026 Performing Analyses</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>          Analyzing 1 scenario (1 unique trial realization)</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    11:50 - with Normal ..........</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    15:54 - with Normal ..........</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0.1 secs.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>          Processing scenarios ...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>              finished after 0 secs.</span>
@@ -327,7 +325,7 @@ Vol. 124. No. 125.10. 2003.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
       </footer></div>
