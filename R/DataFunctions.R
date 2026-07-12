@@ -265,14 +265,12 @@ continueRecruitment <- function (
       y_old          <- scenario_data$y
       n_subjects_old <- scenario_data$n_subjects
       
-      y_old_n <- y_old[overall_gos, index_new, drop = FALSE] *
+      y_old_n        <- y_old[overall_gos, index_new, drop = FALSE] *
         n_subjects_old[overall_gos, index_new, drop = FALSE]
-      y_add_n <- y_add * n_subjects_add_m
-      n_new   <- n_subjects_old[overall_gos, index_new, drop = FALSE] + n_subjects_add_m
+      y_add_n        <- y_add * n_subjects_add_m
+      n_new          <- n_subjects_old[overall_gos, index_new, drop = FALSE] + n_subjects_add_m
       
-      y_updated <- y_old[overall_gos, index_new, drop = FALSE]
-      idx_nonzero <- n_new > 0
-      y_updated[idx_nonzero] <- (y_old_n[idx_nonzero] + y_add_n[idx_nonzero]) / n_new[idx_nonzero]
+      y_updated <- (y_old_n + y_add_n) / n_new
       
       y_old[overall_gos, index_new]          <- y_updated
       n_subjects_old[overall_gos, index_new] <- n_new
@@ -320,7 +318,7 @@ continueRecruitment <- function (
 #' @seealso
 #'  \code{\link[bhmbasket]{simulateScenarios}}
 #'  \code{\link[bhmbasket]{performAnalyses}}
-#' @author Stephan Wojciekowski
+#' @author Stephan Wojciekowski, Tathagata Chattopadhyay
 #' @rdname createTrial
 #' @examples
 #' ## Binary endpoint example

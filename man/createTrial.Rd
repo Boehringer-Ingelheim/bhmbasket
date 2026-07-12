@@ -59,5 +59,5 @@ trial_outcome_norm <- createTrial(
 \code{\link[bhmbasket]{performAnalyses}}
 }
 \author{
-Stephan Wojciekowski
+Stephan Wojciekowski, Tathagata Chattopadhyay
 }

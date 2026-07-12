@@ -24,6 +24,8 @@
 #' Default: `"binary"`
 #' @param sigma_shape Either `NULL` or a positive numeric for the Gamma shape prior of the
 #' residual precision in the normal model. If `NULL`, a default value is chosen automatically.
+#' @param sigma_ref Either `NULL` or a positive numeric reference standard deviation
+#' for the normal endpoint. Only used for endpoint `"normal"`, Default: `NULL`
 #' @param sigma_rate Either `NULL` or a positive numeric for the Gamma rate prior of the
 #' residual precision in the normal model. If `NULL`, a scale-adaptive default based on
 #' `stats::sd(target_means)^2` is used.
@@ -126,12 +128,13 @@ getPriorParameters <- function (
   target_rates = NULL,
   target_means = NULL,
   n_worth      = 1,
-  tau_scale    = 1,
+  tau_scale    = NULL,
   w_j          = 0.5,
   endpoint     = c("binary", "normal"),
   
   sigma_shape  = NULL,
-  sigma_rate   = NULL
+  sigma_rate   = NULL,
+  sigma_ref    = NULL
   
 ) {
   
@@ -176,6 +179,7 @@ getPriorParameters <- function (
     
     return(getPriorParametersNormal(
       target_means = target_means,
+      sigma_ref    = sigma_ref,
       tau_scale    = tau_scale,
       n_worth      = n_worth,
       w_j          = w_j,
@@ -215,6 +219,9 @@ getPriorParameters <- function (
   checkmate::assertNumeric(target_rates, any.missing = FALSE, .var.name = error_target_rates)
   checkmate::assertTRUE(all(target_rates > 0 & target_rates < 1), .var.name = error_target_rates)
   
+  if (is.null(tau_scale)) {
+    tau_scale <- 1
+  }
   checkmate::assertNumber(tau_scale, .var.name = error_tau_scale)
   checkmate::assertTRUE(tau_scale > 0, .var.name = error_tau_scale)
   
@@ -1535,7 +1542,8 @@ setPriorParametersStratifiedMix <- function(
 getPriorParametersNormal <- function (
     
   target_means,
-  tau_scale   = 1,
+  sigma_ref   = NULL,
+  tau_scale   = NULL,
   n_worth     = 1,
   w_j         = 0.5,
   sigma_shape = NULL,
@@ -1545,8 +1553,10 @@ getPriorParametersNormal <- function (
   
   error_target_means <-
     "Providing a numeric vector for the argument 'target_means'"
+  error_sigma_ref <-
+    "Providing either NULL or a positive numeric for the argument 'sigma_ref'"
   error_tau_scale <-
-    "Providing a positive numeric for the argument 'tau_scale'"
+    "Providing either NULL or a positive numeric for the argument 'tau_scale'"
   error_n_worth <-
     "Providing a positive integer for the argument 'n_worth'"
   error_w_j <-
@@ -1562,14 +1572,27 @@ getPriorParametersNormal <- function (
     .var.name   = error_target_means
   )
   
-  checkmate::assertNumber(
-    tau_scale,
-    .var.name = error_tau_scale
-  )
-  checkmate::assertTRUE(
-    tau_scale > 0,
-    .var.name = error_tau_scale
-  )
+  if (!is.null(sigma_ref)) {
+    checkmate::assertNumber(
+      sigma_ref,
+      .var.name = error_sigma_ref
+    )
+    checkmate::assertTRUE(
+      sigma_ref > 0,
+      .var.name = error_sigma_ref
+    )
+  }
+  
+  if (!is.null(tau_scale)) {
+    checkmate::assertNumber(
+      tau_scale,
+      .var.name = error_tau_scale
+    )
+    checkmate::assertTRUE(
+      tau_scale > 0,
+      .var.name = error_tau_scale
+    )
+  }
   
   checkmate::assertInt(
     n_worth,
@@ -1607,23 +1630,35 @@ getPriorParametersNormal <- function (
     )
   }
   
-  if (is.null(sigma_shape) || is.null(sigma_rate)) {
-    scale_ref <- stats::sd(target_means)
-    if (!is.finite(scale_ref) || scale_ref <= 0) {
-      scale_ref <- 1
-    }
-    if (is.null(sigma_shape)) sigma_shape <- 1
-    if (is.null(sigma_rate))  sigma_rate  <- scale_ref^2
+  ### If sigma_ref is not supplied, assume standardized endpoint scale.
+  if (is.null(sigma_ref)) {
+    sigma_ref <- 1
+  }
+
+  ### tau ~ HalfNormal(0, sigma_ref / 2), unless user provides tau_scale.
+  if (is.null(tau_scale)) {
+    tau_scale <- sigma_ref / 2
+  }
+  
+  ### JAGS uses: prec_sigma ~ dgamma(sigma_shape, sigma_rate)
+  ### Gamma mean = shape / rate.
+  if (is.null(sigma_shape)) {
+    sigma_shape <- 1
+  }
+  
+  if (is.null(sigma_rate)) {
+    sigma_rate <- sigma_shape * sigma_ref^2
   }
   
   prior_parameters <- list(
     mu_mean      = 0,
-    mu_sd        = sqrt(1 / n_worth),
+    mu_sd        = sigma_ref / sqrt(n_worth), # prior SD worth n_worth observations = sigma_ref / sqrt(n_worth)
     tau_scale    = tau_scale,
     mu_j         = rep(0, length(target_means)),
-    tau_j        = rep(sqrt(1 / n_worth), length(target_means)),
+    tau_j        = rep((sigma_ref / sqrt(n_worth)), length(target_means)),
     w_j          = w_j,
     target_means = target_means,
+    sigma_ref    = sigma_ref,
     sigma_shape  = sigma_shape,
     sigma_rate   = sigma_rate
   )
@@ -1649,6 +1684,11 @@ getPriorParametersNormal <- function (
 #' These are used as additive offsets in the adjusted normal ExNex model.
 #' @param sigma_shape A positive numeric for the Gamma shape prior of the residual precision.
 #' @param sigma_rate A positive numeric for the Gamma rate prior of the residual precision.
+#' @param sigma_ref Either `NULL` or a positive numeric reference standard deviation
+#' for the normal endpoint. This is stored with the prior parameters for documentation
+#' and consistency with the default normal prior construction in
+#' \code{\link[bhmbasket]{getPriorParameters}}, but is not directly used by the
+#' JAGS model.
 #' @return A list with prior parameters of class `prior_parameters_list`
 #' @details
 #' The method `"normal"` is an adjusted ExNex hierarchical normal model for continuous endpoints.
@@ -1667,6 +1707,7 @@ getPriorParametersNormal <- function (
 #'   tau_j        = c(1, 1, 1),
 #'   w_j          = 0.5,
 #'   target_means = c(5, 5, 5),
+#'   sigma_ref    = 1,
 #'   sigma_shape  = 1,
 #'   sigma_rate   = 1
 #' )
@@ -1686,7 +1727,8 @@ setPriorParametersNormal <- function (
   w_j,
   target_means,
   sigma_shape,
-  sigma_rate
+  sigma_rate,
+  sigma_ref = NULL
   
 ) {
   
@@ -1708,6 +1750,8 @@ setPriorParametersNormal <- function (
     "Providing a positive numeric for the argument 'sigma_shape'"
   error_sigma_rate <-
     "Providing a positive numeric for the argument 'sigma_rate'"
+  error_sigma_ref <-
+    "Providing either NULL or a positive numeric for the argument 'sigma_ref'"
   
   checkmate::assertNumber(mu_mean, .var.name = error_mu_mean)
   
@@ -1746,6 +1790,11 @@ setPriorParametersNormal <- function (
   checkmate::assertNumber(sigma_rate, .var.name = error_sigma_rate)
   checkmate::assertTRUE(sigma_rate > 0, .var.name = error_sigma_rate)
   
+  if (!is.null(sigma_ref)) {
+    checkmate::assertNumber(sigma_ref, .var.name = error_sigma_ref)
+    checkmate::assertTRUE(sigma_ref > 0, .var.name = error_sigma_ref)
+  }
+  
   prior_parameters <- list(
     mu_mean      = mu_mean,
     mu_sd        = mu_sd,
@@ -1754,6 +1803,7 @@ setPriorParametersNormal <- function (
     tau_j        = tau_j,
     w_j          = w_j,
     target_means = target_means,
+    sigma_ref    = sigma_ref,
     sigma_shape  = sigma_shape,
     sigma_rate   = sigma_rate
   )

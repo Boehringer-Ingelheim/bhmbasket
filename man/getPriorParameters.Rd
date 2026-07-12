@@ -9,11 +9,12 @@ getPriorParameters(
   target_rates = NULL,
   target_means = NULL,
   n_worth = 1,
-  tau_scale = 1,
+  tau_scale = NULL,
   w_j = 0.5,
   endpoint = c("binary", "normal"),
   sigma_shape = NULL,
-  sigma_rate = NULL
+  sigma_rate = NULL,
+  sigma_ref = NULL
 )
 }
 \arguments{
@@ -50,6 +51,9 @@ residual precision in the normal model. If \code{NULL}, a default value is chose
 \item{sigma_rate}{Either \code{NULL} or a positive numeric for the Gamma rate prior of the
 residual precision in the normal model. If \code{NULL}, a scale-adaptive default based on
 \code{stats::sd(target_means)^2} is used.}
+
+\item{sigma_ref}{Either \code{NULL} or a positive numeric reference standard deviation
+for the normal endpoint. Only used for endpoint \code{"normal"}, Default: \code{NULL}}
 }
 \value{
 A list with prior parameters of class \code{prior_parameters_list}

@@ -42,8 +42,8 @@ model {
 
   # Likelihood – Normal on observed stratum mean y[j]
   for (j in 1:Nstrata) {
-    mu_y[j]    <- theta[j] + target_means[j]  # stratum-specific offset
-    prec_y[j]  <- n[j] * prec_sigma          # precision of mean = n_j * (1/sigma^2)
+    mu_y[j]    <- theta[j] + target_means[j]
+    prec_y[j]  <- n[j] * prec_sigma
     y[j]       ~ dnorm(mu_y[j], prec_y[j])
   }
 

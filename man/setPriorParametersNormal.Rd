@@ -13,7 +13,8 @@ setPriorParametersNormal(
   w_j,
   target_means,
   sigma_shape,
-  sigma_rate
+  sigma_rate,
+  sigma_ref = NULL
 )
 }
 \arguments{
@@ -36,6 +37,12 @@ These are used as additive offsets in the adjusted normal ExNex model.}
 \item{sigma_shape}{A positive numeric for the Gamma shape prior of the residual precision.}
 
 \item{sigma_rate}{A positive numeric for the Gamma rate prior of the residual precision.}
+
+\item{sigma_ref}{Either \code{NULL} or a positive numeric reference standard deviation
+for the normal endpoint. This is stored with the prior parameters for documentation
+and consistency with the default normal prior construction in
+\code{\link[bhmbasket]{getPriorParameters}}, but is not directly used by the
+JAGS model.}
 }
 \value{
 A list with prior parameters of class \code{prior_parameters_list}
@@ -60,6 +67,7 @@ prior_parameters_normal <- setPriorParametersNormal(
   tau_j        = c(1, 1, 1),
   w_j          = 0.5,
   target_means = c(5, 5, 5),
+  sigma_ref    = 1,
   sigma_shape  = 1,
   sigma_rate   = 1
 )

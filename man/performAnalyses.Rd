@@ -38,15 +38,13 @@ For endpoint \code{"normal"}, the default and only supported method is \code{"no
 Only used for endpoint \code{"binary"}, Default: \code{NULL}}
 
 \item{target_means}{A numeric vector of target means for each cohort.
-Only used for endpoint \code{"normal"} when \code{prior_parameters_list} is \code{NULL}.
-If \code{prior_parameters_list} is provided for method \code{"normal"}, the target means
-stored there are used and this argument is ignored. Default: \code{NULL}}
+Only used for endpoint \code{"normal"}, Default: \code{NULL}}
 
 \item{prior_parameters_list}{An object of class \code{prior_parameters_list},
 as e.g. created with \code{\link[bhmbasket]{getPriorParameters}}.
-For endpoint \code{"normal"}, this can be used instead of \code{target_means} to fully
-specify the prior parameters. If \code{prior_parameters_list} contains an entry
-named \code{"normal"}, its \code{target_means} component is used by the model.}
+If \code{NULL}, default prior parameters are created internally using
+\code{target_rates} for endpoint \code{"binary"} or \code{target_means} for endpoint \code{"normal"}.
+Default: \code{NULL}}
 
 \item{calc_differences}{A matrix of positive integers with 2 columns.
 For each row the difference between the corresponding cohort-level posterior

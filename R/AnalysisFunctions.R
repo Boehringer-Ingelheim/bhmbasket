@@ -264,6 +264,9 @@ getPostQuantiles <- function (
       
     },
     future.seed = TRUE,
+    
+    # Controls how trial analyses are split across parallel workers.
+    # future.scheduling = 1 means one future/chunk per worker.
     future.scheduling = 1
   )
   
@@ -1073,14 +1076,12 @@ mapUniqueTrials <- function (
 #' @param target_rates A vector of numerics in `(0, 1)` for the target rates of each cohort.
 #' Only used for endpoint `"binary"`, Default: `NULL`
 #' @param target_means A numeric vector of target means for each cohort.
-#' Only used for endpoint `"normal"` when `prior_parameters_list` is `NULL`.
-#' If `prior_parameters_list` is provided for method `"normal"`, the target means
-#' stored there are used and this argument is ignored. Default: `NULL`
+#' Only used for endpoint `"normal"`, Default: `NULL`
 #' @param prior_parameters_list An object of class `prior_parameters_list`,
 #' as e.g. created with \code{\link[bhmbasket]{getPriorParameters}}.
-#' For endpoint `"normal"`, this can be used instead of `target_means` to fully
-#' specify the prior parameters. If `prior_parameters_list` contains an entry
-#' named `"normal"`, its `target_means` component is used by the model.
+#' If `NULL`, default prior parameters are created internally using
+#' `target_rates` for endpoint `"binary"` or `target_means` for endpoint `"normal"`.
+#' Default: `NULL`
 #' @param calc_differences A matrix of positive integers with 2 columns.
 #' For each row the difference between the corresponding cohort-level posterior
 #' parameters will be calculated.
@@ -1233,6 +1234,8 @@ performAnalyses <- function (
   
   nbins                 = 5,
   bin_breaks            = NULL
+  
+  # When comparing with RBEST turn off binning
   
 ) {
   
